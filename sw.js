@@ -1,7 +1,7 @@
-// BARKER service worker: lets the app open with no signal.
+// Commando Fit service worker: lets the app open with no signal.
 // Bump VERSION whenever index.html changes so phones pick up the new version.
-const VERSION = 'barker-v1';
-const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'];
+const VERSION = 'cf-v2';
+const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png', 'audio/voice.mp3', 'audio/voice.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

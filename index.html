@@ -6,12 +6,12 @@
 <meta name="theme-color" content="#0a0b0a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="BARKER">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Commando Fit">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
-<title>BARKER</title>
+<title>Commando Fit</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -31,9 +31,9 @@ h1,h2,h3{font-family:var(--head);font-weight:700;letter-spacing:-.015em;margin:0
 .num{font-family:var(--head);font-variant-numeric:tabular-nums}
 .wrap{max-width:560px;margin:0 auto;padding:0 16px}
 /* header */
-header.top{position:sticky;top:0;z-index:20;padding-top:env(safe-area-inset-top);background:rgba(10,11,10,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+header.top{position:sticky;top:0;z-index:20;padding-top:env(safe-area-inset-top);background:var(--bg);border-bottom:1px solid var(--line)}
 header.top .wrap{display:flex;align-items:center;gap:10px;height:56px}
-.brand{font-family:var(--head);font-weight:700;font-size:20px;letter-spacing:.16em;line-height:1}
+.brand{font-family:var(--head);font-weight:700;font-size:18px;letter-spacing:.12em;line-height:1}
 .brand small{display:block;font-size:11px;letter-spacing:.02em;color:var(--muted);font-weight:500;margin-top:4px}
 .spacer{flex:1}
 .badge{font-family:var(--head);font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:5px 9px;border-radius:var(--r);border:1px solid var(--line2);color:var(--muted)}
@@ -123,6 +123,46 @@ section{margin:22px 0}
 .form input,.form select,.form textarea{width:100%;background:var(--s1);border:1px solid var(--line2);border-radius:var(--r);padding:13px 12px;font-size:17px}
 .form input:focus,.form select:focus,.form textarea:focus{outline:none;border-color:var(--green-hi)}
 .form textarea{min-height:76px;resize:vertical}
+.form input:not([type=file]),.form select{height:50px}
+.form input[type=date]{-webkit-appearance:none;appearance:none;display:block;min-width:0;max-width:100%;text-align:left;line-height:1.2;padding-top:0;padding-bottom:0}
+.form input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
+.form input[type=date]::-webkit-calendar-picker-indicator{opacity:.6}
+.two>*,.three>*{min-width:0}
+/* rank + streak */
+.status{display:grid;grid-template-columns:1fr auto;gap:8px}
+.rankc{background:var(--s1);border:1px solid var(--line);border-left:3px solid var(--green-hi);padding:14px 14px 12px;text-align:left;display:block;width:100%}
+.rankc .rk{display:flex;align-items:center;gap:10px}
+.rankc .rk h2{font-size:22px}
+.rankc .sub{font-size:12px;color:var(--muted);margin-top:2px}
+.xpbar{height:6px;background:var(--line);margin-top:10px;position:relative}
+.xpbar i{position:absolute;left:0;top:0;bottom:0;background:var(--green-hi)}
+.xpline{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px;font-family:var(--head)}
+.streak{background:var(--s1);border:1px solid var(--line);padding:12px 14px;min-width:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.streak .n{font-family:var(--head);font-weight:700;font-size:34px;line-height:1;color:var(--amber);display:flex;align-items:center;gap:4px}
+.streak.cold .n{color:var(--dim)}
+.streak .l{font-size:11px;color:var(--muted);margin-top:4px;font-family:var(--head)}
+.streak .fz{font-size:11px;color:var(--blue);margin-top:2px;font-family:var(--head)}
+.warn{border:1px solid #6a2a20;background:rgba(224,83,61,.08);color:#f1a99c;padding:10px 12px;font-size:13px;margin-top:8px;line-height:1.45}
+.today{background:var(--s1);border:1px solid var(--line);padding:14px}
+.today .eyebrow{font-family:var(--head);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--green-hi)}
+.today h2{font-size:24px;margin:4px 0 10px}
+.titem{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--s2);border:1px solid var(--line2);padding:13px 12px;margin-top:6px;font-family:var(--head);font-weight:600;font-size:16px}
+.titem .ck{width:22px;height:22px;border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;font-size:13px;flex:none}
+.titem.done{background:rgba(134,182,114,.1);border-color:#2c4527}
+.titem.done .ck{background:var(--green-hi);border-color:var(--green-hi);color:#0b130a}
+.titem .arr{margin-left:auto;color:var(--green-hi)}
+.tnext{font-size:13px;color:var(--muted);margin-top:10px}
+.chev{display:inline-flex;flex-direction:column;gap:2px;width:26px;align-items:center}
+.req{display:grid;grid-template-columns:1fr auto auto;gap:6px 12px;font-size:14px;align-items:center}
+.req .ok{color:var(--green-hi);font-family:var(--head);font-weight:700}
+.req .no{color:var(--red);font-family:var(--head);font-weight:700}
+.ladder .item{align-items:center}
+.ladder .item.cur{background:rgba(134,182,114,.08)}
+.sched-row{display:grid;grid-template-columns:40px minmax(0,1fr) minmax(0,1fr);gap:6px;align-items:center;margin-bottom:6px}
+.sched-row b{font-family:var(--head)}
+.sched-row select{width:100%;min-width:0;height:46px;font-size:14px;padding:8px;background:var(--s1);color:var(--text);border:1px solid var(--line2);border-radius:var(--r)}
+select{color:var(--text)}
+.big-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 .seg{display:flex;border:1px solid var(--line2);border-radius:var(--r);overflow:hidden}
@@ -176,7 +216,7 @@ details[open] summary{margin-bottom:14px}
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <img src="icons/icon-192.png" alt="" style="width:30px;height:30px;border-radius:7px"><div class="brand">BARKER<small>Training log</small></div>
+  <img src="icons/icon-192.png" alt="" style="width:30px;height:30px;border-radius:7px"><div class="brand">COMMANDO FIT<small>Training log</small></div>
   <div class="spacer"></div>
   <span id="phase" class="badge">—</span>
   <span id="sync" class="sync"></span>
@@ -277,7 +317,16 @@ async function flush(){
   try {
     while (memQueue.length) {
       const job = memQueue[0];
-      await call(job.fn, job.payload);
+      try { await call(job.fn, job.payload); }
+      catch (err) {
+        if (!err.server || /passphrase/i.test(err.message)) throw err;      // offline or wrong key: retry later
+        job.tries = (job.tries || 0) + 1;
+        if (job.tries < 3) { persistQueue(); throw err; }
+        const failed = store.get('barker_failed', []); failed.push(job); store.set('barker_failed', failed);
+        memQueue.shift(); persistQueue();
+        toast(job.label + " couldn't be saved (" + err.message + '). Kept on this phone.', true);
+        continue;
+      }
       memQueue.shift(); persistQueue();
       toast(job.label + ' saved to sheet');
     }
@@ -306,6 +355,7 @@ async function refreshBoot(){
   try {
     const b = await call('getBootstrap');
     const first = !B; B = b; store.set('barker_boot', b);
+    rankNotice();
     if (first || route === 'home') render();
     $('#phase').textContent = B.phase; $('#phase').className = 'badge ' + B.phase;
   } catch (e) {
@@ -375,17 +425,81 @@ function render(){
   if (!B) { v.innerHTML = '<section><div class="card">Loading… <span class="muted small">The first load needs signal.</span></div></section>'; return; }
   $('#phase').textContent = B.phase; $('#phase').className = 'badge ' + B.phase;
   updateSync();
-  const fn = { home: vHome, session: vSession, run: vRun, swim: vSwim, daily: vDaily, event: vEvent, bench: vBench, settings: vSettings }[route] || vHome;
+  const fn = { home: vHome, session: vSession, run: vRun, swim: vSwim, daily: vDaily, event: vEvent, bench: vBench, settings: vSettings, rank: vRank, schedule: vSchedule }[route] || vHome;
   v.innerHTML = fn();
   if (route === 'run' || route === 'swim') bindShots();
 }
 
+const RANK_ABBR = { 'Recruit': 'Rct', 'Marine': 'Mne', 'Lance Corporal': 'LCpl', 'Corporal': 'Cpl', 'Sergeant': 'Sgt' };
+function insignia(idx, size){
+  size = size || 26; const n = Math.max(0, idx - 1);
+  if (idx <= 0) return `<svg width="${size}" height="${size}" viewBox="0 0 26 26"><circle cx="13" cy="13" r="5" fill="none" stroke="#5f665f" stroke-width="2"/></svg>`;
+  if (n === 0) return `<svg width="${size}" height="${size}" viewBox="0 0 26 26"><rect x="5" y="10" width="16" height="6" fill="#86b672"/></svg>`;
+  let p = ''; for (let i = 0; i < n; i++) { const y = 4 + i * 6; p += `<path d="M3 ${y} L13 ${y + 6} L23 ${y}" fill="none" stroke="#86b672" stroke-width="3" stroke-linejoin="miter"/>`; }
+  return `<svg width="${size}" height="${size}" viewBox="0 0 26 26">${p}</svg>`;
+}
+const FLAME = '<svg width="22" height="26" viewBox="0 0 22 26"><path d="M11 1c1 5 7 8 7 15a7 7 0 0 1-14 0c0-4 2-6 4-8 0 3 1 5 3 5-2-4-1-9 0-12z" fill="currentColor"/></svg>';
+
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+function weekdayOf(d){ return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(d + 'T00:00:00').getDay()]; }
+function addDaysStr(d, n){ const t = new Date(d + 'T00:00:00'); t.setDate(t.getDate() + n); return todayStr(t); }
+function planFor(date){
+  const o = (B.overrides || []).find(x => x.date === date); if (o) return o.plan || '';
+  const r = (B.schedule || []).find(x => x.day === weekdayOf(date)); return r ? r.plan || '' : '';
+}
+const planItems = plan => String(plan || '').split('+').map(x => x.trim()).filter(Boolean);
+function itemInfo(it){
+  const td = (B.progress && B.progress.today_done) || { templates: [] };
+  if (B.templates && B.templates[it]) return { kind: 'start', v: it, label: it, done: (td.templates || []).includes(it) };
+  if (/^run/i.test(it)) return { kind: 'run', v: it, label: it.replace(/^run:?\s*/i, '') + ' run', done: td.run };
+  if (/^swim/i.test(it)) return { kind: 'swim', v: it, label: it.replace(/^swim:?\s*/i, '') + ' swim', done: td.swim };
+  if (/^rest/i.test(it)) return { kind: 'daily', v: it, label: 'Rest day: Daily check-in', done: td.daily };
+  if (/^event/i.test(it)) return { kind: 'event', v: it, label: it.replace(/^event:?\s*/i, ''), done: td.event };
+  return { kind: 'text', v: it, label: it, done: false };
+}
+function rankNotice(){
+  const P = B && B.progress; if (!P) return;
+  const prev = store.get('cf_rank', null), idx = P.rank_index;
+  store.set('cf_rank', idx);
+  if (prev === null || prev === idx) return;
+  const up = idx > prev;
+  setTimeout(() => openModal(`<div style="text-align:center">${insignia(idx, 72)}
+    <h2 style="margin-top:10px">${up ? 'Promoted' : 'Demoted'}: ${esc(P.rank)}</h2>
+    <p class="muted">${up ? 'Standards met. Keep the activity up and retest every 6 weeks to hold it.' : 'You slipped below the standard for your old rank. The Rank page shows what\'s needed to win it back.'}</p>
+    <button class="btn block ${up ? 'go' : 'gold'}" data-a="modal-close">${up ? 'Carry on' : 'Understood'}</button>
+    <button class="btn block" style="margin-top:8px" data-a="rank-view">View rank</button></div>`), 300);
+}
+function vToday(){
+  const today = B.today || todayStr(), plan = planFor(today), items = planItems(plan);
+  const td = (B.progress && B.progress.today_done) || {};
+  const rows = items.map((it, k) => { const f = itemInfo(it);
+    return `<button class="titem ${f.done ? 'done' : ''}" data-a="plan-item" data-v="${esc(it)}"><span class="ck">${f.done ? '✓' : ''}</span>${esc(f.label)}<span class="arr">→</span></button>`; }).join('');
+  const hasRest = items.some(x => /^rest/i.test(x));
+  const daily = hasRest ? '' : `<button class="titem ${td.daily ? 'done' : ''}" data-a="go" data-v="daily"><span class="ck">${td.daily ? '✓' : ''}</span>Daily check-in<span class="arr">→</span></button>`;
+  const tom = planFor(addDaysStr(today, 1));
+  return `<div class="today"><div class="eyebrow">Today · ${fmtDay(today)}</div><h2>${items.length ? esc(items.map(x => /^rest/i.test(x) ? 'Rest day' : itemInfo(x).label).join(' + ')) : 'Nothing planned'}</h2>
+    ${rows}${daily}
+    <div class="tnext">Tomorrow: ${esc(planItems(tom).map(x => itemInfo(x).label).join(' + ') || 'nothing planned')} · <a href="#" data-a="go" data-v="schedule" style="color:var(--green-hi)">Edit week</a></div></div>`;
+}
+function vStatus(){
+  const P = B.progress; if (!P) return '';
+  const nx = P.next;
+  let bar = '', line = '';
+  if (nx) {
+    const span = Math.max(1, nx.min_xp - (P.floor_xp || 0)), pct = Math.max(2, Math.min(100, (P.xp_total - (P.floor_xp || 0)) / span * 100));
+    const testsLeft = nx.tests.filter(t => !(t.met && t.fresh)).length;
+    bar = `<div class="xpbar"><i style="width:${pct}%"></i></div>`;
+    line = `<div class="xpline"><span>${P.xp_total} XP</span><span>${nx.xp_ok ? (testsLeft ? testsLeft + ' test' + (testsLeft > 1 ? 's' : '') + ' to pass for ' + RANK_ABBR[nx.rank] : 'Promotion due') : nx.min_xp + ' for ' + RANK_ABBR[nx.rank]}</span></div>`;
+  } else line = `<div class="xpline"><span>${P.xp_total} XP</span><span>Top rank</span></div>`;
+  const st = `<div class="streak ${P.streak ? '' : 'cold'}"><div class="n">${FLAME}${P.streak}</div><div class="l">${P.logged_today ? 'day streak' : (P.streak ? 'log today!' : 'start a streak')}</div>${P.freezes ? `<div class="fz">❄ ${P.freezes} freeze${P.freezes > 1 ? 's' : ''}</div>` : ''}</div>`;
+  const warns = (P.warnings || []).map(w => `<div class="warn">⚠ ${esc(w.text)}</div>`).join('');
+  return `<div class="status"><button class="rankc" data-a="go" data-v="rank"><div class="rk">${insignia(P.rank_index)}<div><h2>${esc(P.rank)}</h2><div class="sub">+${P.xp_today} XP today · ${P.xp_28} in 28 days</div></div></div>${bar}${line}</button>${st}</div>${warns}`;
+}
 function vHome(){
   const ups = (B.upcoming || []);
   let countdown = '';
   if (ups.length) {
     const e = ups[0], d = daysUntil(e.date);
-    // bar: share of the last 8 weeks already gone
     const pct = Math.max(4, Math.min(100, 100 - d / 56 * 100));
     countdown = `<div class="hero"><div class="eyebrow">${esc(e.type)} · ${fmtDay(e.date)}</div>
       <div class="big"><span class="n">${d}</span><span class="u">${d === 1 ? 'day to go' : 'days to go'}</span></div>
@@ -400,6 +514,8 @@ function vHome(){
   const pend = B.pending ? `<div class="hint">${B.pending} run/swim screenshot set${B.pending > 1 ? 's' : ''} waiting for the weekly review.</div>` : '';
   const tile = (a, v, t, sub) => `<button class="tile" data-a="${a}" data-v="${v}"><span class="arr">↗</span><b>${t}</b><span>${sub}</span></button>`;
   return `${draft}
+  <section>${vStatus()}</section>
+  <section>${vToday()}</section>
   ${countdown ? `<section>${countdown}</section>` : ''}
   <section><div class="label">Start session</div>${temps}</section>
   <section><div class="label">Log</div><div class="grid">
@@ -407,11 +523,69 @@ function vHome(){
     ${tile('go', 'swim', 'Swim', 'Distance and time')}
     ${tile('go', 'daily', 'Daily', 'Walk, stretch, deadbugs')}
     ${tile('go', 'event', 'Airsoft & events', 'Game days and races')}
-    ${tile('go', 'bench', 'Benchmark', '2.4 km, pull-ups, bleep')}
+    ${tile('go', 'bench', 'Benchmark', 'Bleep, press, sit, pull')}
     ${tile('cad-open', '', 'Cadence', 'Metronome only')}
   </div>${pend}</section>
   ${recent}
-  <section><button class="btn block" data-a="go" data-v="settings">Cadence presets and settings</button></section>`;
+  <section><button class="btn block" data-a="go" data-v="settings">Settings, audio and schedule</button></section>`;
+}
+
+function vRank(){
+  const P = B.progress || {}, R = B.ranks || [], X = B.xpRules || {};
+  const reqRows = (tests) => tests.map(t => `<span>${esc(t.test.replace(' (RMC cadence)', ''))}</span><span class="muted">${t.latest ? esc(t.latest) + (t.due ? ' (retest due)' : '') : '—'} / ${esc(t.need)}</span><span class="${t.met && t.fresh ? 'ok' : 'no'}">${t.met && t.fresh ? '✓' : '✗'}</span>`).join('');
+  const nx = P.next;
+  const ladder = R.map(r => `<div class="item ${r.order === P.rank_index ? 'cur' : ''}"><span style="display:flex;align-items:center;gap:10px">${insignia(r.order, 22)}<b>${esc(r.rank)}</b></span>
+    <span class="muted small">${r.order === 0 ? 'Start' : `${r.min_xp} XP · bleep ${esc(r.bleep)} · ${r.press_ups}/${r.sit_ups}/${r.pull_ups}`}</span></div>`).join('');
+  return `<div class="line-title"><button class="back" data-a="home">← Home</button></div>
+  <div class="page-h" style="display:flex;align-items:center;gap:12px">${insignia(P.rank_index, 44)}<div><h1>${esc(P.rank || 'Recruit')}</h1><div class="sub">${P.xp_total || 0} XP total · ${P.xp_28 || 0} XP in 28 days${P.easy_phase ? ' · ' + esc(P.phase) + ' week (no activity penalty)' : ''}</div></div></div>
+  ${(P.warnings || []).map(w => `<div class="warn">⚠ ${esc(w.text)}</div>`).join('')}
+  ${nx ? `<section><div class="label">Next: ${esc(nx.rank)}</div><div class="card"><div class="req">
+    <span>XP</span><span class="muted">${P.xp_total} / ${nx.min_xp}</span><span class="${nx.xp_ok ? 'ok' : 'no'}">${nx.xp_ok ? '✓' : '✗'}</span>
+    ${reqRows(nx.tests)}
+    <span>Activity (28 days)</span><span class="muted">${P.xp_28} / ${nx.maint_xp_28d}</span><span class="${P.xp_28 >= nx.maint_xp_28d ? 'ok' : 'no'}">${P.xp_28 >= nx.maint_xp_28d ? '✓' : '✗'}</span>
+  </div><div class="hint">Promotion is automatic once every line is ticked. Test results count for 6 weeks (+1 week grace).</div>
+  <button class="btn block" style="margin-top:12px" data-a="go" data-v="bench">Log a benchmark</button></div></section>` : ''}
+  ${(P.current_tests || []).length ? `<section><div class="label">Holding ${esc(P.rank)}</div><div class="card"><div class="req">${reqRows(P.current_tests)}</div>
+    <div class="hint">Fall below any of these on a retest, let a result go stale, or let 28-day activity drop for more than a week, and you're demoted.</div></div></section>` : ''}
+  <section><div class="label">Rank ladder</div><div class="card list ladder" style="padding:4px 16px">${ladder}</div>
+    <div class="hint">Press-ups / sit-ups / pull-ups to RMC cadence. Sergeant = Royal Marines Candidate Preparation Course pass. Edit the Ranks tab in your sheet to change any standard.</div></section>
+  <section><div class="label">Earning XP</div><div class="card list" style="padding:4px 16px">
+    <div class="item"><span>Gym session / circuit</span><span class="muted">${X.gym} / ${X.circuit}</span></div>
+    <div class="item"><span>Exercise done at target, no splits</span><span class="muted">+${X.target_hit} each</span></div>
+    <div class="item"><span>Run</span><span class="muted">${X.run} + ${X.run_per_km}/km</span></div>
+    <div class="item"><span>Swim</span><span class="muted">${X.swim}</span></div>
+    <div class="item"><span>Daily check-in (+ stretched twice)</span><span class="muted">${X.daily} (+${X.daily_full_stretch})</span></div>
+    <div class="item"><span>Benchmark / personal best</span><span class="muted">${X.bench} / +${X.pb}</span></div>
+    <div class="item"><span>Airsoft day / race</span><span class="muted">${X.airsoft} / ${X.race}</span></div>
+    <div class="item"><span>Whole day's plan done</span><span class="muted">+${X.plan_complete}</span></div>
+    <div class="item"><span>Streak bonus</span><span class="muted">+2/day per streak week (max 10)</span></div>
+  </div></section>
+  <section><div class="label">Streak</div><div class="card small">${P.streak || 0} days now · best ${P.best_streak || 0} · ${P.freezes || 0} freeze${P.freezes === 1 ? '' : 's'} banked.<br><span class="muted">Any log keeps it alive, even just the Daily check-in. You earn a freeze every 7 days in a row (bank up to 2); it covers a missed day automatically.</span></div></section>`;
+}
+
+let schedDraft = null;
+function planOptions(){
+  const base = Object.keys(B.templates || {}).concat(['Run: Zone 2', 'Run: Zone 2 treadmill', 'Run: Intervals', 'Run: Long', 'Swim: Recovery', 'Swim: Endurance', 'Rest'])
+    .concat((B.upcoming || []).map(e => 'Event: ' + e.name));
+  return base;
+}
+function planSelect(val, attrs){
+  const opts = planOptions(); if (val && !opts.includes(val)) opts.push(val);
+  return `<select ${attrs}><option value="">—</option>${opts.map(o => `<option ${o === val ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+}
+function vSchedule(){
+  if (!schedDraft) schedDraft = { week: DAYS.map(d => ({ day: d, plan: ((B.schedule || []).find(x => x.day === d) || {}).plan || 'Rest' })), overrides: (B.overrides || []).map(o => Object.assign({}, o)) };
+  const wk = schedDraft.week.map((d, i) => { const it = planItems(d.plan);
+    return `<div class="sched-row"><b>${d.day}</b>${planSelect(it[0] || '', `data-sw="${i}" data-slot="0"`)}${planSelect(it[1] || '', `data-sw="${i}" data-slot="1"`)}</div>`; }).join('');
+  const ov = schedDraft.overrides.sort((a, b) => a.date < b.date ? -1 : 1).map((o, i) => `<div class="item"><span><b>${fmtDay(o.date)}</b> · ${esc(o.plan)}</span><button class="mini" data-a="ov-del" data-v="${i}">✕</button></div>`).join('');
+  return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>Schedule</h1><div class="sub">Your default week. The home screen shows today's plan from this.</div></div>
+  <section><div class="label">Default week</div>${wk}</section>
+  <section><div class="label">One-off days</div>
+    ${ov ? `<div class="card list" style="padding:4px 16px;margin-bottom:10px">${ov}</div>` : '<div class="hint" style="margin-bottom:10px">None. Use these for race day, taper tweaks or a swapped session.</div>'}
+    <div class="form"><div class="f"><label>Date</label><input type="date" id="ovDate" value="${todayStr()}"></div>
+      <div class="two"><div class="f"><label>Plan</label>${planSelect('', 'id="ovA"')}</div><div class="f"><label>Plus</label>${planSelect('', 'id="ovB"')}</div></div>
+      <button class="btn block" type="button" data-a="ov-add">Add one-off day</button></div></section>
+  <section><button class="btn block go fwd" data-a="sched-save">Save schedule</button></section>`;
 }
 
 function setFields(it, i, j, s){
@@ -511,8 +685,8 @@ function vRun(){
   return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>Log run</h1></div>
   <form class="form" id="f" style="margin-top:14px">
     <div class="two"><div class="f"><label>Date</label><input type="date" name="date" value="${todayStr()}"></div>
-      <div class="f"><label>Type</label><select name="run_type">${opt(['Zone 2','Easy','Long','Tempo','Intervals','2.4 km test','Race'], 'Zone 2')}</select></div></div>
-    <div class="f"><label>Surface</label><select name="surface">${opt(['Road','Track','Treadmill','Trail'], 'Road')}</select></div>
+      <div class="f"><label>Type</label><select name="run_type">${opt(['Zone 2','Easy','Long','Tempo','Intervals','2.4 km test','Race'], (formPrefill.run || {}).type || 'Zone 2')}</select></div></div>
+    <div class="f"><label>Surface</label><select name="surface">${opt(['Road','Track','Treadmill','Trail'], (formPrefill.run || {}).surface || 'Road')}</select></div>
     <div class="two"><div class="f"><label>Distance (km)</label><input name="distance_km" inputmode="decimal" placeholder="4.30"></div>
       <div class="f"><label>Workout time</label><input name="workout_time" placeholder="30:01"></div></div>
     <div class="two"><div class="f"><label>Avg HR</label><input name="avg_hr" inputmode="numeric" placeholder="139"></div>
@@ -540,7 +714,7 @@ function vSwim(){
   return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>Log swim</h1></div>
   <form class="form" id="f" style="margin-top:14px">
     <div class="two"><div class="f"><label>Date</label><input type="date" name="date" value="${todayStr()}"></div>
-      <div class="f"><label>Type</label><select name="swim_type">${opt(['Recovery','Endurance','Technique','Test'], 'Recovery')}</select></div></div>
+      <div class="f"><label>Type</label><select name="swim_type">${opt(['Recovery','Endurance','Technique','Test'], (formPrefill.swim || {}).type || 'Recovery')}</select></div></div>
     <div class="two"><div class="f"><label>Distance (m)</label><input name="distance_m" inputmode="numeric" placeholder="1000"></div>
       <div class="f"><label>Time</label><input name="time" placeholder="25:00"></div></div>
     <div class="two"><div class="f"><label>Pool (m)</label><input name="pool_m" inputmode="numeric" value="25"></div>
@@ -574,8 +748,8 @@ function vEvent(){
   return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>Airsoft &amp; events</h1></div>
   <form class="form" id="f" style="margin-top:14px">
     <div class="two"><div class="f"><label>Date</label><input type="date" name="date" value="${todayStr()}"></div>
-      <div class="f"><label>Type</label><select name="type">${opt(['Airsoft','Race','Other'], 'Airsoft')}</select></div></div>
-    <div class="f"><label>Name</label><input name="name" placeholder="e.g. Shadow Strike 4, Spartan race"></div>
+      <div class="f"><label>Type</label><select name="type">${opt(['Airsoft','Race','Other'], (formPrefill.event || {}).type || 'Airsoft')}</select></div></div>
+    <div class="f"><label>Name</label><input name="name" value="${esc((formPrefill.event || {}).name || '')}" placeholder="e.g. Shadow Strike 4, Spartan race"></div>
     <div class="f"><label>Status</label><select name="status"><option value="done">Done: log how it went</option><option value="upcoming">Upcoming: add to countdown</option></select></div>
     <div class="three"><div class="f"><label>Hours</label><input name="duration_h" inputmode="decimal"></div>
       <div class="f"><label>Km</label><input name="distance_km" inputmode="decimal"></div>
@@ -586,27 +760,39 @@ function vEvent(){
   </form>`;
 }
 
-const BENCH = { '2.4 km run': 'mm:ss', 'Pull-ups (RMC cadence)': 'reps', 'Press-ups (RMC cadence)': 'reps', 'Bleep test': 'level', 'Bodyweight': 'kg', 'Other': '' };
+let formPrefill = {};
+const BENCH = { 'Bleep test': 'level', 'Press-ups (RMC cadence)': 'reps', 'Sit-ups (RMC cadence)': 'reps', 'Pull-ups (RMC cadence)': 'reps', '2.4 km run': 'mm:ss', 'Bodyweight': 'kg', 'Other': '' };
 function vBench(){
-  return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>Benchmark</h1></div>
+  const pf = benchPrefill || {}; benchPrefill = null;
+  const latest = (B.progress && B.progress.latest_tests) || {};
+  const lastList = Object.keys(BENCH).filter(t => latest[t]).map(t => `<div class="item"><span>${esc(t)}</span><span class="muted">${esc(latest[t].result)} · ${fmtDay(latest[t].date)}</span></div>`).join('');
+  return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>Benchmark</h1>
+    <div class="sub">The four Royal Marines tests decide your rank: bleep test, press-ups, sit-ups and pull-ups. Retest every 6 weeks.</div></div>
+  <section><div class="label">Run a test with audio</div><div class="big-btns">
+    <button class="btn" data-a="bench-test" data-v="pull">▶ Pull-up test</button><button class="btn" data-a="bench-test" data-v="press">▶ Press-up test</button></div>
+    <div class="hint">Plays the full test: instructions, countdown, beep and count. Tap "Stop &amp; log" when you fail a rep; the count fills in below.</div></section>
   <form class="form" id="f" style="margin-top:14px">
     <div class="f"><label>Date</label><input type="date" name="date" value="${todayStr()}"></div>
-    <div class="f"><label>Test</label><select name="test">${opt(Object.keys(BENCH), '2.4 km run')}</select></div>
-    <div class="two"><div class="f"><label>Result</label><input name="result" placeholder="e.g. 11:42 / 12 / 9.4"></div>
+    <div class="f"><label>Test</label><select name="test">${opt(Object.keys(BENCH), pf.test || 'Bleep test')}</select></div>
+    <div class="two"><div class="f"><label>Result</label><input name="result" value="${esc(pf.result === undefined ? '' : pf.result)}" placeholder="e.g. 10.8 / 30 / 11:42"></div>
       <div class="f"><label>Unit</label><input name="unit" placeholder="auto"></div></div>
+    <div class="hint" style="margin:-6px 0 12px">Bleep test: level.shuttle, e.g. 9.10 = level 9, shuttle 10.</div>
     <div class="f"><label>Notes</label><textarea name="notes"></textarea></div>
     <button class="btn block go fwd" type="button" data-a="save-bench">Save benchmark</button>
-  </form>`;
+  </form>
+  ${lastList ? `<section><div class="label">Latest results</div><div class="card list" style="padding:4px 16px">${lastList}</div></section>` : ''}`;
 }
 
 /* ---- settings / cadence presets ---- */
 const DEFAULT_PRESETS = [
-  { name: 'RMC pull-up', phases: [{ label: 'UP', s: 2 }, { label: 'DOWN', s: 2 }] },
-  { name: 'RMC press-up', phases: [{ label: 'DOWN', s: 1 }, { label: 'UP', s: 1 }] },
+  { name: 'RMC pull-up', phases: [{ label: 'UP', s: 2 }, { label: 'DOWN', s: 2 }], voice: 'pull', rmc: true },
+  { name: 'RMC press-up', phases: [{ label: 'DOWN', s: 2 }], voice: 'press', rmc: true },
   { name: 'Slow tempo 3-1-1', phases: [{ label: 'DOWN', s: 3 }, { label: 'HOLD', s: 1 }, { label: 'UP', s: 1 }] }
 ];
-let presets = store.get('barker_presets', DEFAULT_PRESETS);
-let settings = store.get('barker_settings', { lead: 3, voiceless: true, restBeep: true });
+// v2: press-up preset fixed to one beep per rep (matches the test audio)
+let presets = store.get('cf_presets_v2', null) || JSON.parse(JSON.stringify(DEFAULT_PRESETS));
+let settings = Object.assign({ lead: 3, audioMode: 'mix', voice: true }, store.get('barker_settings', {}));
+function saveSettings(){ store.set('barker_settings', settings); }
 function vConnect(){
   return `<div class="page-h" style="margin-top:22px"><h1>Link your sheet</h1>
     <div class="sub">One-time setup. Both values come from your Apps Script; they stay on this phone only.</div></div>
@@ -635,8 +821,19 @@ async function connectSave(){
 }
 
 function vSettings(){
-  return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>Cadence presets</h1></div>
-  <p class="muted small" style="line-height:1.5">Each phase beeps when it starts. A rep counts at the end of the last phase. Pull-up default: 2 s up, 2 s down (15 a minute). Press-up default: 2 s per rep. Check these against your test audio.</p>
+  const am = settings.audioMode || 'mix';
+  return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>Settings</h1></div>
+  <section><div class="label">Audio over music</div>
+    <div class="form"><div class="seg">
+      <button type="button" class="${am === 'mix' ? 'on' : ''}" data-a="am" data-v="mix">Mix</button>
+      <button type="button" class="${am === 'duck' ? 'on' : ''}" data-a="am" data-v="duck">Duck</button>
+      <button type="button" class="${am === 'pause' ? 'on' : ''}" data-a="am" data-v="pause">Pause</button></div></div>
+    <div class="hint"><b>Mix</b>: plays over your music, but goes silent when the phone is on silent. <b>Duck</b>: music dips under each cue. <b>Pause</b>: music stops while the app plays. Try them at the gym.</div>
+    <div class="row" style="margin-top:10px"><button class="btn sm" data-a="test-audio">▶ Test sound</button>
+      <button class="btn sm" data-a="voice-toggle">Voice: ${settings.voice !== false ? 'on' : 'off'}</button></div>
+  </section>
+  <section><div class="label">Cadence presets</div>
+  <p class="muted small" style="line-height:1.5;margin-top:0">Each phase beeps when it starts. The RMC presets use the test beep and voice counts: pull-up beeps every 2 s (up, down); press-up beeps once per rep every 2 s.</p>
   <div id="presets">${presets.map((p, i) => `<div class="preset">
     <input class="inp" style="width:100%;text-align:left;margin-bottom:6px" data-p="${i}" data-pf="name" value="${esc(p.name)}">
     ${p.phases.map((ph, k) => `<div class="ph"><input class="inp" style="width:100%;text-align:left" data-p="${i}" data-k="${k}" data-pf="label" value="${esc(ph.label)}">
@@ -644,8 +841,9 @@ function vSettings(){
       <button class="mini" data-a="ph-del" data-p="${i}" data-k="${k}">✕</button></div>`).join('')}
     <div class="row"><button class="mini" data-a="ph-add" data-p="${i}">+ Phase</button><div class="spacer"></div><button class="mini" data-a="pre-del" data-p="${i}">Delete preset</button></div>
   </div>`).join('')}</div>
-  <div class="row"><button class="btn" data-a="pre-add">+ Preset</button><button class="btn" data-a="pre-reset">Reset defaults</button></div>
-  <section class="form"><div class="f"><label>Lead-in countdown (sec)</label><input id="leadIn" inputmode="numeric" value="${esc(settings.lead)}"></div></section>
+  <div class="row"><button class="btn" data-a="pre-add">+ Preset</button><button class="btn" data-a="pre-reset">Reset defaults</button></div></section>
+  <section class="form"><div class="f"><label>Lead-in countdown (sec, non-voice presets)</label><input id="leadIn" inputmode="numeric" value="${esc(settings.lead)}"></div></section>
+  <section><div class="label">Weekly schedule</div><button class="btn block" data-a="go" data-v="schedule">Edit week and one-off days</button></section>
   <section><div class="label">Sheet link</div><div class="card small"><div class="muted" style="word-break:break-all">${esc(cfg.url)}</div>
     <div class="row" style="margin-top:10px"><button class="btn sm" data-a="go" data-v="connect">Change link or passphrase</button></div></div></section>`;
 }
@@ -782,25 +980,53 @@ function confirmBox(title, body, okLabel, cb){
 
 /* ================= audio ================= */
 let actx = null;
+const AUDIO_MODES = { mix: 'ambient', duck: 'transient', pause: 'playback' };
 function audio(){
   if (!actx) {
-    try { if (navigator.audioSession) navigator.audioSession.type = 'ambient'; } catch (e) {} // mix with music (iOS 16.4+)
+    try { if (navigator.audioSession) navigator.audioSession.type = AUDIO_MODES[settings.audioMode] || 'ambient'; } catch (e) {}
     actx = new (window.AudioContext || window.webkitAudioContext)();
+    loadVoice();
   }
   if (actx.state === 'suspended') actx.resume();
   return actx;
 }
-function beep(freq, at, dur, vol, bag){
+function resetAudio(){ try { if (actx) actx.close(); } catch (e) {} actx = null; }
+function beep(freq, at, dur, vol, bag, type){
   const a = audio(), o = a.createOscillator(), g = a.createGain();
   if (bag) bag.push(o);
-  o.type = 'square'; o.frequency.value = freq; at = at || a.currentTime; dur = dur || 0.12;
+  o.type = type || 'square'; o.frequency.value = freq; at = at || a.currentTime; dur = dur || 0.12;
   g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(vol || 0.35, at + 0.005);
+  g.gain.setValueAtTime(vol || 0.35, Math.max(at + 0.006, at + dur - 0.02));
   g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
   o.connect(g).connect(a.destination); o.start(at); o.stop(at + dur + 0.02);
   return o;
 }
+// The RMC test beep: ~586 Hz for ~0.22 s (measured from the test recordings)
+const RMC_BEEP = { f: 586, d: 0.22 };
 function silence(bag){ while (bag && bag.length) { const o = bag.pop(); try { o.stop(0); } catch (e) {} } }
 const TONE = { UP: 1175, DOWN: 587, HOLD: 880 };
+// Voice clips: one file + timings, decoded once
+let voice = { buf: null, map: null, loading: null };
+function loadVoice(){
+  if (voice.buf || voice.loading || !actx) return voice.loading;
+  voice.loading = Promise.all([fetch('audio/voice.json').then(r => r.json()), fetch('audio/voice.mp3').then(r => r.arrayBuffer())])
+    .then(([map, ab]) => new Promise((res, rej) => actx.decodeAudioData(ab, res, rej)).then(buf => { voice.buf = buf; voice.map = map; }))
+    .catch(e => { console.log('voice', e); voice.loading = null; });
+  return voice.loading;
+}
+function hasVoice(){ return !!(voice.buf && voice.map) && settings.voice !== false; }
+function clipLen(name){ return voice.map && voice.map[name] ? voice.map[name][1] : 0; }
+function playClip(name, at, bag){
+  if (!hasVoice() || !voice.map[name]) return 0;
+  const a = audio(), src = a.createBufferSource(), g = a.createGain();
+  src.buffer = voice.buf; g.gain.value = 1.0;
+  src.connect(g).connect(a.destination);
+  const [off, dur] = voice.map[name];
+  src.start(Math.max(at, a.currentTime), off, dur);
+  if (bag) bag.push(src);
+  return dur;
+}
+const numClip = n => n >= 1 && n <= 60 ? 'n' + String(n).padStart(2, '0') : null;
 let wake = null;
 async function keepAwake(on){
   try {
@@ -847,41 +1073,71 @@ function stationTimer(i, j){
 }
 
 /* ================= cadence player ================= */
-const cad = { running: false, reps: 0, preset: 0, link: null, timer: null, next: 0, phase: 0, sched: [], bag: [] };
-function cadOpen(presetName, i){
-  stopRest();
+const cad = { running: false, reps: 0, preset: 0, link: null, mode: 'free', test: null, timer: null, next: 0, phase: 0, k: 0, sched: [], events: [], bag: [] };
+const TEST_SPEC = {
+  pull: { preset: 'RMC pull-up', max: 16, intro: ['intro_pull', 'pull_stand_under_bar', 'stand_by', 'jump_up'], end: ['drop_off'], bench: 'Pull-ups (RMC cadence)', title: 'Pull-up test' },
+  press: { preset: 'RMC press-up', max: 60, intro: ['intro_press', 'press_adopt_position', 'stand_by'], end: ['stop', 'stand_up'], bench: 'Press-ups (RMC cadence)', title: 'Press-up test' }
+};
+function cadOpen(presetName, i, mode, testKind){
+  stopRest(); audio(); loadVoice();
+  cad.mode = mode || ((i !== undefined && i !== '' && S) ? 'set' : 'free');
+  cad.test = cad.mode === 'test' ? TEST_SPEC[testKind] : null;
+  if (cad.test) presetName = cad.test.preset;
   const sel = $('#cadPreset');
   sel.innerHTML = presets.map((p, k) => `<option value="${k}">${esc(p.name)}</option>`).join('');
   let k = presets.findIndex(p => p.name.toLowerCase() === String(presetName || '').toLowerCase());
-  cad.preset = k >= 0 ? k : 0; sel.value = cad.preset;
-  cad.link = (i !== undefined && i !== '' && S) ? { i: Number(i) } : null;
-  cad.reps = 0; cadUI();
+  cad.preset = k >= 0 ? k : 0; sel.value = cad.preset; sel.disabled = cad.mode === 'test';
+  cad.link = cad.mode === 'set' ? { i: Number(i) } : null;
+  cad.reps = 0; cad.started = false; cadUI();
   const cs = curSetForCad();
-  $('#cadFor').textContent = cs ? cs.it.exercise + ' · ' + (S.kind === 'circuit' ? 'round ' : 'set ') + (cs.j + 1) : 'Free run';
+  $('#cadFor').textContent = cad.test ? cad.test.title + ' · max ' + cad.test.max
+    : cs ? cs.it.exercise + ' · ' + (S.kind === 'circuit' ? 'round ' : 'set ') + (cs.j + 1) : 'Free run';
   $('#cadTarget').textContent = cs && setVal(cs.it.sets[cs.j]) ? 'target ' + setVal(cs.it.sets[cs.j]) : 'reps';
-  $('#cadLog').textContent = cs ? 'Stop & log' : 'Stop';
-  $('#cadPhase').textContent = 'READY'; $('#cadPhase').className = 'cad-phase';
+  $('#cadLog').textContent = cs || cad.test ? 'Stop & log' : 'Stop';
+  $('#cadPhase').textContent = 'READY'; $('#cadPhase').className = 'cad-phase'; $('#cadBar').style.width = '0';
   $('#cad').classList.add('show');
 }
 function cadUI(){ $('#cadReps').textContent = cad.reps; $('#cadStart').textContent = cad.running ? 'Pause' : (cad.reps ? 'Resume' : 'Start'); }
-function cadStart(){
+async function cadStart(){
   if (cad.running) return cadStop();
   const a = audio(), P = presets[cad.preset]; if (!P || !P.phases.length) return;
-  const lead = num(settings.lead) || 0;
-  cad.running = true; cad.sched = [];
-  let t = a.currentTime + 0.1;
-  for (let k = 0; k < lead; k++) { beep(784, t, .08, .25, cad.bag); t += 1; }
-  cad.next = t; cad.phase = 0; cad.leadEnd = t;
+  if (P.voice && settings.voice !== false && !voice.buf) { $('#cadPhase').textContent = '…'; await Promise.race([loadVoice(), new Promise(r => setTimeout(r, 2500))]); }
+  const voiced = !!P.voice && hasVoice();
+  const L = P.phases.length;
+  cad.running = true; cad.sched = []; cad.events = []; cad.capped = false; cad.endAt = 0;
+  let t = a.currentTime + 0.15;
+  if (cad.mode === 'test' && voiced && !cad.started) {
+    for (const n of cad.test.intro) { playClip(n, t, cad.bag); t += clipLen(n) + 0.9; }
+  }
+  cad.started = true;
+  if (voiced) { ['cd_3', 'cd_2', 'cd_1'].forEach((n, i) => playClip(n, t + i, cad.bag)); t += 3; }
+  else { const lead = num(settings.lead) || 0; for (let k = 0; k < lead; k++) { beep(784, t, .08, .25, cad.bag); t += 1; } }
+  cad.leadEnd = t; cad.next = t; cad.phase = 0; cad.k = cad.reps * L;
   const target = (() => { const cs = curSetForCad(); return cs ? num(setVal(cs.it.sets[cs.j])) : ''; })();
   cad.target = target;
   const schedule = () => {
-    while (cad.next < a.currentTime + 0.25) {
-      const ph = P.phases[cad.phase];
-      beep(TONE[String(ph.label).toUpperCase()] || 988, cad.next, .1, undefined, cad.bag);
-      if (cad.bag.length > 64) cad.bag.splice(0, cad.bag.length - 64);
-      cad.sched.push({ at: cad.next, label: ph.label, dur: Number(ph.s) || 1, last: cad.phase === P.phases.length - 1 });
-      cad.next += Number(ph.s) || 1;
-      cad.phase = (cad.phase + 1) % P.phases.length;
+    while (!cad.capped && cad.next < a.currentTime + 0.3) {
+      const ph = P.phases[cad.phase], dur = Number(ph.s) || 1;
+      const rep = Math.floor(cad.k / L) + 1;
+      if (cad.test && rep > cad.test.max) {
+        // test finished: final commands, then stop
+        let t2 = cad.next;
+        cad.test.end.forEach(n => { playClip(n, t2, cad.bag); t2 += clipLen(n) + 0.4; });
+        cad.endAt = t2 + 0.3; cad.capped = true; break;
+      }
+      if (P.rmc) beep(RMC_BEEP.f, cad.next, RMC_BEEP.d, .3, cad.bag);
+      else beep(TONE[String(ph.label).toUpperCase()] || 988, cad.next, .1, undefined, cad.bag);
+      if (voiced && P.voice === 'pull') {
+        if (cad.phase === 0) { playClip(numClip(rep), cad.next + 1.0, cad.bag); cad.events.push({ at: cad.next + 1.0, rep }); }
+        else playClip('down', cad.next + 1.0, cad.bag);
+      } else if (voiced && P.voice === 'press') {
+        playClip(numClip(rep), cad.next + 0.8, cad.bag); cad.events.push({ at: cad.next + 0.8, rep });
+      } else if (cad.phase === L - 1) {
+        cad.events.push({ at: cad.next + dur, rep });
+      }
+      if (cad.bag.length > 160) cad.bag.splice(0, cad.bag.length - 160);
+      cad.sched.push({ at: cad.next, label: ph.label, dur });
+      cad.next += dur; cad.k++; cad.phase = (cad.phase + 1) % L;
     }
   };
   schedule();
@@ -890,20 +1146,23 @@ function cadStart(){
   const draw = () => {
     if (!cad.running) return;
     const now = a.currentTime;
-    if (now < cad.leadEnd) { $('#cadPhase').textContent = Math.ceil(cad.leadEnd - now); $('#cadPhase').className = 'cad-phase'; }
-    while (cad.sched.length && cad.sched[0].at + cad.sched[0].dur <= now) {
-      const done = cad.sched.shift();
-      if (done.last) {
-        cad.reps++; cadUI();
-        if (cad.target && cad.reps === cad.target) { beep(1568, now + .02, .12); beep(1568, now + .2, .12); }
-      }
+    if (now < cad.leadEnd) {
+      const left = Math.ceil(cad.leadEnd - now);
+      $('#cadPhase').textContent = left <= 3 ? left : 'STAND BY'; $('#cadPhase').className = 'cad-phase';
     }
+    while (cad.events.length && cad.events[0].at <= now) {
+      const ev = cad.events.shift(); cad.reps = ev.rep; cadUI();
+      if (cad.mode === 'set' && cad.target && cad.reps === cad.target) { beep(1568, now + .05, .12, .25); beep(1568, now + .22, .12, .25); }
+    }
+    while (cad.sched.length > 1 && cad.sched[1].at <= now) cad.sched.shift();
     const cur = cad.sched[0];
     if (cur && now >= cur.at) {
       const lab = String(cur.label).toUpperCase();
       $('#cadPhase').textContent = lab; $('#cadPhase').className = 'cad-phase ' + lab.toLowerCase();
       $('#cadBar').style.width = Math.min(100, (now - cur.at) / cur.dur * 100) + '%';
     }
+    if (cad.capped && now >= cad.endAt) { cad.running = false; clearInterval(cad.timer); keepAwake(false);
+      $('#cadPhase').textContent = 'DONE'; $('#cadPhase').className = 'cad-phase'; cadUI(); return; }
     requestAnimationFrame(draw);
   };
   requestAnimationFrame(draw);
@@ -911,11 +1170,18 @@ function cadStart(){
 function cadStop(){
   cad.running = false; clearInterval(cad.timer);
   silence(cad.bag);
-  cad.sched = []; $('#cadPhase').textContent = 'PAUSED'; $('#cadPhase').className = 'cad-phase'; $('#cadBar').style.width = '0';
+  cad.sched = []; cad.events = []; $('#cadPhase').textContent = 'PAUSED'; $('#cadPhase').className = 'cad-phase'; $('#cadBar').style.width = '0';
   keepAwake(false); cadUI();
 }
+let benchPrefill = null;
 function cadLog(){
+  const wasRunning = cad.running;
   cadStop();
+  if (cad.mode === 'test') {
+    if (wasRunning && hasVoice()) { let t = audio().currentTime + 0.05; cad.test.end.forEach(n => { playClip(n, t); t += clipLen(n) + 0.4; }); }
+    benchPrefill = { test: cad.test.bench, result: cad.reps };
+    $('#cad').classList.remove('show'); cad.reps = 0; go('bench'); return;
+  }
   const cs = curSetForCad();
   if (cs && cad.reps) {
     const s = cs.it.sets[cs.j]; s.splitOn = false; s.reps = cad.reps;
@@ -932,7 +1198,29 @@ document.addEventListener('click', e => {
   const a = el.dataset.a, v = el.dataset.v, i = el.dataset.i, j = el.dataset.j;
   const it = S && i !== undefined ? S.items[Number(i)] : null;
   switch (a) {
-    case 'go': if (v === 'run' || v === 'swim') shots = []; if (v === 'daily') dailyState = null; go(v); break;
+    case 'go': e.preventDefault(); if (v === 'run' || v === 'swim') { shots = []; formPrefill = {}; } if (v === 'event') formPrefill = {}; if (v === 'daily') dailyState = null; if (v === 'schedule') schedDraft = null; go(v); break;
+    case 'rank-view': closeModal(); go('rank'); break;
+    case 'plan-item': {
+      const f = itemInfo(v);
+      if (f.kind === 'start') { if (S && S.template === v) go('session'); else if (S) confirmBox('Session in progress', 'Discard ' + S.template + ' and start ' + v + '?', 'Discard & start', () => { S = null; audio(); startSession(v); }); else { audio(); startSession(v); } }
+      else if (f.kind === 'run') { shots = []; formPrefill = { run: { type: /zone ?2/i.test(v) ? 'Zone 2' : /interval/i.test(v) ? 'Intervals' : /long/i.test(v) ? 'Long' : 'Zone 2', surface: /treadmill/i.test(v) ? 'Treadmill' : 'Road' } }; go('run'); }
+      else if (f.kind === 'swim') { shots = []; formPrefill = { swim: { type: /endurance/i.test(v) ? 'Endurance' : 'Recovery' } }; go('swim'); }
+      else if (f.kind === 'daily') { dailyState = null; go('daily'); }
+      else if (f.kind === 'event') { const nm = v.replace(/^event:?\s*/i, ''); formPrefill = { event: { name: nm, type: /race|spartan/i.test(nm) ? 'Race' : 'Airsoft' } }; go('event'); }
+      break; }
+    case 'bench-test': cadOpen('', '', 'test', v); break;
+    case 'am': settings.audioMode = v; saveSettings(); resetAudio(); render(); break;
+    case 'voice-toggle': settings.voice = settings.voice === false; saveSettings(); render(); break;
+    case 'test-audio': { const a = audio(); loadVoice(); setTimeout(() => { const t = a.currentTime + 0.05; beep(RMC_BEEP.f, t, RMC_BEEP.d, .3); playClip('n01', t + 0.8); beep(RMC_BEEP.f, t + 2, RMC_BEEP.d, .3); playClip('n02', t + 2.8); }, voice.buf ? 0 : 1200); break; }
+    case 'ov-add': {
+      const d = $('#ovDate').value, plan = [$('#ovA').value, $('#ovB').value].filter(Boolean).join(' + ');
+      if (!d || !plan) return toast('Pick a date and a plan', true);
+      schedDraft.overrides = schedDraft.overrides.filter(o => o.date !== d).concat([{ date: d, plan, note: '' }]); render(); break; }
+    case 'ov-del': schedDraft.overrides.sort((a, b) => a.date < b.date ? -1 : 1).splice(Number(v), 1); render(); break;
+    case 'sched-save':
+      B.schedule = schedDraft.week.map(w => ({ day: w.day, plan: w.plan || 'Rest', note: '' }));
+      B.overrides = schedDraft.overrides.slice(); store.set('barker_boot', B);
+      submit('saveSchedule', { week: B.schedule, overrides: B.overrides }, 'Schedule'); schedDraft = null; go('home'); break;
     case 'home': go('home'); break;
     case 'start':
       if (S) return confirmBox('Session in progress', 'Discard ' + S.template + ' and start ' + v + '?', 'Discard & start', () => { S = null; startSession(v); });
@@ -974,9 +1262,9 @@ document.addEventListener('click', e => {
     case 'pre-reset': presets = JSON.parse(JSON.stringify(DEFAULT_PRESETS)); savePresets(); render(); break;
   }
 });
-function savePresets(){ store.set('barker_presets', presets); }
+function savePresets(){ store.set('cf_presets_v2', presets); }
 
-document.addEventListener('input', e => {
+function onField(e){
   const el = e.target;
   if (el.dataset.f && S) {
     const s = S.items[Number(el.dataset.i)].sets[Number(el.dataset.j)];
@@ -985,8 +1273,14 @@ document.addEventListener('input', e => {
     const p = presets[el.dataset.p];
     if (el.dataset.pf === 'name') p.name = el.value; else p.phases[el.dataset.k][el.dataset.pf] = el.dataset.pf === 's' ? Number(el.value) || '' : el.value;
     savePresets();
-  } else if (el.id === 'leadIn') { settings.lead = num(el.value); store.set('barker_settings', settings); }
-});
+  } else if (el.id === 'leadIn') { settings.lead = num(el.value); saveSettings(); }
+  else if (el.dataset.sw !== undefined && schedDraft) {
+    const w = schedDraft.week[Number(el.dataset.sw)], it = planItems(w.plan);
+    it[Number(el.dataset.slot)] = el.value; w.plan = it.filter(Boolean).join(' + ') || 'Rest';
+  }
+}
+document.addEventListener('input', onField);
+document.addEventListener('change', e => { if (e.target.tagName === 'SELECT') onField(e); });
 $('#cadPreset').addEventListener('change', e => { cadStop(); cad.preset = Number(e.target.value); cad.reps = 0; cadUI(); });
 
 /* ================= boot ================= */
