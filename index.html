@@ -641,7 +641,10 @@ let ibShots = [];
 function vInBody(){
   const sc = ibScans(), all = B.inbody || [];
   const L = sc[sc.length - 1], P = sc.length > 1 ? sc[sc.length - 2] : null;
-  const stats = L ? `<div class="stats">${IB_FIELDS.filter(([k]) => L[k] !== null && L[k] !== undefined).map(([k, n, u, dir]) => `<div class="stat"><div class="k">${n}</div><div class="v">${fmtN(L[k])}<small>${u}</small></div>${P ? delta(L[k], P[k], dir) : ''}</div>`).join('')}</div>` : '';
+  // compare each value with the most recent earlier scan that has it (history-strip scans only carry weight and fat %)
+  const prevOf = k => { for (let i = sc.length - 2; i >= 0; i--) if (sc[i][k] !== null && sc[i][k] !== undefined) return sc[i]; return null; };
+  const stats = L ? `<div class="stats">${IB_FIELDS.filter(([k]) => L[k] !== null && L[k] !== undefined).map(([k, n, u, dir]) => { const pv = prevOf(k);
+    return `<div class="stat"><div class="k">${n}</div><div class="v">${fmtN(L[k])}<small>${u}</small></div>${pv ? delta(L[k], pv[k], dir) + `<div class="d flat" style="margin-top:0">vs ${fmtDay(pv.date)}</div>` : ''}</div>`; }).join('')}</div>` : '';
   const extra = L ? IB_EXTRA.filter(([k]) => L[k] !== null && L[k] !== undefined).map(([k, n, u]) => `<div class="item"><span>${n}</span><span class="muted">${fmtN(L[k], k === 'ecw_ratio' || k === 'whr' ? 3 : undefined)} ${u}</span></div>`).join('') : '';
   const seg = L && (L.segmental_lean || L.segmental_fat) ? segTable(L) : '';
   const pts = k => sc.map(r => [r.date, r[k]]);
@@ -651,7 +654,7 @@ function vInBody(){
     <section><div class="chart"><h3>Muscle vs fat mass (kg)</h3>${lineChart([{ name: 'Skeletal muscle', color: '#86b672', points: pts('smm_kg') }, { name: 'Body fat mass', color: '#f2b632', points: pts('bfm_kg') }], { h: 170 })}</div></section>` : '';
   const hist = all.slice().reverse().map(r => `<div class="item"><b>${fmtDay(r.date)}</b><span class="muted">${r.weight_kg !== null ? fmtN(r.weight_kg) + ' kg · ' + fmtN(r.pbf_pct) + '%' : 'photos pending'}</span></div>`).join('');
   return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>InBody</h1>
-    <div class="sub">${L ? 'Latest scan ' + fmtDay(L.date) + (P ? ' · changes vs ' + fmtDay(P.date) : '') : 'No scans yet. Add your first below.'}</div></div>
+    <div class="sub">${L ? 'Latest scan ' + fmtDay(L.date) + ' · ' + sc.length + ' scan' + (sc.length > 1 ? 's' : '') + ' logged' : 'No scans yet. Add your first below.'}</div></div>
   ${stats ? `<section>${stats}</section>` : ''}
   ${charts}
   ${extra ? `<section><div class="label">More from the latest scan</div><div class="card list" style="padding:4px 16px">${extra}</div></section>` : ''}
@@ -682,13 +685,18 @@ function segTable(r){
   const rows = parts.filter(([k]) => lean[k] !== undefined || fat[k] !== undefined).map(([k, n]) => `<span>${n}</span><span class="muted">${lean[k] !== undefined ? fmtN(lean[k]) + ' kg' : '—'}</span><span class="muted">${fat[k] !== undefined ? fmtN(fat[k]) + ' kg' : '—'}</span>`).join('');
   return rows ? `<section><div class="label">Segments (lean · fat)</div><div class="card"><div class="req">${rows}</div></div></section>` : '';
 }
+// Accepts one scan {…} or several [{…},{…}]
 function parseInBodyBlock(txt){
-  const i = txt.indexOf('{'), j = txt.lastIndexOf('}');
-  if (i < 0 || j < i) throw new Error('No scan data found in that text');
-  const o = JSON.parse(txt.slice(i, j + 1));
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(o.date || '')) throw new Error('The block needs a date (YYYY-MM-DD)');
-  if (o.weight_kg === undefined) throw new Error('The block needs at least a weight');
-  return o;
+  const a = txt.search(/[\[{]/); if (a < 0) throw new Error('No scan data found in that text');
+  const close = txt[a] === '[' ? ']' : '}', b = txt.lastIndexOf(close);
+  if (b < a) throw new Error('No scan data found in that text');
+  let o; try { o = JSON.parse(txt.slice(a, b + 1)); } catch (e) { throw new Error("That block didn't paste completely. Copy it again"); }
+  const list = Array.isArray(o) ? o : [o];
+  list.forEach(x => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(x.date || '')) throw new Error('Every scan needs a date (YYYY-MM-DD)');
+    if (x.weight_kg === undefined) throw new Error('Every scan needs at least a weight');
+  });
+  return list;
 }
 
 let schedDraft = null;
@@ -1403,13 +1411,15 @@ document.addEventListener('click', e => {
     case 'd-set': keepDaily(); dailyState[el.dataset.k] = el.dataset.k === 'stretch' ? Number(v) : v === '1'; render(); break;
     case 'ib-import': {
       try {
-        const o = parseInBodyBlock($('#ibPaste').value);
-        submit('saveInBody', o, 'InBody scan');
-        const row = Object.assign({ status: 'complete' }, o);
-        if (row.segmental_lean && typeof row.segmental_lean !== 'string') row.segmental_lean = JSON.stringify(row.segmental_lean);
-        if (row.segmental_fat && typeof row.segmental_fat !== 'string') row.segmental_fat = JSON.stringify(row.segmental_fat);
-        B.inbody = (B.inbody || []).filter(r => r.date !== o.date).concat([row]).sort((a, b) => a.date < b.date ? -1 : 1);
-        render(); toast('Scan for ' + fmtDay(o.date) + ' imported');
+        const list = parseInBodyBlock($('#ibPaste').value);
+        list.forEach(o => {
+          submit('saveInBody', o, 'InBody ' + o.date);
+          const row = Object.assign({ status: 'complete' }, o);
+          if (row.segmental_lean && typeof row.segmental_lean !== 'string') row.segmental_lean = JSON.stringify(row.segmental_lean);
+          if (row.segmental_fat && typeof row.segmental_fat !== 'string') row.segmental_fat = JSON.stringify(row.segmental_fat);
+          B.inbody = (B.inbody || []).filter(r => r.date !== o.date).concat([row]).sort((a, b) => a.date < b.date ? -1 : 1);
+        });
+        render(); toast(list.length > 1 ? list.length + ' scans imported' : 'Scan for ' + fmtDay(list[0].date) + ' imported');
       } catch (err) { toast(err.message, true); }
       break; }
     case 'ib-save': {
