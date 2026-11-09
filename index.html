@@ -128,6 +128,9 @@ section{margin:22px 0}
 .form input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
 .form input[type=date]::-webkit-calendar-picker-indicator{opacity:.6}
 .two>*,.three>*{min-width:0}
+.datef{position:relative;height:50px;background:var(--s1);border:1px solid var(--line2);border-radius:var(--r);display:flex;align-items:center;padding:0 12px;font-size:17px;overflow:hidden}
+.datef .cal{margin-left:auto;color:var(--muted);font-size:14px}
+.datef input[type=date]{position:absolute;inset:0;width:100%;height:100%;opacity:0;margin:0;padding:0;border:0;z-index:1}
 /* rank + streak */
 .status{display:grid;grid-template-columns:1fr auto;gap:8px}
 .rankc{background:var(--s1);border:1px solid var(--line);border-left:3px solid var(--green-hi);padding:14px 14px 12px;text-align:left;display:block;width:100%}
@@ -163,6 +166,21 @@ section{margin:22px 0}
 .sched-row select{width:100%;min-width:0;height:46px;font-size:14px;padding:8px;background:var(--s1);color:var(--text);border:1px solid var(--line2);border-radius:var(--r)}
 select{color:var(--text)}
 .big-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:var(--s1);border:1px solid var(--line);padding:12px}
+.stat .k{font-size:12px;color:var(--muted);font-family:var(--head)}
+.stat .v{font-family:var(--head);font-weight:700;font-size:24px;margin-top:2px;font-variant-numeric:tabular-nums}
+.stat .v small{font-size:13px;color:var(--muted);font-weight:500;margin-left:3px}
+.stat .d{font-size:12px;font-family:var(--head);margin-top:2px}
+.d.good{color:var(--green-hi)} .d.bad{color:var(--red)} .d.flat{color:var(--muted)}
+.chart{background:var(--s1);border:1px solid var(--line);padding:12px 10px 8px}
+.chart h3{font-size:15px;margin:0 0 6px 4px}
+.chart svg{display:block;width:100%;height:auto}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:6px 4px 0;font-family:var(--head)}
+.legend i{display:inline-block;width:10px;height:3px;margin-right:5px;vertical-align:middle}
+.bodyc{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--s1);border:1px solid var(--line);border-left:3px solid var(--blue);padding:12px 14px}
+.bodyc b{font-family:var(--head);font-size:18px}
+.bodyc .arr{margin-left:auto;color:var(--blue);font-family:var(--head)}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 .seg{display:flex;border:1px solid var(--line2);border-radius:var(--r);overflow:hidden}
@@ -285,6 +303,9 @@ const store = {
 };
 function toast(msg, err){ const t = $('#toast'); t.textContent = msg; t.className = err ? 'err' : ''; t.style.display = 'block'; clearTimeout(toast._t); toast._t = setTimeout(() => t.style.display = 'none', 2600); }
 function daysUntil(d){ const a = new Date(todayStr() + 'T00:00:00'), b = new Date(d + 'T00:00:00'); return Math.round((b - a) / 864e5); }
+function fmtLong(d){ try { return new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return d; } }
+// iPhone draws native date boxes its own way; show our own text and lay the real (invisible) picker over it
+function dateField(attr, val){ val = val || todayStr(); return `<div class="datef"><span class="dv">${fmtLong(val)}</span><span class="cal">▾</span><input type="date" ${attr} value="${val}"></div>`; }
 function fmtDay(d){ try { return new Date(d + 'T00:00:00').toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short'}); } catch(e){ return d; } }
 
 /* ================= server bridge + offline queue ================= */
@@ -425,9 +446,10 @@ function render(){
   if (!B) { v.innerHTML = '<section><div class="card">Loading… <span class="muted small">The first load needs signal.</span></div></section>'; return; }
   $('#phase').textContent = B.phase; $('#phase').className = 'badge ' + B.phase;
   updateSync();
-  const fn = { home: vHome, session: vSession, run: vRun, swim: vSwim, daily: vDaily, event: vEvent, bench: vBench, settings: vSettings, rank: vRank, schedule: vSchedule }[route] || vHome;
+  const fn = { home: vHome, session: vSession, run: vRun, swim: vSwim, daily: vDaily, event: vEvent, bench: vBench, settings: vSettings, rank: vRank, schedule: vSchedule, inbody: vInBody }[route] || vHome;
   v.innerHTML = fn();
   if (route === 'run' || route === 'swim') bindShots();
+  if (route === 'inbody') { const inp = $('#ibShotIn'); if (inp) inp.onchange = async () => { for (const f of inp.files) ibShots.push(await compress(f)); $('#ibThumbs').innerHTML = ibShots.map(x => `<img src="data:${x.mime};base64,${x.data}">`).join(''); }; }
 }
 
 const RANK_ABBR = { 'Recruit': 'Rct', 'Marine': 'Mne', 'Lance Corporal': 'LCpl', 'Corporal': 'Cpl', 'Sergeant': 'Sgt' };
@@ -516,6 +538,7 @@ function vHome(){
   return `${draft}
   <section>${vStatus()}</section>
   <section>${vToday()}</section>
+  ${vBodyCard() ? `<section>${vBodyCard()}</section>` : ''}
   ${countdown ? `<section>${countdown}</section>` : ''}
   <section><div class="label">Start session</div>${temps}</section>
   <section><div class="label">Log</div><div class="grid">
@@ -524,7 +547,8 @@ function vHome(){
     ${tile('go', 'daily', 'Daily', 'Walk, stretch, deadbugs')}
     ${tile('go', 'event', 'Airsoft & events', 'Game days and races')}
     ${tile('go', 'bench', 'Benchmark', 'Bleep, press, sit, pull')}
-    ${tile('cad-open', '', 'Cadence', 'Metronome only')}
+    ${tile('go', 'inbody', 'InBody', 'Scans and body charts')}
+    ${tile('cad-open', '', 'Cadence', 'Metronomes')}
   </div>${pend}</section>
   ${recent}
   <section><button class="btn block" data-a="go" data-v="settings">Settings, audio and schedule</button></section>`;
@@ -556,11 +580,115 @@ function vRank(){
     <div class="item"><span>Swim</span><span class="muted">${X.swim}</span></div>
     <div class="item"><span>Daily check-in (+ stretched twice)</span><span class="muted">${X.daily} (+${X.daily_full_stretch})</span></div>
     <div class="item"><span>Benchmark / personal best</span><span class="muted">${X.bench} / +${X.pb}</span></div>
+    <div class="item"><span>InBody scan</span><span class="muted">${X.inbody || 20}</span></div>
     <div class="item"><span>Airsoft day / race</span><span class="muted">${X.airsoft} / ${X.race}</span></div>
     <div class="item"><span>Whole day's plan done</span><span class="muted">+${X.plan_complete}</span></div>
     <div class="item"><span>Streak bonus</span><span class="muted">+2/day per streak week (max 10)</span></div>
   </div></section>
   <section><div class="label">Streak</div><div class="card small">${P.streak || 0} days now · best ${P.best_streak || 0} · ${P.freezes || 0} freeze${P.freezes === 1 ? '' : 's'} banked.<br><span class="muted">Any log keeps it alive, even just the Daily check-in. You earn a freeze every 7 days in a row (bank up to 2); it covers a missed day automatically.</span></div></section>`;
+}
+
+/* ---- InBody ---- */
+const IB_FIELDS = [
+  ['weight_kg', 'Weight', 'kg', -1], ['pbf_pct', 'Body fat', '%', -1], ['smm_kg', 'Skeletal muscle', 'kg', 1], ['bfm_kg', 'Body fat mass', 'kg', -1],
+  ['visceral_level', 'Visceral fat level', '', -1], ['inbody_score', 'InBody score', '', 1], ['bmr_kcal', 'Basal metabolic rate', 'kcal', 0], ['bmi', 'BMI', '', -1]
+];
+const IB_EXTRA = [['tbw_l','Total body water','L'],['protein_kg','Protein','kg'],['minerals_kg','Minerals','kg'],['ffm_kg','Fat-free mass','kg'],['ecw_ratio','ECW ratio',''],
+  ['whr','Waist-hip ratio',''],['target_weight_kg','Target weight','kg'],['weight_control_kg','Weight control','kg'],['fat_control_kg','Fat control','kg'],['muscle_control_kg','Muscle control','kg']];
+const ibScans = () => (B.inbody || []).filter(r => r.weight_kg !== null && r.weight_kg !== undefined);
+function fmtN(v, dp){ return v === null || v === undefined || isNaN(v) ? '—' : (dp === undefined ? (Math.round(v * 10) / 10) : Number(v).toFixed(dp)); }
+function delta(cur, prev, dir){
+  if (prev === null || prev === undefined || cur === null || cur === undefined) return '';
+  const d = Math.round((cur - prev) * 10) / 10; if (!d) return '<div class="d flat">no change</div>';
+  const good = dir === 0 ? null : (d * dir > 0);
+  return `<div class="d ${good === null ? 'flat' : good ? 'good' : 'bad'}">${d > 0 ? '▲' : '▼'} ${Math.abs(d)}</div>`;
+}
+function lineChart(series, opts){
+  opts = opts || {};
+  const W = 340, H = opts.h || 170, L = 34, R = 34, T = 10, Bm = 22;
+  const pts = series.flatMap(s => s.points.filter(p => p[1] !== null && p[1] !== undefined && !isNaN(p[1])));
+  if (!pts.length) return '<div class="hint">No data yet.</div>';
+  const ts = p => new Date(p[0] + 'T00:00:00').getTime();
+  let x0 = Math.min(...pts.map(ts)), x1 = Math.max(...pts.map(ts)); if (x0 === x1) { x0 -= 864e5 * 3; x1 += 864e5 * 3; }
+  let y0 = Math.min(...pts.map(p => p[1])), y1 = Math.max(...pts.map(p => p[1]));
+  const pad = Math.max((y1 - y0) * 0.12, opts.minSpan || 0.5); y0 -= pad; y1 += pad;
+  const X = t => L + (t - x0) / (x1 - x0) * (W - L - R), Y = v => T + (1 - (v - y0) / (y1 - y0)) * (H - T - Bm);
+  let g = '';
+  for (let i = 0; i <= 3; i++) { const v = y0 + (y1 - y0) * i / 3, y = Y(v);
+    g += `<line x1="${L}" x2="${W - R}" y1="${y}" y2="${y}" stroke="#272b27" stroke-width="1"/><text x="${L - 6}" y="${y + 4}" fill="#5f665f" font-size="10" text-anchor="end" font-family="Space Grotesk">${Math.round(v * 10) / 10}</text>`; }
+  const dl = d => new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  const dates = [...new Set(pts.map(p => p[0]))].sort();
+  g += `<text x="${L}" y="${H - 5}" fill="#5f665f" font-size="10" font-family="Space Grotesk">${dl(dates[0])}</text>`;
+  if (dates.length > 1) g += `<text x="${W - R}" y="${H - 5}" fill="#5f665f" font-size="10" text-anchor="end" font-family="Space Grotesk">${dl(dates[dates.length - 1])}</text>`;
+  series.forEach(s => {
+    const p = s.points.filter(q => q[1] !== null && q[1] !== undefined && !isNaN(q[1])).sort((a, b) => ts(a) - ts(b)); if (!p.length) return;
+    g += `<polyline fill="none" stroke="${s.color}" stroke-width="2.2" stroke-linejoin="round" points="${p.map(q => X(ts(q)) + ',' + Y(q[1])).join(' ')}"/>`;
+    g += p.map(q => `<circle cx="${X(ts(q))}" cy="${Y(q[1])}" r="3" fill="${s.color}"/>`).join('');
+    const last = p[p.length - 1];
+    g += `<text x="${X(ts(last)) + 6}" y="${Y(last[1]) + 4}" fill="${s.color}" font-size="11" font-weight="700" font-family="Space Grotesk">${Math.round(last[1] * 10) / 10}</text>`;
+  });
+  const legend = series.length > 1 ? `<div class="legend">${series.map(s => `<span><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join('')}</div>` : '';
+  return `<svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg>${legend}`;
+}
+function vBodyCard(){
+  const sc = ibScans(); if (!sc.length) return '';
+  const L = sc[sc.length - 1], P = sc.length > 1 ? sc[sc.length - 2] : null;
+  const dw = P ? Math.round((L.weight_kg - P.weight_kg) * 10) / 10 : null;
+  return `<button class="bodyc" data-a="go" data-v="inbody"><div><div class="muted small" style="font-family:var(--head)">BODY · ${fmtDay(L.date)}</div>
+    <b>${fmtN(L.weight_kg)} kg · ${fmtN(L.pbf_pct)}% fat</b>${dw !== null ? `<div class="small ${dw <= 0 ? 'd good' : 'd bad'}">${dw > 0 ? '▲' : '▼'} ${Math.abs(dw)} kg since last scan</div>` : ''}</div><span class="arr">→</span></button>`;
+}
+let ibShots = [];
+function vInBody(){
+  const sc = ibScans(), all = B.inbody || [];
+  const L = sc[sc.length - 1], P = sc.length > 1 ? sc[sc.length - 2] : null;
+  const stats = L ? `<div class="stats">${IB_FIELDS.filter(([k]) => L[k] !== null && L[k] !== undefined).map(([k, n, u, dir]) => `<div class="stat"><div class="k">${n}</div><div class="v">${fmtN(L[k])}<small>${u}</small></div>${P ? delta(L[k], P[k], dir) : ''}</div>`).join('')}</div>` : '';
+  const extra = L ? IB_EXTRA.filter(([k]) => L[k] !== null && L[k] !== undefined).map(([k, n, u]) => `<div class="item"><span>${n}</span><span class="muted">${fmtN(L[k], k === 'ecw_ratio' || k === 'whr' ? 3 : undefined)} ${u}</span></div>`).join('') : '';
+  const seg = L && (L.segmental_lean || L.segmental_fat) ? segTable(L) : '';
+  const pts = k => sc.map(r => [r.date, r[k]]);
+  const charts = sc.length ? `
+    <section><div class="chart"><h3>Weight (kg)</h3>${lineChart([{ name: 'Weight', color: '#f3f4f1', points: pts('weight_kg') }], { h: 160 })}</div></section>
+    <section><div class="chart"><h3>Body fat %</h3>${lineChart([{ name: 'Body fat %', color: '#f2b632', points: pts('pbf_pct') }], { h: 150 })}</div></section>
+    <section><div class="chart"><h3>Muscle vs fat mass (kg)</h3>${lineChart([{ name: 'Skeletal muscle', color: '#86b672', points: pts('smm_kg') }, { name: 'Body fat mass', color: '#f2b632', points: pts('bfm_kg') }], { h: 170 })}</div></section>` : '';
+  const hist = all.slice().reverse().map(r => `<div class="item"><b>${fmtDay(r.date)}</b><span class="muted">${r.weight_kg !== null ? fmtN(r.weight_kg) + ' kg · ' + fmtN(r.pbf_pct) + '%' : 'photos pending'}</span></div>`).join('');
+  return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>InBody</h1>
+    <div class="sub">${L ? 'Latest scan ' + fmtDay(L.date) + (P ? ' · changes vs ' + fmtDay(P.date) : '') : 'No scans yet. Add your first below.'}</div></div>
+  ${stats ? `<section>${stats}</section>` : ''}
+  ${charts}
+  ${extra ? `<section><div class="label">More from the latest scan</div><div class="card list" style="padding:4px 16px">${extra}</div></section>` : ''}
+  ${seg}
+  <section><div class="label">Add a scan</div>
+    <div class="card"><b style="font-family:var(--head)">From your printout</b>
+      <div class="hint" style="margin-top:4px">Send photos of the Japanese printout to Claude in chat. You'll get back a translated block: paste it here and every value is logged in English.</div>
+      <div class="form" style="margin-top:10px"><textarea id="ibPaste" placeholder="Paste the block from Claude here" style="min-height:90px;font-family:monospace;font-size:13px"></textarea></div>
+      <button class="btn block go" style="margin-top:8px" data-a="ib-import">Import scan</button></div>
+    <details style="margin-top:10px"><summary>Or enter the key numbers yourself</summary>
+      <form class="form" id="f">
+        <div class="f"><label>Scan date</label>${dateField('name="date"')}</div>
+        <div class="two"><div class="f"><label>Weight (kg)</label><input name="weight_kg" inputmode="decimal"></div><div class="f"><label>Body fat %</label><input name="pbf_pct" inputmode="decimal"></div></div>
+        <div class="two"><div class="f"><label>Skeletal muscle (kg)</label><input name="smm_kg" inputmode="decimal"></div><div class="f"><label>Body fat mass (kg)</label><input name="bfm_kg" inputmode="decimal"></div></div>
+        <div class="three"><div class="f"><label>Visceral</label><input name="visceral_level" inputmode="decimal"></div><div class="f"><label>Score</label><input name="inbody_score" inputmode="numeric"></div><div class="f"><label>BMR</label><input name="bmr_kcal" inputmode="numeric"></div></div>
+        <div class="f"><label>Printout photos (optional)</label><label class="btn block pick"><input type="file" id="ibShotIn" accept="image/*" multiple style="display:none">＋ Add photos</label><div class="thumbs" id="ibThumbs">${ibShots.map(x => `<img src="data:${x.mime};base64,${x.data}">`).join('')}</div>
+          <div class="hint">Photos are saved to Drive. Photos without numbers are logged as "photos pending".</div></div>
+        <button class="btn block go fwd" type="button" data-a="ib-save">Save scan</button>
+      </form></details>
+  </section>
+  ${hist ? `<section><div class="label">All scans</div><div class="card list" style="padding:4px 16px">${hist}</div></section>` : ''}`;
+}
+function segTable(r){
+  let lean = {}, fat = {};
+  try { lean = typeof r.segmental_lean === 'string' && r.segmental_lean ? JSON.parse(r.segmental_lean) : (r.segmental_lean || {}); } catch (e) {}
+  try { fat = typeof r.segmental_fat === 'string' && r.segmental_fat ? JSON.parse(r.segmental_fat) : (r.segmental_fat || {}); } catch (e) {}
+  const parts = [['right_arm','Right arm'],['left_arm','Left arm'],['trunk','Trunk'],['right_leg','Right leg'],['left_leg','Left leg']];
+  const rows = parts.filter(([k]) => lean[k] !== undefined || fat[k] !== undefined).map(([k, n]) => `<span>${n}</span><span class="muted">${lean[k] !== undefined ? fmtN(lean[k]) + ' kg' : '—'}</span><span class="muted">${fat[k] !== undefined ? fmtN(fat[k]) + ' kg' : '—'}</span>`).join('');
+  return rows ? `<section><div class="label">Segments (lean · fat)</div><div class="card"><div class="req">${rows}</div></div></section>` : '';
+}
+function parseInBodyBlock(txt){
+  const i = txt.indexOf('{'), j = txt.lastIndexOf('}');
+  if (i < 0 || j < i) throw new Error('No scan data found in that text');
+  const o = JSON.parse(txt.slice(i, j + 1));
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(o.date || '')) throw new Error('The block needs a date (YYYY-MM-DD)');
+  if (o.weight_kg === undefined) throw new Error('The block needs at least a weight');
+  return o;
 }
 
 let schedDraft = null;
@@ -582,7 +710,7 @@ function vSchedule(){
   <section><div class="label">Default week</div>${wk}</section>
   <section><div class="label">One-off days</div>
     ${ov ? `<div class="card list" style="padding:4px 16px;margin-bottom:10px">${ov}</div>` : '<div class="hint" style="margin-bottom:10px">None. Use these for race day, taper tweaks or a swapped session.</div>'}
-    <div class="form"><div class="f"><label>Date</label><input type="date" id="ovDate" value="${todayStr()}"></div>
+    <div class="form"><div class="f"><label>Date</label>${dateField('id="ovDate"')}</div>
       <div class="two"><div class="f"><label>Plan</label>${planSelect('', 'id="ovA"')}</div><div class="f"><label>Plus</label>${planSelect('', 'id="ovB"')}</div></div>
       <button class="btn block" type="button" data-a="ov-add">Add one-off day</button></div></section>
   <section><button class="btn block go fwd" data-a="sched-save">Save schedule</button></section>`;
@@ -684,7 +812,7 @@ const opt = (list, sel) => list.map(o => `<option ${o === sel ? 'selected' : ''}
 function vRun(){
   return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>Log run</h1></div>
   <form class="form" id="f" style="margin-top:14px">
-    <div class="two"><div class="f"><label>Date</label><input type="date" name="date" value="${todayStr()}"></div>
+    <div class="two"><div class="f"><label>Date</label>${dateField('name="date"')}</div>
       <div class="f"><label>Type</label><select name="run_type">${opt(['Zone 2','Easy','Long','Tempo','Intervals','2.4 km test','Race'], (formPrefill.run || {}).type || 'Zone 2')}</select></div></div>
     <div class="f"><label>Surface</label><select name="surface">${opt(['Road','Track','Treadmill','Trail'], (formPrefill.run || {}).surface || 'Road')}</select></div>
     <div class="two"><div class="f"><label>Distance (km)</label><input name="distance_km" inputmode="decimal" placeholder="4.30"></div>
@@ -713,7 +841,7 @@ function vRun(){
 function vSwim(){
   return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>Log swim</h1></div>
   <form class="form" id="f" style="margin-top:14px">
-    <div class="two"><div class="f"><label>Date</label><input type="date" name="date" value="${todayStr()}"></div>
+    <div class="two"><div class="f"><label>Date</label>${dateField('name="date"')}</div>
       <div class="f"><label>Type</label><select name="swim_type">${opt(['Recovery','Endurance','Technique','Test'], (formPrefill.swim || {}).type || 'Recovery')}</select></div></div>
     <div class="two"><div class="f"><label>Distance (m)</label><input name="distance_m" inputmode="numeric" placeholder="1000"></div>
       <div class="f"><label>Time</label><input name="time" placeholder="25:00"></div></div>
@@ -728,17 +856,19 @@ function vSwim(){
 let dailyState = null;
 function vDaily(){
   const d = B.daily || {};
-  dailyState = dailyState || { commute: d.commute_walk ? d.commute_walk === 'yes' : true, stretch: num(d.stretch_sessions) || 0, deadbugs: d.deadbugs === 'yes' };
+  dailyState = dailyState || { commute: d.commute_walk ? d.commute_walk === 'yes' : true, stretch: num(d.stretch_sessions) || 0, deadbugs: d.deadbugs === 'yes',
+    deadbugReps: num(d.deadbug_reps), work_pushups: d.work_pushups, bodyweight: d.bodyweight_kg, notes: d.notes };
   const ds = dailyState;
   return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>Daily</h1></div>
   <form class="form" id="f" style="margin-top:14px">
-    <div class="f"><label>Date</label><input type="date" name="date" value="${todayStr()}"></div>
+    <div class="f"><label>Date</label>${dateField('name="date"')}</div>
     <div class="f"><label>Weighted commute walk (~10 km)</label><div class="seg"><button type="button" class="${ds.commute ? 'on' : ''}" data-a="d-set" data-k="commute" data-v="1">Done</button><button type="button" class="${!ds.commute ? 'on' : ''}" data-a="d-set" data-k="commute" data-v="0">Not today</button></div></div>
     <div class="f"><label>Stretch routine</label><div class="seg">${[0,1,2].map(n => `<button type="button" class="${ds.stretch === n ? 'on' : ''}" data-a="d-set" data-k="stretch" data-v="${n}">${n}×</button>`).join('')}</div></div>
-    <div class="f"><label>Lunchtime deadbugs</label><div class="seg"><button type="button" class="${ds.deadbugs ? 'on' : ''}" data-a="d-set" data-k="deadbugs" data-v="1">Done</button><button type="button" class="${!ds.deadbugs ? 'on' : ''}" data-a="d-set" data-k="deadbugs" data-v="0">No</button></div></div>
-    <div class="two"><div class="f"><label>Push-ups at work</label><input name="work_pushups" inputmode="numeric" value="${esc(d.work_pushups)}"></div>
-      <div class="f"><label>Bodyweight (kg)</label><input name="bodyweight" inputmode="decimal" value="${esc(d.bodyweight_kg)}"></div></div>
-    <div class="f"><label>Notes</label><textarea name="notes">${esc(d.notes)}</textarea></div>
+    <div class="f"><label>Lunchtime deadbugs${ds.deadbugReps ? ' · ' + ds.deadbugReps + (ds.deadbugReps === 1 ? ' rep' : ' reps') : ''}</label><div class="seg"><button type="button" class="${ds.deadbugs ? 'on' : ''}" data-a="d-set" data-k="deadbugs" data-v="1">Done</button><button type="button" class="${!ds.deadbugs ? 'on' : ''}" data-a="d-set" data-k="deadbugs" data-v="0">No</button></div>
+      <button type="button" class="btn block" style="margin-top:8px" data-a="deadbug-cad">▶ Deadbug metronome</button></div>
+    <div class="two"><div class="f"><label>Push-ups at work</label><input name="work_pushups" inputmode="numeric" value="${esc(ds.work_pushups)}"></div>
+      <div class="f"><label>Bodyweight (kg)</label><input name="bodyweight" inputmode="decimal" value="${esc(ds.bodyweight)}"></div></div>
+    <div class="f"><label>Notes</label><textarea name="notes">${esc(ds.notes)}</textarea></div>
     <button class="btn block go fwd" type="button" data-a="save-daily">Save today</button>
     <div class="hint">Saving again on the same date updates the row.</div>
   </form>`;
@@ -747,7 +877,7 @@ function vDaily(){
 function vEvent(){
   return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>Airsoft &amp; events</h1></div>
   <form class="form" id="f" style="margin-top:14px">
-    <div class="two"><div class="f"><label>Date</label><input type="date" name="date" value="${todayStr()}"></div>
+    <div class="two"><div class="f"><label>Date</label>${dateField('name="date"')}</div>
       <div class="f"><label>Type</label><select name="type">${opt(['Airsoft','Race','Other'], (formPrefill.event || {}).type || 'Airsoft')}</select></div></div>
     <div class="f"><label>Name</label><input name="name" value="${esc((formPrefill.event || {}).name || '')}" placeholder="e.g. Shadow Strike 4, Spartan race"></div>
     <div class="f"><label>Status</label><select name="status"><option value="done">Done: log how it went</option><option value="upcoming">Upcoming: add to countdown</option></select></div>
@@ -772,7 +902,7 @@ function vBench(){
     <button class="btn" data-a="bench-test" data-v="pull">▶ Pull-up test</button><button class="btn" data-a="bench-test" data-v="press">▶ Press-up test</button></div>
     <div class="hint">Plays the full test: instructions, countdown, beep and count. Tap "Stop &amp; log" when you fail a rep; the count fills in below.</div></section>
   <form class="form" id="f" style="margin-top:14px">
-    <div class="f"><label>Date</label><input type="date" name="date" value="${todayStr()}"></div>
+    <div class="f"><label>Date</label>${dateField('name="date"')}</div>
     <div class="f"><label>Test</label><select name="test">${opt(Object.keys(BENCH), pf.test || 'Bleep test')}</select></div>
     <div class="two"><div class="f"><label>Result</label><input name="result" value="${esc(pf.result === undefined ? '' : pf.result)}" placeholder="e.g. 10.8 / 30 / 11:42"></div>
       <div class="f"><label>Unit</label><input name="unit" placeholder="auto"></div></div>
@@ -787,10 +917,13 @@ function vBench(){
 const DEFAULT_PRESETS = [
   { name: 'RMC pull-up', phases: [{ label: 'UP', s: 2 }, { label: 'DOWN', s: 2 }], voice: 'pull', rmc: true },
   { name: 'RMC press-up', phases: [{ label: 'DOWN', s: 2 }], voice: 'press', rmc: true },
+  { name: 'Deadbugs', phases: [{ label: 'DOWN', s: 2, f: 586 }, { label: 'UP', s: 2, f: 1172 }], voice: 'downcount', rmc: true, max: 24 },
   { name: 'Slow tempo 3-1-1', phases: [{ label: 'DOWN', s: 3 }, { label: 'HOLD', s: 1 }, { label: 'UP', s: 1 }] }
 ];
 // v2: press-up preset fixed to one beep per rep (matches the test audio)
 let presets = store.get('cf_presets_v2', null) || JSON.parse(JSON.stringify(DEFAULT_PRESETS));
+// new built-in presets appear for existing users too
+DEFAULT_PRESETS.forEach((d, i) => { if (!presets.some(p => p.name.toLowerCase() === d.name.toLowerCase())) presets.splice(Math.min(i, presets.length), 0, JSON.parse(JSON.stringify(d))); });
 let settings = Object.assign({ lead: 3, audioMode: 'mix', voice: true }, store.get('barker_settings', {}));
 function saveSettings(){ store.set('barker_settings', settings); }
 function vConnect(){
@@ -833,9 +966,10 @@ function vSettings(){
       <button class="btn sm" data-a="voice-toggle">Voice: ${settings.voice !== false ? 'on' : 'off'}</button></div>
   </section>
   <section><div class="label">Cadence presets</div>
-  <p class="muted small" style="line-height:1.5;margin-top:0">Each phase beeps when it starts. The RMC presets use the test beep and voice counts: pull-up beeps every 2 s (up, down); press-up beeps once per rep every 2 s.</p>
+  <p class="muted small" style="line-height:1.5;margin-top:0">Each phase beeps when it starts. Pull-up: beep every 2 s (up, down) with counts. Press-up: one beep per rep every 2 s. Deadbugs: same pace as pull-ups; low beep to lower, higher beep to bring back, "Down" then the count, stopping at 24.</p>
   <div id="presets">${presets.map((p, i) => `<div class="preset">
     <input class="inp" style="width:100%;text-align:left;margin-bottom:6px" data-p="${i}" data-pf="name" value="${esc(p.name)}">
+    <div class="row small muted" style="margin-bottom:6px">Stop after <input class="inp" style="width:64px" inputmode="numeric" data-p="${i}" data-pf="max" value="${esc(p.max || '')}" placeholder="—"> reps${p.voice ? ' · voice: ' + esc(p.voice === 'downcount' ? '"down", count' : p.voice === 'pull' ? 'count, "down"' : 'count') : ''}</div>
     ${p.phases.map((ph, k) => `<div class="ph"><input class="inp" style="width:100%;text-align:left" data-p="${i}" data-k="${k}" data-pf="label" value="${esc(ph.label)}">
       <input class="inp" style="width:100%" inputmode="decimal" data-p="${i}" data-k="${k}" data-pf="s" value="${esc(ph.s)}">
       <button class="mini" data-a="ph-del" data-p="${i}" data-k="${k}">✕</button></div>`).join('')}
@@ -942,10 +1076,11 @@ function saveSwim(){
     pace_100m: t && d ? fmtTime(t / d * 100) : '', pool_m: num(f.pool_m), avg_hr: num(f.avg_hr), notes: f.notes, shots: shots.slice() }, 'Swim');
   shots = []; go('home');
 }
+function keepDaily(){ const f = $('#f'); if (!f || !dailyState) return; const o = formData(); dailyState.work_pushups = o.work_pushups; dailyState.bodyweight = o.bodyweight; dailyState.notes = o.notes; }
 function saveDaily(){
   const f = formData(), ds = dailyState;
   submit('saveDaily', { date: f.date, commute_walk: ds.commute, stretch_sessions: ds.stretch, deadbugs: ds.deadbugs,
-    work_pushups: num(f.work_pushups), bodyweight: num(f.bodyweight), notes: f.notes }, 'Daily');
+    work_pushups: num(f.work_pushups), bodyweight: num(f.bodyweight), notes: f.notes, deadbug_reps: ds.deadbugs ? num(ds.deadbugReps) : '' }, 'Daily');
   dailyState = null; go('home');
 }
 function saveEvent(){
@@ -1090,10 +1225,12 @@ function cadOpen(presetName, i, mode, testKind){
   cad.link = cad.mode === 'set' ? { i: Number(i) } : null;
   cad.reps = 0; cad.started = false; cadUI();
   const cs = curSetForCad();
+  const P0 = presets[cad.preset] || {};
   $('#cadFor').textContent = cad.test ? cad.test.title + ' · max ' + cad.test.max
+    : cad.mode === 'daily' ? 'Lunchtime deadbugs' + (P0.max ? ' · ' + P0.max + ' reps' : '')
     : cs ? cs.it.exercise + ' · ' + (S.kind === 'circuit' ? 'round ' : 'set ') + (cs.j + 1) : 'Free run';
   $('#cadTarget').textContent = cs && setVal(cs.it.sets[cs.j]) ? 'target ' + setVal(cs.it.sets[cs.j]) : 'reps';
-  $('#cadLog').textContent = cs || cad.test ? 'Stop & log' : 'Stop';
+  $('#cadLog').textContent = cs || cad.test || cad.mode === 'daily' ? 'Stop & log' : 'Stop';
   $('#cadPhase').textContent = 'READY'; $('#cadPhase').className = 'cad-phase'; $('#cadBar').style.width = '0';
   $('#cad').classList.add('show');
 }
@@ -1119,17 +1256,22 @@ async function cadStart(){
     while (!cad.capped && cad.next < a.currentTime + 0.3) {
       const ph = P.phases[cad.phase], dur = Number(ph.s) || 1;
       const rep = Math.floor(cad.k / L) + 1;
-      if (cad.test && rep > cad.test.max) {
-        // test finished: final commands, then stop
-        let t2 = cad.next;
-        cad.test.end.forEach(n => { playClip(n, t2, cad.bag); t2 += clipLen(n) + 0.4; });
+      const maxReps = cad.test ? cad.test.max : num(P.max);
+      if (maxReps && rep > maxReps) {
+        // finished: final commands (or a closing beep), then stop
+        let t2 = cad.next; const endClips = cad.test ? cad.test.end : ['stop'];
+        if (voiced) endClips.forEach(n => { playClip(n, t2, cad.bag); t2 += clipLen(n) + 0.4; });
+        else { beep(1568, t2, .15, .25, cad.bag); beep(1568, t2 + .25, .3, .25, cad.bag); t2 += .6; }
         cad.endAt = t2 + 0.3; cad.capped = true; break;
       }
-      if (P.rmc) beep(RMC_BEEP.f, cad.next, RMC_BEEP.d, .3, cad.bag);
+      if (P.rmc) beep(ph.f || RMC_BEEP.f, cad.next, RMC_BEEP.d, .3, cad.bag);
       else beep(TONE[String(ph.label).toUpperCase()] || 988, cad.next, .1, undefined, cad.bag);
       if (voiced && P.voice === 'pull') {
         if (cad.phase === 0) { playClip(numClip(rep), cad.next + 1.0, cad.bag); cad.events.push({ at: cad.next + 1.0, rep }); }
         else playClip('down', cad.next + 1.0, cad.bag);
+      } else if (voiced && P.voice === 'downcount') {
+        if (cad.phase === 0) playClip('down', cad.next + 1.0, cad.bag);
+        else { playClip(numClip(rep), cad.next + 1.0, cad.bag); cad.events.push({ at: cad.next + 1.0, rep }); }
       } else if (voiced && P.voice === 'press') {
         playClip(numClip(rep), cad.next + 0.8, cad.bag); cad.events.push({ at: cad.next + 0.8, rep });
       } else if (cad.phase === L - 1) {
@@ -1177,6 +1319,10 @@ let benchPrefill = null;
 function cadLog(){
   const wasRunning = cad.running;
   cadStop();
+  if (cad.mode === 'daily') {
+    dailyState.deadbugs = true; if (cad.reps) dailyState.deadbugReps = cad.reps;
+    $('#cad').classList.remove('show'); cad.reps = 0; render(); toast('Deadbugs ticked' + (dailyState.deadbugReps ? ': ' + dailyState.deadbugReps + ' reps' : '')); return;
+  }
   if (cad.mode === 'test') {
     if (wasRunning && hasVoice()) { let t = audio().currentTime + 0.05; cad.test.end.forEach(n => { playClip(n, t); t += clipLen(n) + 0.4; }); }
     benchPrefill = { test: cad.test.bench, result: cad.reps };
@@ -1254,7 +1400,26 @@ document.addEventListener('click', e => {
     case 'save-daily': saveDaily(); break;
     case 'save-event': saveEvent(); break;
     case 'save-bench': saveBench(); break;
-    case 'd-set': dailyState[el.dataset.k] = el.dataset.k === 'stretch' ? Number(v) : v === '1'; render(); break;
+    case 'd-set': keepDaily(); dailyState[el.dataset.k] = el.dataset.k === 'stretch' ? Number(v) : v === '1'; render(); break;
+    case 'ib-import': {
+      try {
+        const o = parseInBodyBlock($('#ibPaste').value);
+        submit('saveInBody', o, 'InBody scan');
+        const row = Object.assign({ status: 'complete' }, o);
+        if (row.segmental_lean && typeof row.segmental_lean !== 'string') row.segmental_lean = JSON.stringify(row.segmental_lean);
+        if (row.segmental_fat && typeof row.segmental_fat !== 'string') row.segmental_fat = JSON.stringify(row.segmental_fat);
+        B.inbody = (B.inbody || []).filter(r => r.date !== o.date).concat([row]).sort((a, b) => a.date < b.date ? -1 : 1);
+        render(); toast('Scan for ' + fmtDay(o.date) + ' imported');
+      } catch (err) { toast(err.message, true); }
+      break; }
+    case 'ib-save': {
+      const f = formData(); const p = { date: f.date, shots: ibShots.slice() };
+      ['weight_kg','pbf_pct','smm_kg','bfm_kg','visceral_level','inbody_score','bmr_kcal'].forEach(k => { if (f[k] !== '') p[k] = num(f[k]); });
+      if (p.weight_kg === undefined && !p.shots.length) return toast('Add at least a weight or a photo', true);
+      submit('saveInBody', p, 'InBody scan'); ibShots = [];
+      if (p.weight_kg !== undefined) { const row = Object.assign({}, p); delete row.shots; B.inbody = (B.inbody || []).filter(r => r.date !== p.date).concat([row]).sort((a, b) => a.date < b.date ? -1 : 1); }
+      render(); break; }
+    case 'deadbug-cad': keepDaily(); cadOpen('Deadbugs', '', 'daily'); break;
     case 'ph-add': presets[el.dataset.p].phases.push({ label: 'UP', s: 1 }); savePresets(); render(); break;
     case 'ph-del': presets[el.dataset.p].phases.splice(el.dataset.k, 1); savePresets(); render(); break;
     case 'pre-add': presets.push({ name: 'New preset', phases: [{ label: 'UP', s: 2 }, { label: 'DOWN', s: 2 }] }); savePresets(); render(); break;
@@ -1266,12 +1431,15 @@ function savePresets(){ store.set('cf_presets_v2', presets); }
 
 function onField(e){
   const el = e.target;
+  if (el.type === 'date' && el.parentNode.classList.contains('datef')) el.parentNode.querySelector('.dv').textContent = el.value ? fmtLong(el.value) : '—';
   if (el.dataset.f && S) {
     const s = S.items[Number(el.dataset.i)].sets[Number(el.dataset.j)];
     s[el.dataset.f] = el.value; saveDraftSoon();
   } else if (el.dataset.pf) {
     const p = presets[el.dataset.p];
-    if (el.dataset.pf === 'name') p.name = el.value; else p.phases[el.dataset.k][el.dataset.pf] = el.dataset.pf === 's' ? Number(el.value) || '' : el.value;
+    if (el.dataset.pf === 'name') p.name = el.value;
+    else if (el.dataset.pf === 'max') p.max = num(el.value) || '';
+    else p.phases[el.dataset.k][el.dataset.pf] = el.dataset.pf === 's' ? Number(el.value) || '' : el.value;
     savePresets();
   } else if (el.id === 'leadIn') { settings.lead = num(el.value); saveSettings(); }
   else if (el.dataset.sw !== undefined && schedDraft) {
