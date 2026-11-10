@@ -123,7 +123,7 @@ section{margin:22px 0}
 .form input,.form select,.form textarea{width:100%;background:var(--s1);border:1px solid var(--line2);border-radius:var(--r);padding:13px 12px;font-size:17px}
 .form input:focus,.form select:focus,.form textarea:focus{outline:none;border-color:var(--green-hi)}
 .form textarea{min-height:76px;resize:vertical}
-.form input:not([type=file]),.form select{height:50px}
+.form input:not([type=file]):not([type=range]),.form select{height:50px}
 .form input[type=date]{-webkit-appearance:none;appearance:none;display:block;min-width:0;max-width:100%;text-align:left;line-height:1.2;padding-top:0;padding-bottom:0}
 .form input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
 .form input[type=date]::-webkit-calendar-picker-indicator{opacity:.6}
@@ -936,7 +936,8 @@ const DEFAULT_PRESETS = [
 let presets = store.get('cf_presets_v2', null) || JSON.parse(JSON.stringify(DEFAULT_PRESETS));
 // new built-in presets appear for existing users too
 DEFAULT_PRESETS.forEach((d, i) => { if (!presets.some(p => p.name.toLowerCase() === d.name.toLowerCase())) presets.splice(Math.min(i, presets.length), 0, JSON.parse(JSON.stringify(d))); });
-let settings = Object.assign({ lead: 3, audioMode: 'mix', voice: true }, store.get('barker_settings', {}));
+let settings = Object.assign({ lead: 3, audioMode: 'mix', voice: true, cueVol: 1.5 }, store.get('barker_settings', {}));
+if (!['mix', 'pause'].includes(settings.audioMode)) settings.audioMode = 'mix';   // 'duck' removed (iPhone treats it as mix)
 function saveSettings(){ store.set('barker_settings', settings); }
 function vConnect(){
   return `<div class="page-h" style="margin-top:22px"><h1>Link your sheet</h1>
@@ -970,10 +971,12 @@ function vSettings(){
   return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>Settings</h1></div>
   <section><div class="label">Audio over music</div>
     <div class="form"><div class="seg">
-      <button type="button" class="${am === 'mix' ? 'on' : ''}" data-a="am" data-v="mix">Mix</button>
-      <button type="button" class="${am === 'duck' ? 'on' : ''}" data-a="am" data-v="duck">Duck</button>
-      <button type="button" class="${am === 'pause' ? 'on' : ''}" data-a="am" data-v="pause">Pause</button></div></div>
-    <div class="hint"><b>Mix</b>: plays over your music, but goes silent when the phone is on silent. <b>Duck</b>: music dips under each cue. <b>Pause</b>: music stops while the app plays. Try them at the gym.</div>
+      <button type="button" class="${am === 'mix' ? 'on' : ''}" data-a="am" data-v="mix">Mix with music</button>
+      <button type="button" class="${am === 'pause' ? 'on' : ''}" data-a="am" data-v="pause">Pause music</button></div></div>
+    <div class="hint"><b>Mix</b>: cues play over your music, but go silent when the phone is on silent. <b>Pause</b>: music stops while the app plays and works on silent.</div>
+    <div class="form" style="margin-top:14px"><label>Cue volume · <span id="cueVolLbl">${Math.round(cueVol() * 100)}%</span></label>
+      <input type="range" id="cueVol" min="50" max="300" step="10" value="${Math.round(cueVol() * 100)}" style="width:100%;accent-color:var(--green-hi);height:32px;padding:0;border:0;background:none"></div>
+    <div class="hint">Boosts beeps and voice above your music (up to the phone's maximum). A limiter stops it distorting at high settings. 200–300% for heavy music.</div>
     <div class="row" style="margin-top:10px"><button class="btn sm" data-a="test-audio">▶ Test sound</button>
       <button class="btn sm" data-a="voice-toggle">Voice: ${settings.voice !== false ? 'on' : 'off'}</button></div>
   </section>
@@ -1127,12 +1130,16 @@ function confirmBox(title, body, okLabel, cb){
 
 /* ================= audio ================= */
 let actx = null;
-const AUDIO_MODES = { mix: 'ambient', duck: 'transient', pause: 'playback' };
+const AUDIO_MODES = { mix: 'ambient', pause: 'playback' };
 function audio(){
   if (actx && actx.state === 'closed') { actx = null; voice.loading = null; }
   if (!actx) {
     try { if (navigator.audioSession) navigator.audioSession.type = AUDIO_MODES[settings.audioMode] || 'ambient'; } catch (e) {}
     actx = new (window.AudioContext || window.webkitAudioContext)();
+    const g = actx.createGain(); g.gain.value = cueVol();
+    const lim = actx.createDynamicsCompressor();
+    lim.threshold.value = -3; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.08;
+    g.connect(lim).connect(actx.destination); actx.__out = g;
     loadVoice();
   }
   // iPhone can leave the clock 'suspended' or 'interrupted' (calls, notifications, switching apps)
@@ -1151,6 +1158,9 @@ async function audioReady(fresh){
   const t1 = a.currentTime; await new Promise(r => setTimeout(r, 150));
   return a.currentTime > t1 ? a : null;
 }
+const cueVol = () => Math.max(0.5, Math.min(3, Number(settings.cueVol) || 1));
+const out = () => (actx && actx.__out) || audio().__out || audio().destination;
+function setCueVol(v){ settings.cueVol = v; saveSettings(); if (actx && actx.__out) actx.__out.gain.setValueAtTime(cueVol(), actx.currentTime); }
 function resetAudio(){ try { if (actx) actx.close(); } catch (e) {} actx = null; voice.loading = null; }
 function beep(freq, at, dur, vol, bag, type){
   const a = audio(), o = a.createOscillator(), g = a.createGain();
@@ -1159,7 +1169,7 @@ function beep(freq, at, dur, vol, bag, type){
   g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(vol || 0.35, at + 0.005);
   g.gain.setValueAtTime(vol || 0.35, Math.max(at + 0.006, at + dur - 0.02));
   g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
-  o.connect(g).connect(a.destination); o.start(at); o.stop(at + dur + 0.02);
+  o.connect(g).connect(out()); o.start(at); o.stop(at + dur + 0.02);
   return o;
 }
 // The RMC test beep: ~586 Hz for ~0.22 s (measured from the test recordings)
@@ -1186,7 +1196,7 @@ function playClip(name, at, bag){
   try {
     const src = a.createBufferSource(), g = a.createGain();
     src.buffer = voice.buf; g.gain.value = 1.0;
-    src.connect(g).connect(a.destination);
+    src.connect(g).connect(out());
     src.start(Math.max(at, a.currentTime), off, dur);
     if (bag) bag.push(src);
   } catch (e) { console.log('clip', e); voice.ctx = null; loadVoice(); }
@@ -1486,6 +1496,7 @@ function onField(e){
     else p.phases[el.dataset.k][el.dataset.pf] = el.dataset.pf === 's' ? Number(el.value) || '' : el.value;
     savePresets();
   } else if (el.id === 'leadIn') { settings.lead = num(el.value); saveSettings(); }
+  else if (el.id === 'cueVol') { setCueVol(Number(el.value) / 100); const l = $('#cueVolLbl'); if (l) l.textContent = el.value + '%'; }
   else if (el.dataset.sw !== undefined && schedDraft) {
     const w = schedDraft.week[Number(el.dataset.sw)], it = planItems(w.plan);
     it[Number(el.dataset.slot)] = el.value; w.plan = it.filter(Boolean).join(' + ') || 'Rest';
