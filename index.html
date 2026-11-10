@@ -198,7 +198,8 @@ details[open] summary{margin-bottom:14px}
 .page-h h1{font-size:34px}
 .page-h .sub{color:var(--muted);font-size:14px;margin-top:6px}
 /* rest bar */
-#rest{position:fixed;left:0;right:0;bottom:0;z-index:30;padding-bottom:env(safe-area-inset-bottom);background:#0e100e;border-top:3px solid var(--amber);display:none}
+body.typing #rest{display:none!important}
+#rest{position:fixed;left:0;right:0;bottom:0;z-index:30;transform:translateZ(0);will-change:transform;padding-bottom:env(safe-area-inset-bottom);background:#0e100e;border-top:3px solid var(--amber);display:none}
 #rest .wrap{display:flex;align-items:center;gap:8px;height:76px}
 #rest .rt{font-family:var(--head);font-weight:700;font-size:40px;min-width:100px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 #rest .rl{font-family:var(--head);font-weight:600;font-size:12px;color:var(--amber)}
@@ -439,8 +440,10 @@ function targetText(it){
 /* ================= views ================= */
 function go(r){ route = r; render(); window.scrollTo(0, 0); }
 
+let lastRoute = null;
 function render(){
   const v = $('#view');
+  const keepY = route === lastRoute ? window.scrollY : null; lastRoute = route;
   $('#phase').style.display = B ? '' : 'none';
   if (!connected() || route === 'connect') { v.innerHTML = vConnect(); return; }
   if (!B) { v.innerHTML = '<section><div class="card">Loading… <span class="muted small">The first load needs signal.</span></div></section>'; return; }
@@ -448,6 +451,7 @@ function render(){
   updateSync();
   const fn = { home: vHome, session: vSession, run: vRun, swim: vSwim, daily: vDaily, event: vEvent, bench: vBench, settings: vSettings, rank: vRank, schedule: vSchedule, inbody: vInBody }[route] || vHome;
   v.innerHTML = fn();
+  if (keepY !== null) window.scrollTo(0, keepY);
   if (route === 'run' || route === 'swim') bindShots();
   if (route === 'inbody') { const inp = $('#ibShotIn'); if (inp) inp.onchange = async () => { for (const f of inp.files) ibShots.push(await compress(f)); $('#ibThumbs').innerHTML = ibShots.map(x => `<img src="data:${x.mime};base64,${x.data}">`).join(''); }; }
 }
@@ -1125,15 +1129,29 @@ function confirmBox(title, body, okLabel, cb){
 let actx = null;
 const AUDIO_MODES = { mix: 'ambient', duck: 'transient', pause: 'playback' };
 function audio(){
+  if (actx && actx.state === 'closed') { actx = null; voice.loading = null; }
   if (!actx) {
     try { if (navigator.audioSession) navigator.audioSession.type = AUDIO_MODES[settings.audioMode] || 'ambient'; } catch (e) {}
     actx = new (window.AudioContext || window.webkitAudioContext)();
     loadVoice();
   }
-  if (actx.state === 'suspended') actx.resume();
+  // iPhone can leave the clock 'suspended' or 'interrupted' (calls, notifications, switching apps)
+  if (actx.state !== 'running') { try { actx.resume(); } catch (e) {} }
   return actx;
 }
-function resetAudio(){ try { if (actx) actx.close(); } catch (e) {} actx = null; }
+// Make sure the audio clock is actually ticking; rebuild it if iPhone has frozen it
+async function audioReady(fresh){
+  if (fresh) resetAudio();
+  let a = audio();
+  try { await Promise.race([a.resume(), new Promise(r => setTimeout(r, 400))]); } catch (e) {}
+  const t0 = a.currentTime; await new Promise(r => setTimeout(r, 150));
+  if (a.state === 'running' && a.currentTime > t0) return a;
+  resetAudio(); a = audio();
+  try { await Promise.race([a.resume(), new Promise(r => setTimeout(r, 400))]); } catch (e) {}
+  const t1 = a.currentTime; await new Promise(r => setTimeout(r, 150));
+  return a.currentTime > t1 ? a : null;
+}
+function resetAudio(){ try { if (actx) actx.close(); } catch (e) {} actx = null; voice.loading = null; }
 function beep(freq, at, dur, vol, bag, type){
   const a = audio(), o = a.createOscillator(), g = a.createGain();
   if (bag) bag.push(o);
@@ -1151,9 +1169,12 @@ const TONE = { UP: 1175, DOWN: 587, HOLD: 880 };
 // Voice clips: one file + timings, decoded once
 let voice = { buf: null, map: null, loading: null };
 function loadVoice(){
-  if (voice.buf || voice.loading || !actx) return voice.loading;
-  voice.loading = Promise.all([fetch('audio/voice.json').then(r => r.json()), fetch('audio/voice.mp3').then(r => r.arrayBuffer())])
-    .then(([map, ab]) => new Promise((res, rej) => actx.decodeAudioData(ab, res, rej)).then(buf => { voice.buf = buf; voice.map = map; }))
+  if ((voice.buf && voice.ctx === actx) || voice.loading || !actx) return voice.loading;
+  const ctx = actx;
+  const raw = voice.raw ? Promise.resolve(voice.raw) : fetch('audio/voice.mp3').then(r => r.arrayBuffer()).then(ab => (voice.raw = ab));
+  const map = voice.map ? Promise.resolve(voice.map) : fetch('audio/voice.json').then(r => r.json());
+  voice.loading = Promise.all([map, raw])
+    .then(([m, ab]) => new Promise((res, rej) => ctx.decodeAudioData(ab.slice(0), res, rej)).then(buf => { voice.buf = buf; voice.map = m; voice.ctx = ctx; }))
     .catch(e => { console.log('voice', e); voice.loading = null; });
   return voice.loading;
 }
@@ -1161,12 +1182,14 @@ function hasVoice(){ return !!(voice.buf && voice.map) && settings.voice !== fal
 function clipLen(name){ return voice.map && voice.map[name] ? voice.map[name][1] : 0; }
 function playClip(name, at, bag){
   if (!hasVoice() || !voice.map[name]) return 0;
-  const a = audio(), src = a.createBufferSource(), g = a.createGain();
-  src.buffer = voice.buf; g.gain.value = 1.0;
-  src.connect(g).connect(a.destination);
-  const [off, dur] = voice.map[name];
-  src.start(Math.max(at, a.currentTime), off, dur);
-  if (bag) bag.push(src);
+  const a = audio(), [off, dur] = voice.map[name];
+  try {
+    const src = a.createBufferSource(), g = a.createGain();
+    src.buffer = voice.buf; g.gain.value = 1.0;
+    src.connect(g).connect(a.destination);
+    src.start(Math.max(at, a.currentTime), off, dur);
+    if (bag) bag.push(src);
+  } catch (e) { console.log('clip', e); voice.ctx = null; loadVoice(); }
   return dur;
 }
 const numClip = n => n >= 1 && n <= 60 ? 'n' + String(n).padStart(2, '0') : null;
@@ -1197,7 +1220,7 @@ function stopRest(){ clearInterval(rest.int); $('#rest').style.display = 'none';
 /* ================= station timer (timed circuit stations) ================= */
 function stationTimer(i, j){
   const it = S.items[i], s = it.sets[j], dur = num(s.time_s) || num(it.target.time_s) || 45;
-  const a = audio(), bag = []; let lead = num(settings.lead) || 3; const t0 = a.currentTime;
+  resetAudio(); const a = audio(), bag = []; let lead = num(settings.lead) || 3; const t0 = a.currentTime;
   for (let k = 0; k < lead; k++) beep(784, t0 + k, .1, undefined, bag);
   beep(1568, t0 + lead, .25, undefined, bag);
   const startAt = Date.now() + lead * 1000;
@@ -1245,10 +1268,20 @@ function cadOpen(presetName, i, mode, testKind){
 function cadUI(){ $('#cadReps').textContent = cad.reps; $('#cadStart').textContent = cad.running ? 'Pause' : (cad.reps ? 'Resume' : 'Start'); }
 async function cadStart(){
   if (cad.running) return cadStop();
-  const a = audio(), P = presets[cad.preset]; if (!P || !P.phases.length) return;
-  if (P.voice && settings.voice !== false && !voice.buf) { $('#cadPhase').textContent = '…'; await Promise.race([loadVoice(), new Promise(r => setTimeout(r, 2500))]); }
+  if (cad.starting) return;                       // ignore extra taps while it's getting ready
+  const P = presets[cad.preset]; if (!P || !P.phases.length) return;
+  cad.starting = true; $('#cadStart').textContent = '…'; $('#cadPhase').textContent = '…';
+  let a;
+  try {
+    a = await audioReady(true);
+    if (a && P.voice && settings.voice !== false && voice.ctx !== a) await Promise.race([loadVoice() || Promise.resolve(), new Promise(r => setTimeout(r, 2500))]);
+  } finally { cad.starting = false; }
+  if (!a) { $('#cadPhase').textContent = 'NO AUDIO'; toast('iPhone paused the sound. Tap Start again.', true); cadUI(); return; }
+  if (!$('#cad').classList.contains('show')) return;   // closed while loading
   const voiced = !!P.voice && hasVoice();
   const L = P.phases.length;
+  clearInterval(cad.timer); silence(cad.bag);
+  const run = cad.run = (cad.run || 0) + 1;
   cad.running = true; cad.sched = []; cad.events = []; cad.capped = false; cad.endAt = 0;
   let t = a.currentTime + 0.15;
   if (cad.mode === 'test' && voiced && !cad.started) {
@@ -1261,6 +1294,7 @@ async function cadStart(){
   const target = (() => { const cs = curSetForCad(); return cs ? num(setVal(cs.it.sets[cs.j])) : ''; })();
   cad.target = target;
   const schedule = () => {
+    if (cad.run !== run) return;
     while (!cad.capped && cad.next < a.currentTime + 0.3) {
       const ph = P.phases[cad.phase], dur = Number(ph.s) || 1;
       const rep = Math.floor(cad.k / L) + 1;
@@ -1294,7 +1328,7 @@ async function cadStart(){
   cad.timer = setInterval(schedule, 40);
   keepAwake(true); cadUI();
   const draw = () => {
-    if (!cad.running) return;
+    if (!cad.running || cad.run !== run) return;
     const now = a.currentTime;
     if (now < cad.leadEnd) {
       const left = Math.ceil(cad.leadEnd - now);
@@ -1318,7 +1352,7 @@ async function cadStart(){
   requestAnimationFrame(draw);
 }
 function cadStop(){
-  cad.running = false; clearInterval(cad.timer);
+  cad.running = false; clearInterval(cad.timer); cad.run = (cad.run || 0) + 1;
   silence(cad.bag);
   cad.sched = []; cad.events = []; $('#cadPhase').textContent = 'PAUSED'; $('#cadPhase').className = 'cad-phase'; $('#cadBar').style.width = '0';
   keepAwake(false); cadUI();
@@ -1461,12 +1495,25 @@ document.addEventListener('input', onField);
 document.addEventListener('change', e => { if (e.target.tagName === 'SELECT') onField(e); });
 $('#cadPreset').addEventListener('change', e => { cadStop(); cad.preset = Number(e.target.value); cad.reps = 0; cadUI(); });
 
+/* ================= keyboard handling (iPhone) ================= */
+// While typing, iPhone shifts fixed bars around: hide the rest bar (the timer keeps running and still beeps)
+document.addEventListener('focusin', e => { if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) && e.target.type !== 'date') document.body.classList.add('typing'); });
+document.addEventListener('focusout', () => setTimeout(() => { const t = document.activeElement; if (!t || !/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) document.body.classList.remove('typing'); }, 120));
+// Keep the rest bar on the bottom of what's actually visible
+if (window.visualViewport) {
+  const pin = () => { const vv = window.visualViewport, off = window.innerHeight - vv.height - vv.offsetTop; $('#rest').style.transform = off > 1 ? `translateY(${-off}px)` : 'translateZ(0)'; };
+  window.visualViewport.addEventListener('resize', pin); window.visualViewport.addEventListener('scroll', pin);
+}
+
 /* ================= boot ================= */
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   navigator.serviceWorker.register('sw.js').catch(e => console.log('sw', e));
 }
 window.addEventListener('offline', updateSync);
-document.addEventListener('visibilitychange', () => { if (!document.hidden && connected()) { refreshBoot(); flush(); } });
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { if (cad.running) cadStop(); return; }   // iPhone stops audio in the background: pause cleanly
+  if (connected()) { refreshBoot(); flush(); }
+});
 if (S) route = 'session';
 render(); updateSync();
 if (connected()) refreshBoot().then(flush);
