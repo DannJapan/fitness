@@ -256,6 +256,7 @@ body.typing #rest{display:none!important}
     <button class="back" data-a="cad-close">✕ Close</button>
     <div class="spacer"></div>
     <select id="cadPreset" class="btn sm" style="text-transform:none"></select>
+    <button id="btLock" class="btn sm" data-a="bt-lock" style="display:none"></button>
   </div>
   <div class="cad-stage">
     <div class="cad-sub" id="cadFor">Free</div>
@@ -267,8 +268,8 @@ body.typing #rest{display:none!important}
   <div class="cad-ctrl">
     <button class="btn block go" id="cadStart" data-a="cad-start">Start</button>
     <button class="btn block gold" id="cadLog" data-a="cad-log">Stop &amp; log</button>
-    <button class="btn block" data-a="cad-rep" data-v="-1">− Rep</button>
-    <button class="btn block" data-a="cad-rep" data-v="1">+ Rep</button>
+    <button class="btn block" data-a="cad-rep" data-v="-1" id="cadMinus">− Rep</button>
+    <button class="btn block" data-a="cad-rep" data-v="1" id="cadPlus">+ Rep</button>
   </div>
 </div>
 
@@ -276,6 +277,7 @@ body.typing #rest{display:none!important}
 <div id="toast"></div>
 
 <script>
+const APP_VERSION = 'cf-v11 · today fix';
 /* ================= utilities ================= */
 const $ = s => document.querySelector(s);
 const esc = v => String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -376,7 +378,7 @@ let draftT; function saveDraftSoon(){ clearTimeout(draftT); draftT = setTimeout(
 async function refreshBoot(){
   try {
     const b = await call('getBootstrap');
-    const first = !B; B = b; store.set('barker_boot', b);
+    const first = !B || B.today !== b.today; B = b; store.set('barker_boot', b);
     rankNotice();
     if (first || route === 'home') render();
     $('#phase').textContent = B.phase; $('#phase').className = 'badge ' + B.phase;
@@ -449,6 +451,7 @@ function render(){
   if (!B) { v.innerHTML = '<section><div class="card">Loading… <span class="muted small">The first load needs signal.</span></div></section>'; return; }
   $('#phase').textContent = B.phase; $('#phase').className = 'badge ' + B.phase;
   updateSync();
+  if (!fresh() && connected() && Date.now() - (render.lastStale || 0) > 15000) { render.lastStale = Date.now(); setTimeout(refreshBoot, 0); }
   const fn = { home: vHome, session: vSession, run: vRun, swim: vSwim, daily: vDaily, event: vEvent, bench: vBench, settings: vSettings, rank: vRank, schedule: vSchedule, inbody: vInBody }[route] || vHome;
   v.innerHTML = fn();
   if (keepY !== null) window.scrollTo(0, keepY);
@@ -474,8 +477,9 @@ function planFor(date){
   const r = (B.schedule || []).find(x => x.day === weekdayOf(date)); return r ? r.plan || '' : '';
 }
 const planItems = plan => String(plan || '').split('+').map(x => x.trim()).filter(Boolean);
+const fresh = () => !!B && B.today === todayStr();
 function itemInfo(it){
-  const td = (B.progress && B.progress.today_done) || { templates: [] };
+  const td = (fresh() && B.progress && B.progress.today_done) || { templates: [] };
   if (B.templates && B.templates[it]) return { kind: 'start', v: it, label: it, done: (td.templates || []).includes(it) };
   if (/^run/i.test(it)) return { kind: 'run', v: it, label: it.replace(/^run:?\s*/i, '') + ' run', done: td.run };
   if (/^swim/i.test(it)) return { kind: 'swim', v: it, label: it.replace(/^swim:?\s*/i, '') + ' swim', done: td.swim };
@@ -496,8 +500,8 @@ function rankNotice(){
     <button class="btn block" style="margin-top:8px" data-a="rank-view">View rank</button></div>`), 300);
 }
 function vToday(){
-  const today = B.today || todayStr(), plan = planFor(today), items = planItems(plan);
-  const td = (B.progress && B.progress.today_done) || {};
+  const today = todayStr(), plan = planFor(today), items = planItems(plan);
+  const td = (fresh() && B.progress && B.progress.today_done) || {};
   const rows = items.map((it, k) => { const f = itemInfo(it);
     return `<button class="titem ${f.done ? 'done' : ''}" data-a="plan-item" data-v="${esc(it)}"><span class="ck">${f.done ? '✓' : ''}</span>${esc(f.label)}<span class="arr">→</span></button>`; }).join('');
   const hasRest = items.some(x => /^rest/i.test(x));
@@ -910,9 +914,11 @@ function vBench(){
   const lastList = Object.keys(BENCH).filter(t => latest[t]).map(t => `<div class="item"><span>${esc(t)}</span><span class="muted">${esc(latest[t].result)} · ${fmtDay(latest[t].date)}</span></div>`).join('');
   return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>Benchmark</h1>
     <div class="sub">The four Royal Marines tests decide your rank: bleep test, press-ups, sit-ups and pull-ups. Retest every 6 weeks.</div></div>
-  <section><div class="label">Run a test with audio</div><div class="big-btns">
+  <section><div class="label">Run a test with audio</div>
+    <button class="btn block go" data-a="bleep-open">▶ Bleep test (20 m)</button>
+    <div class="big-btns">
     <button class="btn" data-a="bench-test" data-v="pull">▶ Pull-up test</button><button class="btn" data-a="bench-test" data-v="press">▶ Press-up test</button></div>
-    <div class="hint">Plays the full test: instructions, countdown, beep and count. Tap "Stop &amp; log" when you fail a rep; the count fills in below.</div></section>
+    <div class="hint">Each plays the full test with beeps and voice. Tap "Stop &amp; log" when you're done; your score fills in below. Bleep test: standard 20 m shuttles, levels 1–21 (about 22 minutes). Turn on "Screen can lock" if you want to pocket the phone; that pauses your music.</div></section>
   <form class="form" id="f" style="margin-top:14px">
     <div class="f"><label>Date</label>${dateField('name="date"')}</div>
     <div class="f"><label>Test</label><select name="test">${opt(Object.keys(BENCH), pf.test || 'Bleep test')}</select></div>
@@ -993,6 +999,7 @@ function vSettings(){
   <div class="row"><button class="btn" data-a="pre-add">+ Preset</button><button class="btn" data-a="pre-reset">Reset defaults</button></div></section>
   <section class="form"><div class="f"><label>Lead-in countdown (sec, non-voice presets)</label><input id="leadIn" inputmode="numeric" value="${esc(settings.lead)}"></div></section>
   <section><div class="label">Weekly schedule</div><button class="btn block" data-a="go" data-v="schedule">Edit week and one-off days</button></section>
+  <section><div class="label">App version</div><div class="card small muted">${esc(APP_VERSION)}</div></section>
   <section><div class="label">Sheet link</div><div class="card small"><div class="muted" style="word-break:break-all">${esc(cfg.url)}</div>
     <div class="row" style="margin-top:10px"><button class="btn sm" data-a="go" data-v="connect">Change link or passphrase</button></div></div></section>`;
 }
@@ -1255,7 +1262,7 @@ const TEST_SPEC = {
   press: { preset: 'RMC press-up', max: 60, intro: ['intro_press', 'press_adopt_position', 'stand_by'], end: ['stop', 'stand_up'], bench: 'Press-ups (RMC cadence)', title: 'Press-up test' }
 };
 function cadOpen(presetName, i, mode, testKind){
-  stopRest(); audio(); loadVoice();
+  stopRest(); audio(); loadVoice(); overlayMode('cad');
   cad.mode = mode || ((i !== undefined && i !== '' && S) ? 'set' : 'free');
   cad.test = cad.mode === 'test' ? TEST_SPEC[testKind] : null;
   if (cad.test) presetName = cad.test.preset;
@@ -1367,6 +1374,94 @@ function cadStop(){
   cad.sched = []; cad.events = []; $('#cadPhase').textContent = 'PAUSED'; $('#cadPhase').className = 'cad-phase'; $('#cadBar').style.width = '0';
   keepAwake(false); cadUI();
 }
+/* ================= bleep test (one generated audio track) ================= */
+// The whole test is a single audio file, so it keeps playing with the screen locked (in lock mode).
+// Level and shuttle are worked out from where the track is up to.
+const bt = { el: null, url: null, J: null, running: false, adj: 0, lock: false, loading: null };
+function overlayMode(m){
+  const b = m === 'bleep';
+  $('#cadPreset').style.display = b ? 'none' : ''; $('#btLock').style.display = b ? '' : 'none';
+  $('#cadMinus').textContent = b ? '− Shuttle' : '− Rep'; $('#cadPlus').textContent = b ? '+ Shuttle' : '+ Rep';
+}
+function btLoad(){
+  if (bt.loading) return bt.loading;
+  bt.loading = Promise.all([fetch('audio/bleep.json').then(r => r.json()), fetch('audio/bleep.mp3').then(r => r.blob())])
+    .then(([J, blob]) => {
+      bt.J = J; bt.url = URL.createObjectURL(blob);
+      bt.el = new Audio(); bt.el.setAttribute('playsinline', ''); bt.el.preload = 'auto'; bt.el.src = bt.url;
+      bt.el.addEventListener('ended', () => { bt.running = false; keepAwake(false); btDraw(); $('#cadStart').textContent = 'Start'; });
+    }).catch(e => { bt.loading = null; throw e; });
+  return bt.loading;
+}
+function btLockLabel(){ $('#btLock').textContent = bt.lock ? '🔒 Screen can lock' : '♪ Mix with music'; }
+function bleepOpen(){
+  stopRest(); cadStop(); overlayMode('bleep');
+  cad.mode = 'bleep'; bt.adj = 0; bt.lock = settings.btLock === true; btLockLabel();
+  $('#cadFor').textContent = 'Bleep test · 20 m shuttles';
+  $('#cadPhase').textContent = 'LOADING'; $('#cadPhase').className = 'cad-phase'; $('#cadReps').textContent = '—';
+  $('#cadTarget').textContent = 'Set two markers 20 m apart'; $('#cadStart').textContent = 'Start'; $('#cadLog').textContent = 'Stop & log';
+  $('#cadBar').style.width = '0';
+  $('#cad').classList.add('show');
+  btLoad().then(() => { if (cad.mode === 'bleep' && !bt.running) { $('#cadPhase').textContent = 'READY'; btDraw(); } })
+    .catch(() => { $('#cadPhase').textContent = 'OFFLINE'; toast('Could not load the test audio. Open the app with signal once.', true); });
+}
+function btSession(){ try { if (navigator.audioSession) navigator.audioSession.type = bt.lock ? 'playback' : (AUDIO_MODES[settings.audioMode] || 'ambient'); } catch (e) {} }
+function bleepStart(){
+  if (!bt.el) return toast('Test audio still loading…');
+  if (bt.running) { bt.el.pause(); bt.running = false; keepAwake(false); $('#cadStart').textContent = 'Resume'; $('#cadPhase').textContent = 'PAUSED'; return; }
+  resetAudio();                         // free the metronome's audio so the track has the session to itself
+  btSession();
+  const p = bt.el.play();               // called straight from the tap, as iPhone requires
+  if (p && p.catch) p.catch(e => { bt.running = false; toast('iPhone blocked the sound. Tap Start again.', true); $('#cadStart').textContent = 'Start'; });
+  bt.running = true; keepAwake(true); $('#cadStart').textContent = 'Pause';
+  try { if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({ title: 'Bleep test', artist: 'Commando Fit', artwork: [{ src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' }] });
+    navigator.mediaSession.setActionHandler('pause', () => { if (bt.running) bleepStart(); });
+    navigator.mediaSession.setActionHandler('play', () => { if (!bt.running) bleepStart(); });
+  } } catch (e) {}
+  const loop = () => { if (!bt.running || cad.mode !== 'bleep') return; btDraw(); requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+}
+// index of the last completed shuttle at time t (−1 = none yet)
+function btIndex(t){ const E = bt.J.ends; let lo = 0, hi = E.length - 1, ans = -1; while (lo <= hi) { const m = (lo + hi) >> 1; if (E[m].t <= t) { ans = m; lo = m + 1; } else hi = m - 1; } return ans; }
+function btScore(){
+  if (!bt.J || !bt.el) return null;
+  const i = btIndex(bt.el.currentTime) + bt.adj;
+  if (i < 0) return null; const e = bt.J.ends[Math.min(i, bt.J.ends.length - 1)];
+  return e.level + '.' + e.shuttle;
+}
+function btDraw(){
+  if (!bt.J || !bt.el) return;
+  const J = bt.J, t = bt.el.currentTime;
+  if (t < J.t0) {
+    const left = Math.ceil(J.t0 - t);
+    $('#cadPhase').textContent = bt.running ? (left <= 3 ? left : 'STAND BY') : ($('#cadPhase').textContent === 'LOADING' ? 'READY' : $('#cadPhase').textContent);
+    $('#cadPhase').className = 'cad-phase'; $('#cadReps').textContent = '—'; $('#cadTarget').textContent = 'Level 1 · ' + J.levels[0].speed + ' km/h';
+    $('#cadBar').style.width = '0';
+  } else {
+    const i = btIndex(t), next = J.ends[Math.min(i + 1, J.ends.length - 1)], L = J.levels[next.level - 1];
+    const prevT = i >= 0 ? J.ends[i].t : J.t0;
+    if (bt.running) { $('#cadPhase').textContent = 'LEVEL ' + next.level; $('#cadPhase').className = 'cad-phase up'; }
+    $('#cadReps').textContent = next.shuttle;
+    $('#cadTarget').textContent = 'shuttle ' + next.shuttle + ' of ' + L.shuttles + ' · ' + L.speed + ' km/h';
+    $('#cadBar').style.width = Math.min(100, (t - prevT) / (next.t - prevT) * 100) + '%';
+  }
+  const sc = btScore();
+  $('#cadFor').textContent = sc ? 'Score so far: ' + sc + (bt.adj ? ' (adjusted ' + (bt.adj > 0 ? '+' : '') + bt.adj + ')' : '') : 'Bleep test · 20 m shuttles';
+}
+function bleepClose(){
+  if (bt.el) { bt.el.pause(); bt.el.currentTime = 0; }
+  bt.running = false; keepAwake(false); try { if (navigator.audioSession) navigator.audioSession.type = AUDIO_MODES[settings.audioMode] || 'ambient'; } catch (e) {}
+  cad.mode = 'free'; overlayMode('cad'); $('#cad').classList.remove('show');
+}
+function bleepLog(){
+  const sc = btScore();
+  bleepClose();
+  benchPrefill = { test: 'Bleep test', result: sc || '' };
+  go('bench');
+  if (sc) toast('Bleep test: ' + sc + '. Check it and save');
+}
+
 let benchPrefill = null;
 function cadLog(){
   const wasRunning = cad.running;
@@ -1442,10 +1537,14 @@ document.addEventListener('click', e => {
     case 'rest-adj': rest.end += Number(v) * 1000; rest.beeped = false; tickRest(); break;
     case 'rest-stop': stopRest(); break;
     case 'cad-open': audio(); cadOpen(v, i); break;
-    case 'cad-close': cadStop(); $('#cad').classList.remove('show'); break;
-    case 'cad-start': cadStart(); break;
-    case 'cad-log': cadLog(); break;
-    case 'cad-rep': cad.reps = Math.max(0, cad.reps + Number(v)); cadUI(); break;
+    case 'cad-close': if (cad.mode === 'bleep') { bleepClose(); break; } cadStop(); $('#cad').classList.remove('show'); break;
+    case 'cad-start': if (cad.mode === 'bleep') bleepStart(); else cadStart(); break;
+    case 'cad-log': if (cad.mode === 'bleep') bleepLog(); else cadLog(); break;
+    case 'cad-rep': if (cad.mode === 'bleep') { bt.adj += Number(v); btDraw(); break; } cad.reps = Math.max(0, cad.reps + Number(v)); cadUI(); break;
+    case 'bt-lock': bt.lock = !bt.lock; settings.btLock = bt.lock; saveSettings(); btLockLabel();
+      if (bt.running) btSession();
+      toast(bt.lock ? 'Keeps going with the screen locked. Your music will pause.' : 'Plays over your music. Keep the screen on.'); break;
+    case 'bleep-open': bleepOpen(); break;
     case 'cf-save': connectSave(); break;
     case 'save-run': saveRun(); break;
     case 'save-swim': saveSwim(); break;
@@ -1503,7 +1602,8 @@ function onField(e){
   }
 }
 document.addEventListener('input', onField);
-document.addEventListener('change', e => { if (e.target.tagName === 'SELECT') onField(e); });
+document.addEventListener('change', e => { if (e.target.tagName === 'SELECT' || e.target.type === 'date') onField(e); });
+document.addEventListener('blur', e => { if (e.target.type === 'date') onField(e); }, true);
 $('#cadPreset').addEventListener('change', e => { cadStop(); cad.preset = Number(e.target.value); cad.reps = 0; cadUI(); });
 
 /* ================= keyboard handling (iPhone) ================= */
@@ -1521,9 +1621,14 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
   navigator.serviceWorker.register('sw.js').catch(e => console.log('sw', e));
 }
 window.addEventListener('offline', updateSync);
+let drawnDay = todayStr();
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { if (cad.running) cadStop(); return; }   // iPhone stops audio in the background: pause cleanly
-  if (connected()) { refreshBoot(); flush(); }
+  const newDay = todayStr() !== drawnDay;
+  drawnDay = todayStr();
+  if (newDay && route !== 'session') { dailyState = null; if (route !== 'home') go('home'); else render(); }
+  if (connected()) refreshBoot().then(() => { if (newDay && route === 'home') render(); }); 
+  if (connected()) flush();
 });
 if (S) route = 'session';
 render(); updateSync();
