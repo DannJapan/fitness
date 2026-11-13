@@ -269,6 +269,7 @@ body.typing #rest{display:none!important}
   linear-gradient(135deg,#17231a 0%,#0d120e 60%,#0a0b0a 100%)}
 .photo .pe{font-family:var(--head);font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--amber)}
 .photo .pw{font-family:var(--head);font-weight:700;font-size:32px;line-height:1.02;letter-spacing:-.02em;margin-top:2px;text-shadow:0 1px 12px rgba(0,0,0,.6);max-width:92%}
+.photo .pq{font-size:14px;line-height:1.35;margin-top:6px;color:rgba(255,255,255,.86);text-shadow:0 1px 8px rgba(0,0,0,.8);max-width:88%}
 .photo .pc{position:absolute;top:8px;right:10px;font-size:9px;color:rgba(255,255,255,.55);text-shadow:0 1px 3px #000}
 /* section photos */
 .pstrip{position:relative;height:120px;margin:10px -16px 0;background-size:cover;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
@@ -341,7 +342,7 @@ body.typing #rest{display:none!important}
 <div id="toast"></div>
 
 <script>
-const APP_VERSION = 'cf-v13';
+const APP_VERSION = 'cf-v14';
 /* ================= utilities ================= */
 const $ = s => document.querySelector(s);
 const esc = v => String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -892,7 +893,7 @@ function compress(file){
 const opt = (list, sel) => list.map(o => `<option ${o === sel ? 'selected' : ''}>${esc(o)}</option>`).join('');
 
 function vRun(){
-  return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>Log run</h1></div>
+  return `<div class="line-title"><button class="back" data-a="home">← Home</button></div>${pstrip('run', true)}<div class="page-h"><h1>Log run</h1></div>
   <form class="form" id="f" style="margin-top:14px">
     <div class="two"><div class="f"><label>Date</label>${dateField('name="date"')}</div>
       <div class="f"><label>Type</label><select name="run_type">${opt(['Zone 2','Easy','Long','Tempo','Intervals','2.4 km test','Race'], (formPrefill.run || {}).type || 'Zone 2')}</select></div></div>
@@ -921,7 +922,7 @@ function vRun(){
 }
 
 function vSwim(){
-  return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>Log swim</h1></div>
+  return `<div class="line-title"><button class="back" data-a="home">← Home</button></div>${pstrip('swim', true)}<div class="page-h"><h1>Log swim</h1></div>
   <form class="form" id="f" style="margin-top:14px">
     <div class="two"><div class="f"><label>Date</label>${dateField('name="date"')}</div>
       <div class="f"><label>Type</label><select name="swim_type">${opt(['Recovery','Endurance','Technique','Test'], (formPrefill.swim || {}).type || 'Recovery')}</select></div></div>
@@ -1067,7 +1068,7 @@ function vSettings(){
   <section><div class="label">Weekly schedule</div><button class="btn block" data-a="go" data-v="schedule">Edit week and one-off days</button></section>
   <section><div class="label">App</div><div class="card small"><span class="muted">Version ${esc(APP_VERSION)}</span>
     <div class="big-btns"><button class="btn" data-a="app-update">Check for update</button><button class="btn" data-a="app-backup">Back up my sheet</button></div>
-    <div class="hint" style="margin-top:10px">Photos: UK Ministry of Defence, © Crown copyright, via Wikimedia Commons. Contains public sector information licensed under the Open Government Licence v3.0. This app is a personal project and is not affiliated with or endorsed by the Royal Marines or the MOD.</div>
+    <div class="hint" style="margin-top:10px">Photos via Wikimedia Commons, photographers credited on each picture. UK Ministry of Defence photos © Crown copyright, licensed under the Open Government Licence v3.0; U.S. military photos are in the public domain. This app is a personal project and is not affiliated with or endorsed by the Royal Marines or the MOD.</div>
     <div class="hint">Back up saves a dated copy of your whole training log to your Google Drive.</div></div></section>
   <section><div class="label">Sheet link</div><div class="card small"><div class="muted" style="word-break:break-all">${esc(cfg.url)}</div>
     <div class="row" style="margin-top:10px"><button class="btn sm" data-a="go" data-v="connect">Change link or passphrase</button></div></div></section>`;
@@ -2120,17 +2121,25 @@ function histDelete(){
 }
 
 /* ---------- hero, insignia, promotion ---------- */
-const SPIRIT = [['Commando spirit', 'Courage'], ['Commando spirit', 'Determination'], ['Commando spirit', 'Unselfishness'], ['Commando spirit', 'Cheerfulness in the face of adversity'],
-  ['Commando values', 'Excellence'], ['Commando values', 'Integrity'], ['Commando values', 'Self-discipline'], ['Commando values', 'Humility']];
+// Commando Spirit and Royal Marines values; one a day, with a line that changes each time the value comes round
+const SPIRIT = [
+  ['Commando spirit', 'Courage', ['Do the hard thing first. Start the set you are dreading.', 'Courage is turning up when nobody would notice if you did not.', 'Pick the heavier weight and own it.']],
+  ['Commando spirit', 'Determination', ['Finish the session you planned, not the one you feel like.', 'The last rep counts the same as the first. Make it clean.', 'One bad day is a blip. Do not let it become two.']],
+  ['Commando spirit', 'Unselfishness', ['Train so you can carry your share and someone else\'s.', 'Fit for the team, not the mirror.', 'Help the person next to you finish.']],
+  ['Commando spirit', 'Cheerfulness in the face of adversity', ['Smile on the last rep. Morale is a choice.', 'Cold, wet and tired is where it gets built.', 'Grin, then go again.']],
+  ['Commando values', 'Excellence', ['Clean reps beat ugly numbers.', 'Do the basics better than anyone.', 'Small gains, every week, for months.']],
+  ['Commando values', 'Integrity', ['Log the truth. The sheet only helps if it is honest.', 'Full range or it did not count.', 'Nobody checks your cadence but you.']],
+  ['Commando values', 'Self-discipline', ['Sleep, eat, train, repeat. Boring wins.', 'Rest days are orders too.', 'Do it on the days you do not feel like it.']],
+  ['Commando values', 'Humility', ['Leave the ego at the door. Drop the weight if form slips.', 'Recruit or Sergeant, the next test starts from zero.', 'Find what you are getting wrong, then fix it.']]];
 let photos = store.get('cf_photos', []);
 // photos.json lists the pictures; only the ones actually uploaded to the photos folder are used
 fetch('photos/photos.json').then(r => r.ok ? r.json() : []).then(list => Promise.all((Array.isArray(list) ? list : []).filter(p => p && p.file).map(p => new Promise(res => {
   const im = new Image(); im.onload = () => res(p); im.onerror = () => res(null); im.src = 'photos/' + encodeURI(p.file); }))))
-  .then(ok => { photos = ok.filter(Boolean); store.set('cf_photos', photos); if (['home', 'rank', 'bench', 'report', 'progress'].includes(route) && B) render(); }).catch(() => {});
+  .then(ok => { photos = ok.filter(Boolean); store.set('cf_photos', photos); if (['home', 'rank', 'bench', 'report', 'progress', 'run', 'swim'].includes(route) && B) render(); }).catch(() => {});
 function vHero(){
-  const day = Math.floor(new Date(todayStr() + 'T00:00:00').getTime() / 864e5), s = SPIRIT[day % SPIRIT.length], hp = photos.filter(x => !x.use || x.use === 'hero'), p = hp.length ? hp[day % hp.length] : null;
+  const day = Math.floor(new Date(todayStr() + 'T00:00:00').getTime() / 864e5), s = SPIRIT[day % SPIRIT.length], hp = photos.filter(x => !x.use || x.use === 'hero' || x.hero), p = hp.length ? hp[day % hp.length] : null, q = s[2][Math.floor(day / SPIRIT.length) % s[2].length];
   return `<div class="photo ${p ? '' : 'nophoto'}" ${p ? `style="background-image:linear-gradient(180deg,rgba(10,11,10,.15) 0%,rgba(10,11,10,.2) 45%,rgba(10,11,10,.92) 100%),url('photos/${encodeURI(p.file)}');background-position:${esc(p.pos || 'center 30%')}"` : ''}>
-    <div class="pe">${esc(s[0])}</div><div class="pw">${esc(s[1])}</div>${p && p.credit ? `<div class="pc">${esc(p.credit)}</div>` : ''}</div>`;
+    <div class="pe">${esc(s[0])}</div><div class="pw">${esc(s[1])}</div><div class="pq">${esc(q)}</div>${p && p.credit ? `<div class="pc">${esc(p.credit)}</div>` : ''}</div>`;
 }
 function photoFor(use){ return photos.find(x => x.use === use) || null; }
 function pstrip(use, thin){

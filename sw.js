@@ -1,6 +1,6 @@
 // Commando Fit service worker: lets the app open with no signal.
 // Bump VERSION whenever index.html changes so phones pick up the new version.
-const VERSION = 'cf-v13';
+const VERSION = 'cf-v14';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png', 'audio/voice.mp3', 'audio/voice.json'];
 
 self.addEventListener('install', e => {
