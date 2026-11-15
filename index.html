@@ -145,6 +145,12 @@ section{margin:22px 0}
 .streak.cold .n{color:var(--dim)}
 .streak .l{font-size:11px;color:var(--muted);margin-top:4px;font-family:var(--head)}
 .streak .fz{font-size:11px;color:var(--blue);margin-top:2px;font-family:var(--head)}
+.repair{border:1px solid #2c4a63;border-left:3px solid var(--blue);background:rgba(90,160,220,.07);padding:12px 14px}
+.repair h3{font-family:var(--head);font-size:16px;margin:0 0 4px}
+.repair p{margin:0 0 10px;font-size:13px;line-height:1.45;color:var(--muted)}
+.repair .item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.repair .tag{font-size:11px;font-family:var(--head);color:var(--blue)}
+.repair .tag.lost{color:#f1a99c}
 .warn{border:1px solid #6a2a20;background:rgba(224,83,61,.08);color:#f1a99c;padding:10px 12px;font-size:13px;margin-top:8px;line-height:1.45}
 .today{background:var(--s1);border:1px solid var(--line);padding:14px}
 .today .eyebrow{font-family:var(--head);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--green-hi)}
@@ -342,7 +348,7 @@ body.typing #rest{display:none!important}
 <div id="toast"></div>
 
 <script>
-const APP_VERSION = 'cf-v14';
+const APP_VERSION = 'cf-v15';
 /* ================= utilities ================= */
 const $ = s => document.querySelector(s);
 const esc = v => String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -583,6 +589,19 @@ function vStatus(){
   const warns = (P.warnings || []).map(w => `<div class="warn">⚠ ${esc(w.text)}</div>`).join('');
   return `<div class="status"><button class="rankc" data-a="go" data-v="rank"><div class="rk">${insignia(P.rank_index)}<div><h2>${esc(P.rank)}</h2><div class="sub">+${P.xp_today} XP today · ${P.xp_28} in 28 days</div></div></div>${bar}${line}</button>${st}</div>${warns}`;
 }
+function vRepair(){
+  const P = (B && B.progress) || {}, M = P.missed_recent || [];
+  if (!M.length) return '';
+  const lost = M.filter(m => !m.frozen).length, gain = (P.repair_streak || 0) - (P.streak || 0);
+  const head = lost ? 'Streak repair' : 'Freeze used';
+  const msg = lost
+    ? `${M.length === 1 ? 'One day' : M.length + ' days'} went unlogged this week. If you trained or did your daily routine, log it late and the streak is recounted${gain > 0 ? `: <b style="color:var(--text)">${P.streak || 0} → ${P.repair_streak} days</b>` : ''}.`
+    : `A freeze covered ${M.length === 1 ? 'a missed day' : M.length + ' missed days'}. Log ${M.length === 1 ? 'it' : 'them'} late and you get the freeze back${P.repair_freezes > (P.freezes || 0) ? ` (${P.freezes || 0} → ${P.repair_freezes} banked)` : ''}.`;
+  return `<section><div class="repair"><h3>${head}</h3><p>${msg} Open for ${P.repair_days || 7} days. Only log what you actually did.</p>
+    ${M.map(m => `<div class="item"><span><b>${fmtDay(m.date)}</b> <span class="muted small">${esc(m.plan || '')}</span><br><span class="tag ${m.frozen ? '' : 'lost'}">${m.frozen ? '❄ covered by a freeze' : 'streak broke here'}</span></span>
+      <button class="btn sm" data-a="repair-day" data-v="${m.date}">Log this day</button></div>`).join('')}
+    <div class="hint" style="margin-top:8px">"Log this day" opens the Daily check-in for that date. A missed session or run can be logged with its own form: just change the date at the top.</div></div></section>`;
+}
 function vHome(){
   const ups = (B.upcoming || []);
   let countdown = '';
@@ -606,6 +625,7 @@ function vHome(){
   ${updateReady ? '<section><button class="upd" data-a="app-update">Update ready: tap to load it</button></section>' : ''}
   ${draft}
   <section>${vStatus()}</section>
+  ${vRepair()}
   <section>${vToday()}</section>
   ${vBodyCard() ? `<section>${vBodyCard()}</section>` : ''}
   ${countdown ? `<section>${countdown}</section>` : ''}
@@ -660,7 +680,7 @@ function vRank(){
     <div class="item"><span>Whole day's plan done</span><span class="muted">+${X.plan_complete}</span></div>
     <div class="item"><span>Streak bonus</span><span class="muted">+2/day per streak week (max 10)</span></div>
   </div></section>
-  <section><div class="label">Streak</div><div class="card small">${P.streak || 0} days now · best ${P.best_streak || 0} · ${P.freezes || 0} freeze${P.freezes === 1 ? '' : 's'} banked.<br><span class="muted">Any log keeps it alive, even just the Daily check-in. You earn a freeze every 7 days in a row (bank up to 2); it covers a missed day automatically.</span></div></section>`;
+  <section><div class="label">Streak</div><div class="card small">${P.streak || 0} days now · best ${P.best_streak || 0} · ${P.freezes || 0} freeze${P.freezes === 1 ? '' : 's'} banked.<br><span class="muted">Any log keeps it alive, even just the Daily check-in. You earn a freeze every 7 days in a row (bank up to 2); it covers a missed day automatically. Missed a day anyway? For 7 days you can log it late from the Home screen and the streak is recounted.</span></div></section>`;
 }
 
 /* ---- InBody ---- */
@@ -936,15 +956,16 @@ function vSwim(){
   </form>`;
 }
 
-let dailyState = null;
+let dailyState = null, dailyDate = null;
 function vDaily(){
   const d = B.daily || {};
+  if (dailyDate && !dailyState) dailyState = { commute: false, stretch: 0, deadbugs: false, deadbugReps: '', work_pushups: '', bodyweight: '', notes: '' };
   dailyState = dailyState || { commute: d.commute_walk ? d.commute_walk === 'yes' : true, stretch: num(d.stretch_sessions) || 0, deadbugs: d.deadbugs === 'yes',
     deadbugReps: num(d.deadbug_reps), work_pushups: d.work_pushups, bodyweight: d.bodyweight_kg, notes: d.notes };
   const ds = dailyState;
-  return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>Daily</h1></div>
+  return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>Daily</h1>${dailyDate ? `<div class="sub">Logging late for ${fmtDay(dailyDate)}. Tick only what you did that day.</div>` : ''}</div>
   <form class="form" id="f" style="margin-top:14px">
-    <div class="f"><label>Date</label>${dateField('name="date"')}</div>
+    <div class="f"><label>Date</label>${dateField('name="date"', dailyDate)}</div>
     <div class="f"><label>Weighted commute walk (~10 km)</label><div class="seg"><button type="button" class="${ds.commute ? 'on' : ''}" data-a="d-set" data-k="commute" data-v="1">Done</button><button type="button" class="${!ds.commute ? 'on' : ''}" data-a="d-set" data-k="commute" data-v="0">Not today</button></div></div>
     <div class="f"><label>Stretch routine</label><div class="seg">${[0,1,2].map(n => `<button type="button" class="${ds.stretch === n ? 'on' : ''}" data-a="d-set" data-k="stretch" data-v="${n}">${n}×</button>`).join('')}</div></div>
     <div class="f"><label>Lunchtime deadbugs${ds.deadbugReps ? ' · ' + ds.deadbugReps + (ds.deadbugReps === 1 ? ' rep' : ' reps') : ''}</label><div class="seg"><button type="button" class="${ds.deadbugs ? 'on' : ''}" data-a="d-set" data-k="deadbugs" data-v="1">Done</button><button type="button" class="${!ds.deadbugs ? 'on' : ''}" data-a="d-set" data-k="deadbugs" data-v="0">No</button></div>
@@ -1039,6 +1060,22 @@ async function connectSave(){
   }
 }
 
+function saveNudge(p){
+  B.nudges = Object.assign({}, B.nudges || {}, p); render();
+  call('saveNudges', p).then(r => { if (r && r.nudges) { B.nudges = r.nudges; store.set('barker_boot', B); render(); } toast('Reminders saved'); }).catch(() => toast('Needs signal. Try again.', true));
+}
+function vNudges(){
+  const N = B.nudges; if (!N) return `<section><div class="label">Reminders</div><div class="card small muted">Update Code.gs in Apps Script to switch on reminders.</div></section>`;
+  const hrs = sel => `<option value="-1" ${sel === -1 ? 'selected' : ''}>Off</option>` + Array.from({ length: 24 }, (_, h) => `<option value="${h}" ${sel === h ? 'selected' : ''}>${String(h).padStart(2, '0')}:00</option>`).join('');
+  return `<section><div class="label">Reminders</div>
+    ${N.installed ? '' : `<div class="warn" style="margin:0 0 10px">Not switched on yet. One-time step: open Apps Script, choose <b>setupNudges</b> in the function list, press Run and allow the permissions.</div>`}
+    <div class="form"><div class="seg"><button type="button" class="${N.on ? 'on' : ''}" data-a="ng-on" data-v="1">On</button><button type="button" class="${!N.on ? 'on' : ''}" data-a="ng-on" data-v="0">Off</button></div>
+    <div class="two" style="margin-top:10px"><div class="f"><label>Morning orders</label><select id="ngAm">${hrs(Number(N.morning))}</select></div>
+      <div class="f"><label>Evening streak check</label><select id="ngPm">${hrs(Number(N.evening))}</select></div></div>
+    <div class="f"><label>Phone banner topic (optional)</label><input id="ngTopic" autocapitalize="off" autocomplete="off" value="${esc(N.ntfy || '')}" placeholder="e.g. cf-dann-7k2q9x"></div>
+    <div class="row"><button type="button" class="btn sm" data-a="ng-save">Save</button><button type="button" class="btn sm" data-a="ng-test">Send a test</button></div></div>
+    <div class="hint" style="margin-top:8px">Morning: today's plan and your streak. Evening: only if nothing is logged yet. Messages arrive as an email to your own Gmail, within the hour you pick. For proper lock-screen banners, install the free <b>ntfy</b> app, subscribe to a hard-to-guess topic name and type the same name here.</div></section>`;
+}
 function vSettings(){
   const am = settings.audioMode || 'mix';
   return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>Settings</h1></div>
@@ -1066,6 +1103,7 @@ function vSettings(){
   <div class="row"><button class="btn" data-a="pre-add">+ Preset</button><button class="btn" data-a="pre-reset">Reset defaults</button></div></section>
   <section class="form"><div class="f"><label>Lead-in countdown (sec, non-voice presets)</label><input id="leadIn" inputmode="numeric" value="${esc(settings.lead)}"></div></section>
   <section><div class="label">Weekly schedule</div><button class="btn block" data-a="go" data-v="schedule">Edit week and one-off days</button></section>
+  ${vNudges()}
   <section><div class="label">App</div><div class="card small"><span class="muted">Version ${esc(APP_VERSION)}</span>
     <div class="big-btns"><button class="btn" data-a="app-update">Check for update</button><button class="btn" data-a="app-backup">Back up my sheet</button></div>
     <div class="hint" style="margin-top:10px">Photos via Wikimedia Commons, photographers credited on each picture. UK Ministry of Defence photos © Crown copyright, licensed under the Open Government Licence v3.0; U.S. military photos are in the public domain. This app is a personal project and is not affiliated with or endorsed by the Royal Marines or the MOD.</div>
@@ -1173,7 +1211,7 @@ function saveDaily(){
   const f = formData(), ds = dailyState;
   submit('saveDaily', { date: f.date, commute_walk: ds.commute, stretch_sessions: ds.stretch, deadbugs: ds.deadbugs,
     work_pushups: num(f.work_pushups), bodyweight: num(f.bodyweight), notes: f.notes, deadbug_reps: ds.deadbugs ? num(ds.deadbugReps) : '' }, 'Daily');
-  dailyState = null; go('home');
+  dailyState = null; dailyDate = null; go('home');
 }
 function saveEvent(){
   const f = formData();
@@ -1561,7 +1599,7 @@ document.addEventListener('click', e => {
   const a = el.dataset.a, v = el.dataset.v, i = el.dataset.i, j = el.dataset.j;
   const it = S && i !== undefined ? S.items[Number(i)] : null;
   switch (a) {
-    case 'go': e.preventDefault(); if (v === 'run' || v === 'swim') { shots = []; formPrefill = {}; } if (v === 'event') formPrefill = {}; if (v === 'daily') dailyState = null; if (v === 'schedule') schedDraft = null; go(v); break;
+    case 'go': e.preventDefault(); if (v === 'run' || v === 'swim') { shots = []; formPrefill = {}; } if (v === 'event') formPrefill = {}; if (v === 'daily') { dailyState = null; dailyDate = null; } if (v === 'schedule') schedDraft = null; go(v); break;
     case 'rank-view': closeModal(); go('rank'); break;
     case 'plan-item': {
       const f = itemInfo(v);
@@ -2230,6 +2268,10 @@ document.addEventListener('click', e => {
     case 'promo-close': $('#promo').className = 'ov'; $('#promo').style.backgroundImage = ''; break;
     case 'promo-rank': $('#promo').className = 'ov'; $('#promo').style.backgroundImage = ''; go('rank'); break;
     case 'app-update': doUpdate(); break;
+    case 'repair-day': dailyState = null; dailyDate = v; go('daily'); break;
+    case 'ng-on': saveNudge({ on: v === '1' }); break;
+    case 'ng-save': saveNudge({ morning: Number($('#ngAm').value), evening: Number($('#ngPm').value), ntfy: $('#ngTopic').value.trim() }); break;
+    case 'ng-test': toast('Sending a test…'); call('testNudge').then(r => toast(r.sent && r.sent.length ? 'Test sent by ' + r.sent.join(' and ') : 'Nothing sent: no channel is on', !(r.sent && r.sent.length))).catch(() => toast('Could not send. Run setupNudges in Apps Script first.', true)); break;
     case 'app-backup': toast('Making a backup copy…'); call('backup').then(r => toast('Saved to your Drive: ' + r.name)).catch(() => toast('Backup needs signal. Try again.', true)); break;
   }
 });
