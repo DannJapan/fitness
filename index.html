@@ -348,7 +348,7 @@ body.typing #rest{display:none!important}
 <div id="toast"></div>
 
 <script>
-const APP_VERSION = 'cf-v15';
+const APP_VERSION = 'cf-v16';
 /* ================= utilities ================= */
 const $ = s => document.querySelector(s);
 const esc = v => String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1072,9 +1072,11 @@ function vNudges(){
     <div class="form"><div class="seg"><button type="button" class="${N.on ? 'on' : ''}" data-a="ng-on" data-v="1">On</button><button type="button" class="${!N.on ? 'on' : ''}" data-a="ng-on" data-v="0">Off</button></div>
     <div class="two" style="margin-top:10px"><div class="f"><label>Morning orders</label><select id="ngAm">${hrs(Number(N.morning))}</select></div>
       <div class="f"><label>Evening streak check</label><select id="ngPm">${hrs(Number(N.evening))}</select></div></div>
-    <div class="f"><label>Phone banner topic (optional)</label><input id="ngTopic" autocapitalize="off" autocomplete="off" value="${esc(N.ntfy || '')}" placeholder="e.g. cf-dann-7k2q9x"></div>
+    <div class="f"><label>Email copy</label><div class="seg"><button type="button" class="${N.email ? 'on' : ''}" data-a="ng-email" data-v="1">On</button><button type="button" class="${!N.email ? 'on' : ''}" data-a="ng-email" data-v="0">Off: ntfy only</button></div>
+      ${!N.email && !N.ntfy ? '<div class="warn">Email is off and there is no ntfy topic, so nothing will be sent.</div>' : ''}</div>
+    <div class="f"><label>ntfy topic (phone banners)</label><input id="ngTopic" autocapitalize="off" autocomplete="off" value="${esc(N.ntfy || '')}" placeholder="e.g. cf-dann-7k2q9x"></div>
     <div class="row"><button type="button" class="btn sm" data-a="ng-save">Save</button><button type="button" class="btn sm" data-a="ng-test">Send a test</button></div></div>
-    <div class="hint" style="margin-top:8px">Morning: today's plan and your streak. Evening: only if nothing is logged yet. Messages arrive as an email to your own Gmail, within the hour you pick. For proper lock-screen banners, install the free <b>ntfy</b> app, subscribe to a hard-to-guess topic name and type the same name here.</div></section>`;
+    <div class="hint" style="margin-top:8px">Morning: today's plan and your streak. Evening: only if nothing is logged yet. Messages arrive within the hour you pick, as an email to your own Gmail and/or an ntfy banner. For proper lock-screen banners, install the free <b>ntfy</b> app, subscribe to a hard-to-guess topic name and type the same name here.</div></section>`;
 }
 function vSettings(){
   const am = settings.audioMode || 'mix';
@@ -2270,6 +2272,7 @@ document.addEventListener('click', e => {
     case 'app-update': doUpdate(); break;
     case 'repair-day': dailyState = null; dailyDate = v; go('daily'); break;
     case 'ng-on': saveNudge({ on: v === '1' }); break;
+    case 'ng-email': saveNudge({ email: v === '1' }); break;
     case 'ng-save': saveNudge({ morning: Number($('#ngAm').value), evening: Number($('#ngPm').value), ntfy: $('#ngTopic').value.trim() }); break;
     case 'ng-test': toast('Sending a test…'); call('testNudge').then(r => toast(r.sent && r.sent.length ? 'Test sent by ' + r.sent.join(' and ') : 'Nothing sent: no channel is on', !(r.sent && r.sent.length))).catch(() => toast('Could not send. Run setupNudges in Apps Script first.', true)); break;
     case 'app-backup': toast('Making a backup copy…'); call('backup').then(r => toast('Saved to your Drive: ' + r.name)).catch(() => toast('Backup needs signal. Try again.', true)); break;
