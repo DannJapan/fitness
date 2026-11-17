@@ -224,11 +224,19 @@ body.typing #rest{display:none!important}
 .ov-h{display:flex;align-items:center;height:56px;border-bottom:1px solid var(--line)}
 .cad-stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px}
 .cad-phase{font-family:var(--head);font-weight:700;font-size:104px;letter-spacing:-.02em;line-height:1;text-transform:uppercase}
+.cad-phase.long{font-size:48px;letter-spacing:0}
 .cad-phase.up{color:var(--green-hi)} .cad-phase.down{color:var(--amber)} .cad-phase.hold{color:var(--blue)}
 .cad-reps{font-family:var(--head);font-weight:700;font-size:160px;line-height:.85;letter-spacing:-.05em;font-variant-numeric:tabular-nums}
 .cad-sub{color:var(--muted);font-family:var(--head);font-weight:500;font-size:15px}
 .cad-bar{width:78%;height:4px;background:var(--line)}
 .cad-bar i{display:block;height:100%;width:0;background:var(--amber)}
+.cad-goal{max-width:560px;margin:0 auto;width:100%;padding:0 16px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.cad-goal .cad-sub{grid-column:1/-1;font-size:13px;text-align:center}
+.cad-goal.hide{display:none}
+.stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:4px}
+.stepper button{background:transparent;border:0;color:var(--text);font-size:22px;width:44px;height:44px}
+.stepper b{font-family:var(--head);font-size:22px;min-width:40px;text-align:center;font-variant-numeric:tabular-nums}
+.stepper.off{opacity:.3;pointer-events:none}
 .cad-ctrl{padding:16px 16px 30px;display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:560px;margin:0 auto;width:100%}
 .modal{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.72);display:none;align-items:flex-end;justify-content:center}
 .modal.show{display:flex}
@@ -341,6 +349,11 @@ body.typing #rest{display:none!important}
     <div class="cad-reps" id="cadReps">0</div>
     <div class="cad-sub" id="cadTarget">reps</div>
   </div>
+  <div class="cad-goal" id="cadGoal">
+    <div class="seg"><button type="button" data-a="cad-goal" data-v="target">Target</button><button type="button" data-a="cad-goal" data-v="test">Test</button></div>
+    <div class="stepper" id="cadTgtBox"><button type="button" data-a="cad-tgt" data-v="-1">−</button><b id="cadTgtN">10</b><button type="button" data-a="cad-tgt" data-v="1">+</button></div>
+    <div class="cad-sub" id="cadGoalHint"></div>
+  </div>
   <div class="cad-ctrl">
     <button class="btn block go" id="cadStart" data-a="cad-start">Start</button>
     <button class="btn block gold" id="cadLog" data-a="cad-log">Stop &amp; log</button>
@@ -354,7 +367,7 @@ body.typing #rest{display:none!important}
 <div id="toast"></div>
 
 <script>
-const APP_VERSION = 'cf-v17';
+const APP_VERSION = 'cf-v18';
 /* ================= utilities ================= */
 const $ = s => document.querySelector(s);
 const esc = v => String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -500,7 +513,7 @@ function startSession(tname){
     const n = circuit ? T.rounds : target.sets;
     const sets = [];
     for (let i = 0; i < n; i++) sets.push({ reps: target.reps, a: '', b: '', splitOn: false, weight: target.weight, time_s: target.time_s, distance_m: target.distance_m, done: false, round: circuit ? i + 1 : '' });
-    S.items.push({ exercise: t.exercise, measure: ex.measure || 'reps_weight', load_note: ex.load_note || '', cadence: t.cadence || ex.cadence || '',
+    S.items.push({ exercise: t.exercise, measure: ex.measure || 'reps_weight', load_note: ex.load_note || '', cadence: t.cadence || ex.cadence || (/\bsit[- ]?ups?\b/i.test(t.exercise) ? 'RMC sit-up' : ''),
                    note: tg.note || t.note || '', target, status: 'active', niggle: '', exNote: '', sets });
   });
   saveDraft(); go('session');
@@ -1031,7 +1044,7 @@ function vBench(){
   <section><div class="label">Run a test with audio</div>
     <button class="btn block go" data-a="bleep-open">▶ Bleep test (20 m)</button>
     <div class="big-btns">
-    <button class="btn" data-a="bench-test" data-v="pull">▶ Pull-up test</button><button class="btn" data-a="bench-test" data-v="press">▶ Press-up test</button></div>
+    <button class="btn" data-a="bench-test" data-v="pull">▶ Pull-up test</button><button class="btn" data-a="bench-test" data-v="press">▶ Press-up test</button><button class="btn" data-a="bench-test" data-v="sit">▶ Sit-up test</button></div>
     <div class="hint">Each plays the full test with beeps and voice. Tap "Stop &amp; log" when you're done; your score fills in below. Bleep test: standard 20 m shuttles, levels 1–21 (about 22 minutes). Turn on "Screen can lock" if you want to pocket the phone; that pauses your music.</div></section>
   <form class="form" id="f" style="margin-top:14px">
     <div class="f"><label>Date</label>${dateField('name="date"')}</div>
@@ -1049,6 +1062,7 @@ function vBench(){
 const DEFAULT_PRESETS = [
   { name: 'RMC pull-up', phases: [{ label: 'UP', s: 2 }, { label: 'DOWN', s: 2 }], voice: 'pull', rmc: true },
   { name: 'RMC press-up', phases: [{ label: 'DOWN', s: 2 }], voice: 'press', rmc: true },
+  { name: 'RMC sit-up', phases: [{ label: 'UP', s: 2 }], voice: 'situp', rmc: true },
   { name: 'Deadbugs', phases: [{ label: 'DOWN', s: 2, f: 586 }, { label: 'UP', s: 2, f: 1172 }], voice: 'downcount', rmc: true, max: 24 },
   { name: 'Slow tempo 3-1-1', phases: [{ label: 'DOWN', s: 3 }, { label: 'HOLD', s: 1 }, { label: 'UP', s: 1 }] }
 ];
@@ -1056,7 +1070,7 @@ const DEFAULT_PRESETS = [
 let presets = store.get('cf_presets_v2', null) || JSON.parse(JSON.stringify(DEFAULT_PRESETS));
 // new built-in presets appear for existing users too
 DEFAULT_PRESETS.forEach((d, i) => { if (!presets.some(p => p.name.toLowerCase() === d.name.toLowerCase())) presets.splice(Math.min(i, presets.length), 0, JSON.parse(JSON.stringify(d))); });
-let settings = Object.assign({ lead: 3, audioMode: 'mix', voice: true, cueVol: 1.5 }, store.get('barker_settings', {}));
+let settings = Object.assign({ lead: 3, setup: 6, audioMode: 'mix', voice: true, cueVol: 1.5 }, store.get('barker_settings', {}));
 if (!['mix', 'pause'].includes(settings.audioMode)) settings.audioMode = 'mix';   // 'duck' removed (iPhone treats it as mix)
 function saveSettings(){ store.set('barker_settings', settings); }
 function vConnect(){
@@ -1129,7 +1143,9 @@ function vSettings(){
     <div class="row"><button class="mini" data-a="ph-add" data-p="${i}">+ Phase</button><div class="spacer"></div><button class="mini" data-a="pre-del" data-p="${i}">Delete preset</button></div>
   </div>`).join('')}</div>
   <div class="row"><button class="btn" data-a="pre-add">+ Preset</button><button class="btn" data-a="pre-reset">Reset defaults</button></div></section>
-  <section class="form"><div class="f"><label>Lead-in countdown (sec, non-voice presets)</label><input id="leadIn" inputmode="numeric" value="${esc(settings.lead)}"></div></section>
+  <section class="form"><div class="two"><div class="f"><label>Time to get in position (sec)</label><input id="setupT" inputmode="numeric" value="${esc(settings.setup)}"></div>
+  <div class="f"><label>Countdown beeps (non-voice)</label><input id="leadIn" inputmode="numeric" value="${esc(settings.lead)}"></div></div>
+  <div class="hint">Start → "Push-up cadence" → "Adopt the position" → this many seconds → "Stand by" → 3, 2, 1.</div></section>
   <section><div class="label">Weekly schedule</div><button class="btn block" data-a="go" data-v="schedule">Edit week and one-off days</button></section>
   ${vNudges()}
   <section><div class="label">App</div><div class="card small"><span class="muted">Version ${esc(APP_VERSION)}</span>
@@ -1418,9 +1434,30 @@ function stationTimer(i, j){
 /* ================= cadence player ================= */
 const cad = { running: false, reps: 0, preset: 0, link: null, mode: 'free', test: null, timer: null, next: 0, phase: 0, k: 0, sched: [], events: [], bag: [] };
 const TEST_SPEC = {
-  pull: { preset: 'RMC pull-up', max: 16, intro: ['intro_pull', 'pull_stand_under_bar', 'stand_by', 'jump_up'], end: ['drop_off'], bench: 'Pull-ups (RMC cadence)', title: 'Pull-up test' },
-  press: { preset: 'RMC press-up', max: 60, intro: ['intro_press', 'press_adopt_position', 'stand_by'], end: ['stop', 'stand_up'], bench: 'Press-ups (RMC cadence)', title: 'Press-up test' }
+  pull: { preset: 'RMC pull-up', max: 16, end: ['drop_off'], bench: 'Pull-ups (RMC cadence)', title: 'Pull-up test' },
+  press: { preset: 'RMC press-up', max: 60, end: ['stop', 'stand_up'], bench: 'Press-ups (RMC cadence)', title: 'Press-up test' },
+  sit: { preset: 'RMC sit-up', max: 85, end: ['stop'], bench: 'Sit-ups (RMC cadence)', title: 'Sit-up test' }
 };
+// per voice style: spoken name prefix, where the official test stops, and the closing words
+const VOICE_KIT = {
+  pull: { say: 'pull', testMax: 16, end: ['drop_off'] },
+  press: { say: 'push', testMax: 60, end: ['stop', 'stand_up'] },
+  situp: { say: 'sit', testMax: 85, end: ['stop'] },
+  downcount: { say: 'deadbug', testMax: 0, end: ['stop'] }
+};
+function cadDefaultTarget(){
+  const cs = curSetForCad(), P = presets[cad.preset] || {};
+  return (cs && num(setVal(cs.it.sets[cs.j]))) || num(P.max) || (cad.mode === 'free' && num(settings.cadTgt)) || 10;
+}
+function cadTestMax(){ const P = presets[cad.preset] || {}; return cad.test ? cad.test.max : ((VOICE_KIT[P.voice] || {}).testMax || 0); }
+function cadGoalUI(){
+  const box = $('#cadGoal'); if (!box) return;
+  box.classList.toggle('hide', cad.mode === 'test' || cad.mode === 'bleep' || cad.running || (cad.started && !cad.done));
+  box.querySelectorAll('[data-a=cad-goal]').forEach(b => b.classList.toggle('on', b.dataset.v === cad.goal));
+  $('#cadTgtN').textContent = cad.tgt; $('#cadTgtBox').classList.toggle('off', cad.goal !== 'target');
+  const tm = cadTestMax();
+  $('#cadGoalHint').textContent = cad.goal === 'target' ? 'Stops on rep ' + cad.tgt + '.' : (tm ? 'Keeps going to ' + tm + ', like the real test. Stop when you fail.' : 'Keeps going until you stop it.');
+}
 function cadOpen(presetName, i, mode, testKind){
   stopRest(); audio(); loadVoice(); overlayMode('cad');
   cad.mode = mode || ((i !== undefined && i !== '' && S) ? 'set' : 'free');
@@ -1431,7 +1468,9 @@ function cadOpen(presetName, i, mode, testKind){
   let k = presets.findIndex(p => p.name.toLowerCase() === String(presetName || '').toLowerCase());
   cad.preset = k >= 0 ? k : 0; sel.value = cad.preset; sel.disabled = cad.mode === 'test';
   cad.link = cad.mode === 'set' ? { i: Number(i) } : null;
-  cad.reps = 0; cad.started = false; cadUI();
+  cad.reps = 0; cad.started = false; cad.done = false;
+  cad.goal = cad.mode === 'test' ? 'test' : (cad.mode === 'free' && settings.cadGoal === 'test' ? 'test' : 'target');
+  cad.tgt = cadDefaultTarget(); cadUI(); cadGoalUI();
   const cs = curSetForCad();
   const P0 = presets[cad.preset] || {};
   $('#cadFor').textContent = cad.test ? cad.test.title + ' · max ' + cad.test.max
@@ -1442,11 +1481,12 @@ function cadOpen(presetName, i, mode, testKind){
   $('#cadPhase').textContent = 'READY'; $('#cadPhase').className = 'cad-phase'; $('#cadBar').style.width = '0';
   $('#cad').classList.add('show');
 }
-function cadUI(){ $('#cadReps').textContent = cad.reps; $('#cadStart').textContent = cad.running ? 'Pause' : (cad.reps ? 'Resume' : 'Start'); }
+function cadUI(){ $('#cadReps').textContent = cad.reps; $('#cadStart').textContent = cad.running ? 'Pause' : cad.done ? 'Go again' : (cad.reps ? 'Resume' : 'Start'); cadGoalUI(); }
 async function cadStart(){
   if (cad.running) return cadStop();
   if (cad.starting) return;                       // ignore extra taps while it's getting ready
   const P = presets[cad.preset]; if (!P || !P.phases.length) return;
+  if (cad.done) { cad.done = false; cad.reps = 0; cad.started = false; }
   cad.starting = true; $('#cadStart').textContent = '…'; $('#cadPhase').textContent = '…';
   let a;
   try {
@@ -1461,12 +1501,25 @@ async function cadStart(){
   const run = cad.run = (cad.run || 0) + 1;
   cad.running = true; cad.sched = []; cad.events = []; cad.capped = false; cad.endAt = 0;
   let t = a.currentTime + 0.15;
-  if (cad.mode === 'test' && voiced && !cad.started) {
-    for (const n of cad.test.intro) { playClip(n, t, cad.bag); t += clipLen(n) + 0.9; }
+  const kit = VOICE_KIT[P.voice] || null, setupS = Math.max(0, num(settings.setup));
+  cad.stages = [];
+  if (!cad.started) {
+    // fresh start: name it, get into position, stand by, then the countdown
+    const st = (at, text, n) => cad.stages.push({ at, text, n });
+    if (voiced && kit) {
+      const nm = kit.say + '_' + (cad.goal === 'test' ? 'test' : 'cadence');
+      st(t, cad.goal === 'test' ? 'TEST' : 'CADENCE'); playClip(nm, t, cad.bag); t += Math.max(clipLen(nm), .8) + 1.2;
+      st(t, 'GET IN POSITION'); playClip('adopt_position', t, cad.bag); t += Math.max(clipLen('adopt_position'), .8);
+      if (setupS) { st(t, '', setupS); t += setupS; } else t += 1;
+      st(t, 'STAND BY'); const sb = voice.map && voice.map.stand_by_go ? 'stand_by_go' : 'stand_by'; playClip(sb, t, cad.bag); t += Math.max(clipLen(sb), .7) + 1.2;
+    } else if (setupS) {
+      st(t, '', setupS); t += setupS;
+    }
   }
-  cad.started = true;
+  cad.started = true; cad.subOrig = undefined;
   if (voiced) { ['cd_3', 'cd_2', 'cd_1'].forEach((n, i) => playClip(n, t + i, cad.bag)); t += 3; }
   else { const lead = num(settings.lead) || 0; for (let k = 0; k < lead; k++) { beep(784, t, .08, .25, cad.bag); t += 1; } }
+  cad.countFrom = t - (voiced ? 3 : (num(settings.lead) || 0));
   cad.leadEnd = t; cad.next = t; cad.phase = 0; cad.k = cad.reps * L;
   const target = (() => { const cs = curSetForCad(); return cs ? num(setVal(cs.it.sets[cs.j])) : ''; })();
   cad.target = target;
@@ -1475,10 +1528,10 @@ async function cadStart(){
     while (!cad.capped && cad.next < a.currentTime + 0.3) {
       const ph = P.phases[cad.phase], dur = Number(ph.s) || 1;
       const rep = Math.floor(cad.k / L) + 1;
-      const maxReps = cad.test ? cad.test.max : num(P.max);
+      const maxReps = cad.goal === 'target' ? num(cad.tgt) : cadTestMax();
       if (maxReps && rep > maxReps) {
         // finished: final commands (or a closing beep), then stop
-        let t2 = cad.next; const endClips = cad.test ? cad.test.end : ['stop'];
+        let t2 = cad.next; const endClips = cad.test ? cad.test.end : (kit ? kit.end : ['stop']);
         if (voiced) endClips.forEach(n => { playClip(n, t2, cad.bag); t2 += clipLen(n) + 0.4; });
         else { beep(1568, t2, .15, .25, cad.bag); beep(1568, t2 + .25, .3, .25, cad.bag); t2 += .6; }
         cad.endAt = t2 + 0.3; cad.capped = true; break;
@@ -1493,6 +1546,8 @@ async function cadStart(){
         else { playClip(numClip(rep), cad.next + 1.0, cad.bag); cad.events.push({ at: cad.next + 1.0, rep }); }
       } else if (voiced && P.voice === 'press') {
         playClip(numClip(rep), cad.next + 0.8, cad.bag); cad.events.push({ at: cad.next + 0.8, rep });
+      } else if (voiced && P.voice === 'situp') {
+        const off = Math.min(0.8, dur * 0.4); playClip(numClip(rep), cad.next + off, cad.bag); cad.events.push({ at: cad.next + off, rep });
       } else if (cad.phase === L - 1) {
         cad.events.push({ at: cad.next + dur, rep });
       }
@@ -1509,7 +1564,17 @@ async function cadStart(){
     const now = a.currentTime;
     if (now < cad.leadEnd) {
       const left = Math.ceil(cad.leadEnd - now);
-      $('#cadPhase').textContent = left <= 3 ? left : 'STAND BY'; $('#cadPhase').className = 'cad-phase';
+      let txt = 'STAND BY', sub = '';
+      if (now >= cad.countFrom) txt = left;
+      else {
+        const sg = (cad.stages || []).filter(x => x.at <= now).pop() || (cad.stages || [])[0];
+        if (sg && sg.n) { txt = 'GET IN POSITION'; sub = 'Stand by in ' + Math.max(1, Math.ceil(sg.at + sg.n - now)); }
+        else if (sg) txt = sg.text;
+      }
+      if (cad.subOrig === undefined) cad.subOrig = $('#cadTarget').textContent;
+      $('#cadTarget').textContent = sub || cad.subOrig;
+      $('#cadPhase').textContent = txt; $('#cadPhase').className = 'cad-phase' + (String(txt).length > 6 ? ' long' : '');
+    } else if (cad.subOrig !== undefined) { $('#cadTarget').textContent = cad.subOrig; cad.subOrig = undefined;
     }
     while (cad.events.length && cad.events[0].at <= now) {
       const ev = cad.events.shift(); cad.reps = ev.rep; cadUI();
@@ -1522,7 +1587,7 @@ async function cadStart(){
       $('#cadPhase').textContent = lab; $('#cadPhase').className = 'cad-phase ' + lab.toLowerCase();
       $('#cadBar').style.width = Math.min(100, (now - cur.at) / cur.dur * 100) + '%';
     }
-    if (cad.capped && now >= cad.endAt) { cad.running = false; clearInterval(cad.timer); keepAwake(false);
+    if (cad.capped && now >= cad.endAt) { cad.running = false; cad.done = true; clearInterval(cad.timer); keepAwake(false);
       $('#cadPhase').textContent = 'DONE'; $('#cadPhase').className = 'cad-phase'; cadUI(); return; }
     requestAnimationFrame(draw);
   };
@@ -1540,7 +1605,7 @@ function cadStop(){
 const bt = { el: null, url: null, J: null, running: false, adj: 0, lock: false, loading: null };
 function overlayMode(m){
   const b = m === 'bleep';
-  $('#cadPreset').style.display = b ? 'none' : ''; $('#btLock').style.display = b ? '' : 'none';
+  $('#cadPreset').style.display = b ? 'none' : ''; $('#btLock').style.display = b ? '' : 'none'; $('#cadGoal').classList.toggle('hide', b);
   $('#cadMinus').textContent = b ? '− Shuttle' : '− Rep'; $('#cadPlus').textContent = b ? '+ Shuttle' : '+ Rep';
 }
 function btLoad(){
@@ -1662,6 +1727,8 @@ document.addEventListener('click', e => {
       else if (f.kind === 'event') { const nm = v.replace(/^event:?\s*/i, ''); formPrefill = { event: { name: nm, type: /race|spartan/i.test(nm) ? 'Race' : 'Airsoft' } }; go('event'); }
       break; }
     case 'bench-test': cadOpen('', '', 'test', v); break;
+    case 'cad-goal': if (cad.running || (cad.started && !cad.done)) break; cad.goal = v; if (cad.mode === 'free') { settings.cadGoal = v; saveSettings(); } cadGoalUI(); break;
+    case 'cad-tgt': if (cad.running || (cad.started && !cad.done)) break; cad.tgt = Math.max(1, Math.min(200, (num(cad.tgt) || 0) + Number(v))); if (cad.mode === 'free') { settings.cadTgt = cad.tgt; saveSettings(); } cad.goal = 'target'; cadGoalUI(); break;
     case 'am': settings.audioMode = v; saveSettings(); resetAudio(); render(); break;
     case 'voice-toggle': settings.voice = settings.voice === false; saveSettings(); render(); break;
     case 'test-audio': { const a = audio(); loadVoice(); setTimeout(() => { const t = a.currentTime + 0.05; beep(RMC_BEEP.f, t, RMC_BEEP.d, .3); playClip('n01', t + 0.8); beep(RMC_BEEP.f, t + 2, RMC_BEEP.d, .3); playClip('n02', t + 2.8); }, voice.buf ? 0 : 1200); break; }
@@ -1766,6 +1833,7 @@ function onField(e){
     else p.phases[el.dataset.k][el.dataset.pf] = el.dataset.pf === 's' ? Number(el.value) || '' : el.value;
     savePresets();
   } else if (el.id === 'leadIn') { settings.lead = num(el.value); saveSettings(); }
+  else if (el.id === 'setupT') { settings.setup = Math.max(0, Math.min(30, num(el.value) || 0)); saveSettings(); }
   else if (el.id === 'cueVol') { setCueVol(Number(el.value) / 100); const l = $('#cueVolLbl'); if (l) l.textContent = el.value + '%'; }
   else if (el.dataset.sw !== undefined && schedDraft) {
     const w = schedDraft.week[Number(el.dataset.sw)], it = planItems(w.plan);
@@ -1775,7 +1843,7 @@ function onField(e){
 document.addEventListener('input', onField);
 document.addEventListener('change', e => { if (e.target.tagName === 'SELECT' || e.target.type === 'date') onField(e); });
 document.addEventListener('blur', e => { if (e.target.type === 'date') onField(e); }, true);
-$('#cadPreset').addEventListener('change', e => { cadStop(); cad.preset = Number(e.target.value); cad.reps = 0; cadUI(); });
+$('#cadPreset').addEventListener('change', e => { cadStop(); cad.preset = Number(e.target.value); cad.reps = 0; cad.started = false; cad.done = false; cad.tgt = cadDefaultTarget(); cadUI(); $('#cadPhase').textContent = 'READY'; });
 
 /* ================= v12: report, targets, charts, plans, history ================= */
 const EASY = ['Taper', 'Race', 'Recovery', 'Deload'];
