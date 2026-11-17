@@ -60,6 +60,12 @@ section{margin:22px 0}
 .hero .d{font-size:14px;color:var(--muted);margin-top:4px}
 .hero .bar{height:3px;background:var(--line);margin-top:14px}
 .hero .bar i{display:block;height:100%;background:var(--amber)}
+.hero .wk{font-family:var(--head);font-size:14px;color:var(--muted);margin-top:2px;letter-spacing:.02em}
+.hero .bar + .bl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:5px}
+#f[data-st="upcoming"] .done-only, #f:not([data-st="upcoming"]) .up-only{display:none}
+.evl .item{gap:10px}
+.evl .cd{font-family:var(--head);font-size:11px;padding:4px 8px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:4px}
+.evl .cd.on{color:var(--amber);border-color:var(--amber)}
 .next{display:flex;justify-content:space-between;align-items:baseline;padding:12px 16px;border:1px solid var(--line);border-top:0;background:var(--s1);font-size:14px}
 .next b{font-family:var(--head);font-weight:600}
 .next .num{font-weight:700;font-size:18px}
@@ -348,7 +354,7 @@ body.typing #rest{display:none!important}
 <div id="toast"></div>
 
 <script>
-const APP_VERSION = 'cf-v16';
+const APP_VERSION = 'cf-v17';
 /* ================= utilities ================= */
 const $ = s => document.querySelector(s);
 const esc = v => String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -602,15 +608,21 @@ function vRepair(){
       <button class="btn sm" data-a="repair-day" data-v="${m.date}">Log this day</button></div>`).join('')}
     <div class="hint" style="margin-top:8px">"Log this day" opens the Daily check-in for that date. A missed session or run can be logged with its own form: just change the date at the top.</div></div></section>`;
 }
+function daysBetweenStr(a, b){ return Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 86400000); }
 function vHome(){
-  const ups = (B.upcoming || []);
+  const ups = (B.upcoming || []).filter(e => e.countdown !== 'no' && e.date >= todayStr());
   let countdown = '';
   if (ups.length) {
     const e = ups[0], d = daysUntil(e.date);
-    const pct = Math.max(4, Math.min(100, 100 - d / 56 * 100));
+    // bar runs from when the event was added (or 12 weeks out, whichever is later) to the day itself
+    const added = String(e.logged_at || '').slice(0, 10), span0 = Math.max(1, daysBetweenStr(/^\d{4}-\d{2}-\d{2}$/.test(added) ? added : todayStr(), e.date));
+    const span = Math.max(span0, Math.min(84, d + 1));
+    const pct = Math.max(3, Math.min(100, 100 - d / span * 100));
+    const wk = d >= 14 ? `${Math.floor(d / 7)} weeks ${d % 7 ? (d % 7) + (d % 7 === 1 ? ' day' : ' days') : ''}` : '';
+    const label = d === 0 ? 'today' : d === 1 ? 'day to go' : 'days to go';
     countdown = `<div class="hero"><div class="eyebrow">${esc(e.type)} · ${fmtDay(e.date)}</div>
-      <div class="big"><span class="n">${d}</span><span class="u">${d === 1 ? 'day to go' : 'days to go'}</span></div>
-      <h2>${esc(e.name)}</h2><div class="bar"><i style="width:${pct}%"></i></div></div>` +
+      <div class="big"><span class="n">${d === 0 ? 'GO' : d}</span><span class="u">${label}</span></div>${wk ? `<div class="wk">${wk}</div>` : ''}
+      <h2>${esc(e.name)}</h2><div class="bar"><i style="width:${pct}%"></i></div><div class="bl"><span>Added</span><span>${d <= 7 && d > 0 ? 'Race week: taper and sleep' : fmtDay(e.date)}</span></div></div>` +
       ups.slice(1, 3).map(x => `<div class="next"><span><b>${esc(x.name)}</b> <span class="muted">· ${fmtDay(x.date)}</span></span><span><span class="num">${daysUntil(x.date)}</span> <span class="muted small">days</span></span></div>`).join('');
   }
   const temps = Object.values(B.templates || {}).map(t =>
@@ -979,19 +991,33 @@ function vDaily(){
 }
 
 function vEvent(){
+  const pf = formPrefill.event || {};
+  const st = pf.status || 'done';
+  const ups = (B.upcoming || []).filter(e => e.date >= todayStr());
+  const list = ups.map((e, i) => `<div class="item"><span><b>${esc(e.name)}</b> <span class="muted small">${esc(e.type)} · ${fmtDay(e.date)} · ${daysUntil(e.date)} days</span></span>
+      <span style="display:flex;gap:6px;flex-shrink:0"><button class="cd ${e.countdown !== 'no' ? 'on' : ''}" data-a="ev-cd" data-v="${i}">${e.countdown !== 'no' ? '⏱ Countdown' : 'No countdown'}</button><button class="mini" data-a="ev-del" data-v="${i}">✕</button></span></div>`).join('');
   return `<div class="line-title"><button class="back" data-a="home">← Home</button></div><div class="page-h"><h1>Airsoft &amp; events</h1></div>
-  <form class="form" id="f" style="margin-top:14px">
-    <div class="two"><div class="f"><label>Date</label>${dateField('name="date"')}</div>
-      <div class="f"><label>Type</label><select name="type">${opt(['Airsoft','Race','Other'], (formPrefill.event || {}).type || 'Airsoft')}</select></div></div>
-    <div class="f"><label>Name</label><input name="name" value="${esc((formPrefill.event || {}).name || '')}" placeholder="e.g. Shadow Strike 4, Spartan race"></div>
-    <div class="f"><label>Status</label><select name="status"><option value="done">Done: log how it went</option><option value="upcoming">Upcoming: add to countdown</option></select></div>
+  ${list ? `<section><div class="label">Coming up</div><div class="card list evl" style="padding:4px 16px">${list}</div>
+    <div class="hint" style="margin-top:6px">⏱ Countdown events show on Home: the nearest one as the big countdown, the next two underneath. Every upcoming event can be picked as a one-off day in Schedule.</div></section>` : ''}
+  <section><div class="label">${list ? 'Add or log an event' : 'Add or log an event'}</div>
+  <form class="form" id="f" data-st="${st}">
+    <div class="seg"><button type="button" class="${st === 'upcoming' ? 'on' : ''}" data-a="ev-st" data-v="upcoming">Coming up</button><button type="button" class="${st !== 'upcoming' ? 'on' : ''}" data-a="ev-st" data-v="done">Done: log it</button></div>
+    <input type="hidden" name="status" value="${st}">
+    <div class="two" style="margin-top:10px"><div class="f"><label>Date</label>${dateField('name="date"', pf.date)}</div>
+      <div class="f"><label>Type</label><select name="type">${opt(['Airsoft','Race','Other'], pf.type || 'Airsoft')}</select></div></div>
+    <div class="f"><label>Name</label><input name="name" value="${esc(pf.name || '')}" placeholder="e.g. Shadow Strike 4, Spartan race"></div>
+    <div class="up-only">
+      <label class="chk" style="display:flex;gap:10px;align-items:center;margin:4px 0 10px"><input type="checkbox" name="countdown" ${pf.countdown === false ? '' : 'checked'}> <span><b>Countdown on Home</b><br><span class="muted small">Off: it just sits in your list and the schedule picker.</span></span></label>
+      <label class="chk" style="display:flex;gap:10px;align-items:center;margin:0 0 10px"><input type="checkbox" name="add_to_plan" checked> <span><b>Put it in the schedule on the day</b><br><span class="muted small">Adds it as that day's one-off plan, alongside anything already there.</span></span></label>
+    </div>
+    <div class="done-only">
     <div class="three"><div class="f"><label>Hours</label><input name="duration_h" inputmode="decimal"></div>
       <div class="f"><label>Km</label><input name="distance_km" inputmode="decimal"></div>
       <div class="f"><label>Kit kg</label><input name="kit_kg" inputmode="decimal"></div></div>
-    <div class="f"><label>Result</label><input name="result" placeholder="time, obstacles failed, burpees…"></div>
-    <div class="f"><label>Notes</label><textarea name="notes" placeholder="How you felt, niggles, what to train"></textarea></div>
+    <div class="f"><label>Result</label><input name="result" placeholder="time, obstacles failed, burpees…"></div></div>
+    <div class="f"><label>Notes</label><textarea name="notes" placeholder="${st === 'upcoming' ? 'Kit list, travel, what to train for it' : 'How you felt, niggles, what to train'}"></textarea></div>
     <button class="btn block go fwd" type="button" data-a="save-event">Save</button>
-  </form>`;
+  </form></section>`;
 }
 
 let formPrefill = {};
@@ -1216,11 +1242,35 @@ function saveDaily(){
   dailyState = null; dailyDate = null; go('home');
 }
 function saveEvent(){
-  const f = formData();
-  if (!f.name && f.status === 'upcoming') return toast('Give it a name', true);
-  submit('saveEvent', { date: f.date, name: f.name, type: f.type, status: f.status, duration_h: num(f.duration_h),
-    distance_km: num(f.distance_km), kit_kg: num(f.kit_kg), result: f.result, notes: f.notes }, f.name || f.type);
-  go('home');
+  const f = formData(), up = f.status === 'upcoming';
+  if (!f.name && up) return toast('Give it a name', true);
+  if (up && f.date < todayStr()) return toast('That date has passed. Pick "Done: log it" instead', true);
+  const cdOn = !!$('#f [name=countdown]') && $('#f [name=countdown]').checked, toPlan = !!$('#f [name=add_to_plan]') && $('#f [name=add_to_plan]').checked;
+  const p = { date: f.date, name: f.name, type: f.type, status: f.status, notes: f.notes };
+  if (up) Object.assign(p, { countdown: cdOn ? 'yes' : 'no', add_to_plan: toPlan });
+  else Object.assign(p, { duration_h: num(f.duration_h), distance_km: num(f.distance_km), kit_kg: num(f.kit_kg), result: f.result });
+  submit('saveEvent', p, f.name || f.type);
+  // show it straight away, before the sheet replies
+  if (up) {
+    B.upcoming = (B.upcoming || []).filter(e => !(e.date === p.date && e.name === p.name))
+      .concat([{ date: p.date, name: p.name, type: p.type, status: 'upcoming', notes: p.notes, countdown: p.countdown, logged_at: todayStr() }])
+      .sort((a, b) => a.date < b.date ? -1 : 1);
+    if (toPlan) addLocalPlan(p.date, 'Event: ' + p.name);
+  } else {
+    B.upcoming = (B.upcoming || []).filter(e => !(e.date === p.date && e.type === p.type));
+  }
+  store.set('barker_boot', B); formPrefill = {};
+  toast(up ? (cdOn ? 'Added to the countdown' : 'Added to your events') : 'Event logged');
+  go(up ? 'event' : 'home');
+}
+function addLocalPlan(date, item){
+  B.overrides = B.overrides || [];
+  const o = B.overrides.find(x => x.date === date);
+  if (o) { const it = String(o.plan || '').split(' + ').filter(Boolean); if (!it.includes(item)) o.plan = it.concat([item]).join(' + '); }
+  else B.overrides.push({ date, plan: item, note: 'Added with the event' });
+}
+function dropLocalPlan(date, item){
+  B.overrides = (B.overrides || []).map(o => o.date !== date ? o : Object.assign({}, o, { plan: String(o.plan || '').split(' + ').filter(x => x && x !== item).join(' + ') })).filter(o => o.plan);
 }
 function saveBench(){
   const f = formData();
@@ -1660,6 +1710,15 @@ document.addEventListener('click', e => {
     case 'save-swim': saveSwim(); break;
     case 'save-daily': saveDaily(); break;
     case 'save-event': saveEvent(); break;
+    case 'ev-st': { const fm = $('#f'); fm.dataset.st = v; fm.querySelector('[name=status]').value = v; fm.querySelectorAll('[data-a=ev-st]').forEach(b => b.classList.toggle('on', b.dataset.v === v)); break; }
+    case 'ev-cd': { const e = B.upcoming.filter(x => x.date >= todayStr())[Number(v)]; if (!e) break;
+      e.countdown = e.countdown === 'no' ? 'yes' : 'no'; store.set('barker_boot', B); render();
+      submit('updateEntry', { tab: 'Events', match: { date: e.date, name: e.name }, fields: { countdown: e.countdown } }, e.name);
+      toast(e.countdown === 'no' ? e.name + ' taken off the countdown' : e.name + ' added to the countdown'); break; }
+    case 'ev-del': { const e = B.upcoming.filter(x => x.date >= todayStr())[Number(v)]; if (!e) break;
+      if (!confirm('Delete ' + e.name + ' on ' + fmtDay(e.date) + '? It also comes off that day\'s schedule.')) break;
+      B.upcoming = B.upcoming.filter(x => x !== e); dropLocalPlan(e.date, 'Event: ' + e.name); store.set('barker_boot', B); render();
+      submit('deleteEntry', { tab: 'Events', match: { date: e.date, name: e.name } }, 'Delete ' + e.name); break; }
     case 'save-bench': saveBench(); break;
     case 'd-set': keepDaily(); dailyState[el.dataset.k] = el.dataset.k === 'stretch' ? Number(v) : v === '1'; render(); break;
     case 'ib-import': {
@@ -1695,6 +1754,8 @@ function savePresets(){ store.set('cf_presets_v2', presets); }
 function onField(e){
   const el = e.target;
   if (el.type === 'date' && el.parentNode.classList.contains('datef')) el.parentNode.querySelector('.dv').textContent = el.value ? fmtLong(el.value) : '—';
+  if (route === 'event' && el.name === 'date' && el.value) { const fm = $('#f'), v = el.value > todayStr() ? 'upcoming' : 'done';
+    if (fm && fm.dataset.st !== v) { fm.dataset.st = v; fm.querySelector('[name=status]').value = v; fm.querySelectorAll('[data-a=ev-st]').forEach(b => b.classList.toggle('on', b.dataset.v === v)); } }
   if (el.dataset.f && S) {
     const s = S.items[Number(el.dataset.i)].sets[Number(el.dataset.j)];
     s[el.dataset.f] = el.value; saveDraftSoon();
