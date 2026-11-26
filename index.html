@@ -13,7 +13,7 @@
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <title>Commando Fit</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Rajdhani:wght@500;600;700&family=Saira+Extra+Condensed:wght@800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#0a0b0a; --s1:#121412; --s2:#1a1d1a; --line:#272b27; --line2:#343a34;
@@ -198,35 +198,81 @@ section{margin:22px 0}
 .pri{font-family:var(--head);font-size:10px;letter-spacing:.14em;color:#ff6b6b;border:1px solid #ff6b6b;padding:1px 5px;margin-right:4px}
 .gm.gold{color:#f5c542}.gm.silver{color:#dfe6ea}.gm.bronze{color:#cd8b4f}
 details.mlog summary{cursor:pointer;list-style:none}
-#cine{position:fixed;inset:0;z-index:90;background:#02070a;display:flex;flex-direction:column;overflow-y:auto;padding-top:env(safe-area-inset-top);animation:cinein .35s ease}
+#cine{position:fixed;inset:0;z-index:90;background:#01060a;overflow:hidden;animation:cinein .4s ease;font-family:Rajdhani,var(--head)}
 @keyframes cinein{from{opacity:0}to{opacity:1}}
-.cbar{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;font:600 11px var(--head);letter-spacing:.16em;color:#8fd8e8}
-.cbar button{background:none;border:0;color:#cfeff5;font-size:20px}
-.cframe{position:relative;width:100%;margin-top:4vh;aspect-ratio:16/9;max-height:70vh;overflow:hidden;perspective:900px;background:#01060a;border-top:1px solid #12313a;border-bottom:1px solid #12313a}
-.cplane{position:absolute;left:0;top:0;transform-origin:0 0;transition:transform 2.4s cubic-bezier(.45,.05,.2,1);transform-style:preserve-3d}
-.cplane.snap{transition:none}
-.cplane img{position:absolute;inset:0;width:100%;height:100%}
-.cplane .aosvg .sec{display:none}
-.ctitle{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;opacity:0;transition:opacity .6s;pointer-events:none}
-.ctitle.on{opacity:1}
-.ctitle span{display:block;font:600 11px var(--head);letter-spacing:.2em;color:#cfeff5;margin-bottom:4px;text-shadow:0 1px 4px #000}
-.ctitle b{font:800 clamp(38px,13vw,90px)/.9 var(--head);color:#ff2d3d;letter-spacing:-.01em;text-shadow:0 0 24px rgba(255,40,60,.45)}
-.chud{position:absolute;font:600 9px var(--head);letter-spacing:.16em;color:#9fdcea;text-shadow:0 1px 3px #000;pointer-events:none}
-.chud.tl{left:10px;top:8px;line-height:1.5}.chud .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#46e07a;margin-right:6px;animation:blink 1s steps(2) infinite}
+#cine .c3d{position:absolute;inset:0;perspective:1100px;perspective-origin:50% 40%;overflow:hidden}
+#cine .cplane{position:absolute;left:0;top:0;transform-origin:0 0;transform-style:preserve-3d;transition:transform 2.6s cubic-bezier(.5,.05,.2,1)}
+#cine .cplane.snap{transition:none}
+#cine .cmap{position:absolute;inset:0;width:100%;height:100%;filter:brightness(.95) contrast(1.05)}
+#cine .couter{position:absolute;left:-2400px;top:-1800px;width:calc(100% + 4800px);height:calc(100% + 3600px);transform:translateZ(-2px);pointer-events:none;
+  -webkit-mask-image:radial-gradient(closest-side,#000 35%,transparent 95%);mask-image:radial-gradient(closest-side,#000 35%,transparent 95%)}
+#cine .couter .og{position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(120,200,230,.16) 0 2px,transparent 2px 320px),repeating-linear-gradient(0deg,rgba(120,200,230,.16) 0 2px,transparent 2px 320px),
+  repeating-linear-gradient(90deg,rgba(120,200,230,.06) 0 1px,transparent 1px 80px),repeating-linear-gradient(0deg,rgba(120,200,230,.06) 0 1px,transparent 1px 80px)}
+#cine .odata{position:absolute}
+#cine .odata span{position:absolute;font:22px/1.35 'Share Tech Mono',monospace;color:rgba(150,210,235,.55);letter-spacing:.08em;white-space:pre}
+#cine .odata span b{display:block;font:600 30px Rajdhani,sans-serif;color:rgba(220,240,250,.8);letter-spacing:.08em}
+#cine .cedge{position:absolute;inset:-3px;border:3px solid rgba(120,215,235,.55);box-shadow:0 0 30px rgba(80,200,230,.35),inset 0 0 60px rgba(0,0,0,.6);pointer-events:none}
+#cine .csvg{position:absolute;inset:0;overflow:visible}
+#cine .csvg .cg{stroke:rgba(150,225,240,.14);stroke-width:2}
+#cine .csvg .croute{fill:none;stroke:rgba(240,248,250,.55);stroke-width:4;stroke-dasharray:3 12;stroke-linecap:round}
+#cine .csvg .croute.hot{stroke:#fff;stroke-width:5;stroke-dasharray:none;filter:drop-shadow(0 0 6px rgba(255,255,255,.6));stroke-dasharray:2000;stroke-dashoffset:2000}
+#cine.s-obj .csvg .croute.hot{animation:draw 2.4s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+#cine .csvg .wp{fill:#f2f6f8;stroke:none}
+#cine .csvg .dn .wp{fill:#6fd3e6}
+#cine .csvg .wl{fill:rgba(235,245,248,.85);font:500 24px Rajdhani,sans-serif;letter-spacing:.08em}
+#cine .csvg .wl.big{font-weight:700;font-size:34px}
+#cine .csvg .tbox{fill:none;stroke:#fff;stroke-width:3}
+#cine .csvg .tri{fill:#e3122c;filter:drop-shadow(0 0 10px rgba(255,30,50,.8))}
+#cine .crings{position:absolute;width:0;height:0;transform-style:preserve-3d}
+#cine .crings i{position:absolute;left:-250px;top:-250px;width:500px;height:500px;border-radius:50%;border:5px dashed #ff2d42;box-shadow:0 0 18px rgba(255,40,60,.65),inset 0 0 18px rgba(255,40,60,.45);
+  transform:translateZ(var(--z)) rotate(0deg);animation:ring 30s linear infinite;opacity:.9}
+#cine .crings i.far{left:-470px;top:-470px;width:940px;height:940px;border-width:4px;opacity:.55;animation-duration:60s;animation-direction:reverse}
+@keyframes ring{to{transform:translateZ(var(--z)) rotate(360deg)}}
+#cine .cobj3d{position:absolute;transform:translateZ(6px);opacity:0;transition:opacity .4s;white-space:nowrap;text-shadow:-2px 0 rgba(255,0,60,.35),2px 0 rgba(0,220,255,.35)}
+#cine.s-obj .cobj3d{opacity:1}
+#cine .cobj3d .oh{display:inline-block;background:#f4f7f8;color:#05090c;font:700 46px/1 Rajdhani,sans-serif;letter-spacing:.06em;padding:6px 14px 4px;border:3px solid #05090c;box-shadow:0 0 0 3px #f4f7f8;margin:0 0 12px -4px;text-shadow:none}
+#cine .cobj3d .or{font:500 30px/1.3 Rajdhani,sans-serif;color:#e8f3f6;letter-spacing:.07em;opacity:0;margin-left:30px}
+#cine .cobj3d .or b{font-weight:700;color:#fff}
+#cine.s-obj .cobj3d .or{animation:rowin .3s ease forwards}
+@keyframes rowin{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:none}}
+#cine .cholo{position:absolute;width:300px;height:0;transform-style:preserve-3d;opacity:0;transition:opacity .8s}
+#cine.s-sit .cholo{opacity:1}
+#cine .cholo .hp{position:absolute;left:0;bottom:0;width:300px;height:190px;transform-origin:50% 100%;transform:rotateX(-90deg);border:2px solid rgba(140,235,255,.8);box-shadow:0 0 30px rgba(80,210,255,.7);overflow:hidden;background:#0a3642}
+#cine .cholo img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) brightness(1.3) contrast(1.2);mix-blend-mode:screen;opacity:.85}
+#cine .cholo .hp::before{content:'';position:absolute;inset:0;background:rgba(40,200,240,.55);mix-blend-mode:multiply;z-index:1}
+#cine .cholo .hp i{position:absolute;inset:0;z-index:2;background:repeating-linear-gradient(0deg,rgba(180,250,255,.25) 0 2px,transparent 2px 5px);animation:holo 3s linear infinite}
+@keyframes holo{to{background-position:0 60px}}
+#cine .cscan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px)}
+#cine .cvig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,transparent 45%,rgba(0,0,0,.85) 100%)}
+#cine .ccomms{position:absolute;left:12px;top:calc(env(safe-area-inset-top) + 12px);width:44%;max-width:220px;font-family:Rajdhani,sans-serif;text-shadow:-1px 0 rgba(255,0,60,.35),1px 0 rgba(0,220,255,.35)}
+#cine .ccomms .ch{font:700 10px Rajdhani;letter-spacing:.14em;color:#dfeff3;margin-bottom:6px}#cine .ccomms .ch small{display:block;font-weight:500;color:#8fb9c4;font-size:9px;line-height:1.3}
+#cine .crow{position:relative;background:rgba(20,40,46,.55);margin-bottom:4px;padding:3px 6px;height:26px;overflow:hidden}
+#cine .crow b{font:700 12px Rajdhani;letter-spacing:.1em;color:rgba(210,230,235,.55)}#cine .crow small{position:absolute;right:6px;top:4px;font:600 7px Rajdhani;letter-spacing:.12em;color:rgba(200,225,232,.5);text-align:right}
+#cine .crow.on{background:#f2f6f8;height:44px}#cine .crow.on b{color:#05090c}#cine .crow.on small{color:#05090c}
+#cine .wave{position:absolute;left:0;right:0;bottom:0;height:18px;background:#6fd3e6;display:flex;align-items:center;justify-content:center;gap:2px}
+#cine .wave i{width:3px;height:2px;background:#e9fbff;transition:height .12s}
+#cine.talk .wave i{animation:wv .5s ease-in-out infinite alternate}
+#cine.talk .wave i:nth-child(3n){animation-duration:.35s}#cine.talk .wave i:nth-child(4n+1){animation-duration:.6s}#cine.talk .wave i:nth-child(5n+2){animation-duration:.27s}
+@keyframes wv{from{height:2px}to{height:14px}}
+#cine .cstat{position:absolute;right:46px;top:calc(env(safe-area-inset-top) + 14px);display:flex;flex-direction:column;align-items:flex-end;font:600 9px Rajdhani;letter-spacing:.14em;color:#cfe7ee}
+#cine .cstat .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#46e07a;margin-right:5px;animation:blink 1s steps(2) infinite}
 @keyframes blink{50%{opacity:.2}}
-.chud.side{right:-58px;top:50%;transform:rotate(90deg);opacity:.5}
-.chud.br{right:10px;bottom:8px;text-align:right}.chud.br b{display:block;font-size:18px;color:#fff;letter-spacing:.05em;font-variant-numeric:tabular-nums}
-.cscan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 1px,transparent 1px 3px)}
-.cvig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.7) 100%)}
-.cframe[data-beat="situation"] .aosvg .rings circle{stroke-width:7}
-.cprog{height:2px;background:#0c242b}.cprog i{display:block;height:100%;width:0;background:#6fd3e6}
-.csub{padding:16px 16px 6px;min-height:118px}
-.csub .who{font:700 11px var(--head);letter-spacing:.2em;color:var(--amber);margin-bottom:6px}
-.csub .txt{font:500 18px/1.45 var(--head);color:#eaf6f8}
-.cobj{margin:4px 16px 8px;border:1px solid #6fd3e6;background:rgba(10,40,48,.5);padding:10px 12px;font:500 12px/1.7 var(--head);letter-spacing:.06em;color:#cfeff5;animation:cinein .5s ease}
-.cobj .ct{background:#e9f4f7;color:#02070a;font-weight:800;letter-spacing:.12em;padding:2px 6px;display:inline-block;margin-bottom:6px}
-.cobj b{color:#fff}
-.cctl{display:flex;gap:8px;padding:8px 16px 24px;margin-top:auto}.cctl .btn{flex:1}
+#cine .cside{position:absolute;right:4px;top:38%;writing-mode:vertical-rl;font:600 12px Rajdhani;letter-spacing:.3em;color:rgba(200,230,238,.35)}
+#cine .cx{position:absolute;right:8px;top:calc(env(safe-area-inset-top) + 6px);background:none;border:0;color:#cfeff5;font-size:22px;width:36px;height:36px}
+#cine .ctitle2{position:absolute;left:0;right:0;top:34%;text-align:center;opacity:0;transform:scale(1.06);transition:opacity .6s,transform 2.5s ease-out;pointer-events:none}
+#cine .ctitle2.on{opacity:1;transform:scale(1)}
+#cine .ctitle2 span{display:block;font:600 12px Rajdhani;letter-spacing:.24em;color:#e6f3f6;margin-bottom:6px}
+#cine .ctitle2 b{display:block;font:800 clamp(56px,19vw,140px)/.86 'Saira Extra Condensed',Rajdhani,sans-serif;color:#ff1f36;letter-spacing:-.005em;text-shadow:-3px 0 rgba(0,220,255,.25),3px 0 rgba(255,0,80,.4),0 0 30px rgba(255,30,50,.45)}
+#cine .csub2{position:absolute;left:6%;right:6%;bottom:calc(env(safe-area-inset-bottom) + 96px);text-align:center}
+#cine .csub2 div{font:600 19px/1.35 Rajdhani,sans-serif;color:#fff;letter-spacing:.02em;text-shadow:0 2px 6px #000,0 0 2px #000}
+#cine .cclock{position:absolute;right:14px;bottom:calc(env(safe-area-inset-bottom) + 30px);text-align:right;text-shadow:-1px 0 rgba(255,0,60,.4),1px 0 rgba(0,220,255,.4)}
+#cine .cclock span{display:block;font:700 11px Rajdhani;letter-spacing:.18em;color:#f3f1e3}
+#cine .cclock b{display:block;font:700 30px/1 Rajdhani;color:#fbf6dc;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+#cine .cprog{position:absolute;left:0;right:0;bottom:env(safe-area-inset-bottom);height:2px;background:rgba(111,211,230,.15)}#cine .cprog i{display:block;height:100%;width:0;background:#6fd3e6}
+#cine .cend{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 150px);display:none;justify-content:center;gap:12px}
+#cine.ended .cend{display:flex}
+#cine .cend button{background:rgba(3,12,16,.8);border:1px solid #6fd3e6;color:#e8f6f9;font:700 14px Rajdhani;letter-spacing:.18em;padding:10px 18px}
 .opsring{display:flex;gap:12px;align-items:center;border-top:1px solid var(--line);padding-top:10px;margin-top:4px}
 .opsweek{border:1px solid var(--line);padding:8px 12px;margin-bottom:8px}
 .opsweek.cur{border-color:var(--amber)}
@@ -456,7 +502,7 @@ body.typing #rest{display:none!important}
 <div id="toast"></div>
 
 <script>
-const APP_VERSION = 'cf-v22';
+const APP_VERSION = 'cf-v23';
 /* ================= utilities ================= */
 const $ = s => document.querySelector(s);
 const esc = v => String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -974,48 +1020,73 @@ function aoNode(id){
     <div class="two" style="margin-top:14px"><button class="btn block go" data-a="ops-brief" data-v="${m.id}">▶ Play briefing</button><button class="btn block" data-a="ops-close">Close</button></div></div>`);
 }
 
-/* ---------- Briefing cinematic: widescreen map film in portrait, synced to the voice ---------- */
+/* ---------- Briefing cinematic (portrait, RAID style): 3D map world, projected text, Ace Combat outer grid ---------- */
 const OPS_SUBS = {"intro": [[0.05, 2.34, "This is Operation Frostline."], [2.86, 6.77, "Six weeks deployed in a cold northern country, with one job: recce."], [7.27, 10.19, "Watch, map, report, and never be seen."], [10.47, 13.26, "The enemy isn't the problem."], [13.62, 14.8, "The distance is."], [15.49, 17.29, "Each week you'll get three missions."], [17.7, 20.62, "Two runs minimum, every week, no excuses."], [21.18, 22.89, "All three earns the clasp."], [23.55, 27.71, "At the end of week six there's a final objective, and it's the bleep test."], [28.48, 32.47, "Recce troops move further, faster and quieter than anyone else."], [33.06, 33.78, "Time to become one."], [34.42, 34.79, "Good luck."]], "w1m1": [[0.12, 2.16, "Operation Frostline, week one."], [2.59, 3.22, "Insertion."], [4.19, 6.43, "Mission one, codename Birch Line."], [7.36, 9.05, "Situation: you're in country."], [9.54, 13.31, "Snow on the ground, forest to the east, and nobody knows we're here."], [14.3, 18.48, "Mission: a thirty-minute route recce along the treeline."], [19.01, 20.37, "Execution: zone two the whole way."], [21.02, 24.4, "If you can't hold a conversation, you're too fast, and too loud."], [25.05, 25.49, "Move out."]], "w1m2": [[0.3, 2.61, "Mission two, codename Grey Hare."], [3.24, 6.85, "Situation: the route north crosses open farmland with no cover."], [7.74, 14.94, "Mission: eight bounds of four hundred metres across open ground, walking two hundred between each to recover in cover."], [15.71, 19.17, "Execution: hard but controlled, seven out of ten."], [19.82, 21.73, "Every bound at the same pace."], [22.23, 23.59, "Don't empty the tank on the first one."]], "w1m3": [[0.05, 2.55, "Mission three, codename Long Night."], [3.24, 6.92, "Situation: we need eyes on the river crossing before first light."], [7.66, 11.58, "Mission: forty minutes of continuous movement to the observation post."], [12.31, 15.0, "Execution: slow and steady, zone two."], [15.53, 16.67, "Walk the hills if you have to."], [17.17, 19.81, "Arriving fresh matters more than arriving fast."]], "w2m1": [[0.06, 0.61, "Week two."], [1.31, 1.83, "Route recce."], [2.63, 4.78, "Mission one, codename Amber Post."], [5.56, 10.65, "Situation: the observation post is in, and command wants the road network mapped."], [11.16, 13.48, "Mission: thirty-five minutes along the eastern roads."], [14.1, 17.73, "Execution: zone two, eyes open, breathing quiet."], [18.35, 19.84, "This is the work nobody sees."], [20.36, 21.68, "It's also the work that wins."]], "w2m2": [[0.05, 2.38, "Mission two, codename Iron Ferry."], [3.15, 9.55, "Situation: a patrol has been seen near the crossing, and we need to move between two hides, fast."], [10.1, 15.14, "Mission: five bounds of eight hundred metres, walking four hundred between each."], [15.55, 16.77, "Execution: steady and strong."], [17.46, 18.93, "Hold your pace on the last one."], [19.35, 20.44, "That's the one that counts."]], "w3m1": [[0.05, 0.65, "Week three."], [1.06, 1.55, "Lie-up."], [2.1, 4.47, "Mission one, codename Still Water."], [5.17, 8.97, "Situation: we've been out for two weeks and the troop is tired."], [9.72, 11.07, "Command has ordered a lie-up."], [11.86, 13.94, "Mission: thirty minutes, easy."], [14.64, 16.72, "Execution: properly easy."], [17.44, 20.26, "Lie-up weeks are how you're still standing in week six."], [20.7, 22.17, "Don't waste it trying to be a hero."]], "w3m2": [[0.06, 2.37, "Mission two, codename Snow Fox."], [2.98, 6.2, "Situation: we keep the legs sharp without draining them."], [6.86, 14.37, "Mission: twenty minutes easy, then six pick-ups of twenty seconds, quick and relaxed, with full recovery between."], [14.99, 17.77, "Execution: fast feet, loose shoulders."], [18.31, 20.28, "Finish feeling like you could do it all again."]], "w3m3": [[0.11, 2.57, "Mission three, codename Long Shadow."], [3.26, 5.6, "Situation: the lie-up ends tonight."], [6.18, 8.72, "Mission: forty minutes to reposition the patrol."], [9.44, 12.1, "Execution: zone two, nothing harder."], [12.77, 14.07, "Next week, we go deeper."]], "w4m1": [[0.06, 0.65, "Week four."], [1.18, 1.8, "Deep recce."], [2.63, 4.82, "Mission one, codename Red Kestrel."], [5.57, 9.34, "Situation: the holidays won't stop the enemy, and they won't stop us."], [9.98, 12.25, "Mission: thirty-five minutes, easy."], [12.88, 14.38, "Execution: zone two."], [14.94, 17.45, "Get it done early, before the festivities get you."]], "w4m2": [[0.06, 2.63, "Mission two, codename Cold Iron."], [3.22, 6.81, "Situation: the target area is further out than we first thought."], [7.48, 11.98, "Mission: six bounds of eight hundred metres, walking four hundred between each."], [12.58, 16.24, "Execution: one more rep than last time, at the same pace."], [16.8, 18.07, "That's what progress looks like."]], "w4m3": [[0.06, 2.34, "Mission three, codename Deep Snow."], [2.92, 5.85, "Situation: this is the longest move of the operation."], [6.49, 8.84, "Mission: fifty minutes, continuous."], [9.41, 12.24, "Execution: start slower than you think you need to."], [12.93, 15.02, "Eat something before you go, and drink."], [15.73, 16.73, "Bring the patrol home."]], "w5m1": [[0.06, 0.7, "Week five."], [1.17, 2.27, "Close target recce."], [3.09, 5.13, "Mission one, codename Glass Eye."], [5.84, 7.59, "Situation: we're close now."], [8.28, 13.48, "Mission: thirty-five minutes, easy, to keep the engine ticking over."], [13.79, 14.4, "Execution: zone two."], [15.09, 16.69, "Save your legs for mission two."]], "w5m2": [[0.05, 2.05, "Mission two, codename Knife Edge."], [2.71, 7.08, "Situation: final approach to the target, in short rushes under observation."], [7.67, 15.74, "Mission: on a twenty-metre line, eight rounds of one minute shuttling at bleep level nine to ten pace, with one minute of rest between."], [16.7, 20.66, "Execution: touch every line, turn hard, keep the rhythm."], [21.41, 23.76, "This is exactly what the bleep test feels like."], [24.21, 24.84, "Get used to it."]], "w5m3": [[0.06, 2.51, "Mission three, codename New Dawn."], [3.26, 5.65, "Situation: new year, same mission."], [6.42, 8.54, "Mission: fifty minutes, easy."], [9.29, 11.61, "Execution: zone two all the way."], [12.25, 14.74, "Whatever you did last night, sweat it out steady."]], "w6m1": [[0.07, 0.7, "Week six."], [1.16, 1.71, "Extraction."], [2.6, 4.88, "Mission one, codename Last Light."], [5.6, 9.49, "Situation: the job's done, and the extraction window opens this week."], [10.2, 12.4, "Mission: thirty minutes, easy."], [13.38, 14.93, "Execution: zone two."], [15.72, 16.28, "Stay sharp."], [16.92, 18.23, "Don't get sloppy on the way out."]], "w6m2": [[0.06, 2.33, "Mission two, codename Sharp Steel."], [3.07, 6.62, "Situation: one last check of the legs before the final objective."], [7.36, 11.88, "Mission: four bounds of four hundred metres, walking two hundred between each."], [12.65, 14.63, "Execution: quick, but comfortable."], [15.08, 17.03, "Leave feeling sharp, not tired."]], "w6m3": [[0.1, 1.0, "Final objective."], [1.71, 5.45, "Situation: six weeks ago you ran level eight point five."], [6.01, 9.7, "Since then, you've run in the cold, the dark and the holidays."], [10.61, 12.45, "Mission: the full benchmark."], [12.98, 15.99, "Bleep test, press-ups, sit-ups, pull-ups."], [16.9, 24.25, "Execution: eat ninety minutes before, warm up properly, and on the bleep test, go until you genuinely can't make the line."], [25.16, 26.38, "This is what all of it was for."], [27.09, 27.68, "Go and get it."]], "w2m3": [[0.05, 2.9, "Mission three, codename North Wind."], [3.58, 8.68, "Situation: the weather's turning and the patrol window is closing."], [9.26, 14.25, "Mission: forty-five minutes, long and slow, to the far side of the valley."], [14.54, 16.7, "Execution: zone two, and fuel before you go."], [17.55, 21.59, "If you're deployed on a live exercise this weekend, the field day counts."], [21.94, 22.7, "Make it a good one."]]};
+const NATO = ['ALPHA','BRAVO','CHARLIE','DELTA','ECHO','FOXTROT','GOLF','HOTEL','INDIA','JULIET','KILO','LIMA','MIKE','NOVEMBER','OSCAR','PAPA','QUEBEC','ROMEO'];
 let CINE = null;
+const rhex = n => [...Array(n)].map(() => '0123456789ABCDEF'[Math.floor(Math.random() * 16)]).join('');
 function cineBeats(id){
-  // sentence list with start/end (seconds into the clip) and a beat for each
   const est = () => { let t = 0.3; return opsText(id).split(/(?<=[.!?])\s+/).map(s => { const d = Math.max(1.2, s.length / 14); const r = [t, t + d, s]; t += d + 0.45; return r; }); };
   const subs = (ops.buf && OPS_SUBS[id]) ? OPS_SUBS[id] : est();
   let beat = 'title';
   return subs.map(([a, b, txt], i) => {
-    if (/^situation/i.test(txt)) beat = 'situation'; else if (/^mission:/i.test(txt)) beat = 'mission'; else if (/^execution/i.test(txt)) beat = 'execution';
-    else if (i === 0) beat = 'title';
+    if (/^situation/i.test(txt)) beat = 'situation'; else if (/^mission:/i.test(txt)) beat = 'mission'; else if (/^execution/i.test(txt)) beat = 'execution'; else if (i === 0) beat = 'title';
     return { a, b, txt, beat: id === 'intro' ? 'tour' + i : beat };
   });
 }
 function cineCam(id, beat){
-  const S = cineCam.S, m = S.ms.find(x => x.id === id);
-  const sectorC = w => { const ns = S.ms.filter(x => x.week === w).map(x => AO.nodes[x.id]); return [ns.reduce((a, p) => a + p[0], 0) / 3, ns.reduce((a, p) => a + p[1], 0) / 3]; };
+  const S = cineCam.S, sectorC = w => { const ns = S.ms.filter(x => x.week === w).map(x => AO.nodes[x.id]); return [ns.reduce((a, p) => a + p[0], 0) / 3, ns.reduce((a, p) => a + p[1], 0) / 3]; };
   if (id === 'intro') {
     const k = Number(beat.slice(4)) || 0;
-    if (k === 0) return { tilt: 64, rot: -24, z: 0.32, c: [1700, 760] };
-    if (k >= 10) return { tilt: 0, rot: 0, z: 0.3, c: [1650, 700] };
-    const w = Math.min(5, Math.floor((k - 1) * 6 / 9)), c = sectorC(w);
-    return { tilt: 52, rot: k % 2 ? -14 : 12, z: 0.62, c };
+    if (beat === 'start') return { tilt: 74, rot: -34, z: 0.16, c: [1650, 700] };
+    if (k === 0) return { tilt: 66, rot: -22, z: 0.24, c: [1650, 720] };
+    if (k >= 10 || beat === 'end') return { tilt: 60, rot: -8, z: 0.22, c: [1650, 700] };
+    const w = Math.min(5, Math.floor((k - 1) * 6 / 9));
+    return { tilt: 56, rot: k % 2 ? -16 : 14, z: 0.5, c: sectorC(w) };
   }
-  const p = AO.nodes[id], prevIdx = S.ms.findIndex(x => x.id === id) - 1, prev = prevIdx >= 0 ? AO.nodes[S.ms[prevIdx].id] : AO.lz, sc = sectorC(m.week);
-  if (beat === 'title') return { tilt: 62, rot: -22, z: 0.36, c: sc };
-  if (beat === 'situation') return { tilt: 52, rot: -10, z: 0.62, c: [(sc[0] + p[0]) / 2, (sc[1] + p[1]) / 2] };
-  if (beat === 'mission') return { tilt: 46, rot: 8, z: 0.95, c: [(prev[0] + p[0]) / 2, (prev[1] + p[1]) / 2] };
-  if (beat === 'execution') return { tilt: 40, rot: 18, z: 1.15, c: p };
-  return { tilt: 0, rot: 0, z: 0.6, c: p };
+  const i = S.ms.findIndex(x => x.id === id), m = S.ms[i], p = AO.nodes[id], prev = i > 0 ? AO.nodes[S.ms[i - 1].id] : AO.lz, sc = sectorC(m.week);
+  if (beat === 'start') return { tilt: 74, rot: -34, z: 0.18, c: p };
+  if (beat === 'title') return { tilt: 66, rot: -20, z: 0.3, c: sc };
+  if (beat === 'situation') return { tilt: 58, rot: -8, z: 0.62, c: [p[0] - 60, p[1]] };
+  if (beat === 'mission') return { tilt: 50, rot: 6, z: 0.5, c: [p[0] + 250, p[1] + 90] };
+  if (beat === 'execution') return { tilt: 42, rot: -4, z: 0.58, c: [p[0] + 300, p[1] + 90] };
+  return { tilt: 62, rot: -12, z: 0.42, c: p };
 }
 function cineSetCam(cam){
-  const f = $('#cineFrame'), pl = $('#cinePlane'); if (!f || !pl) return;
-  pl.style.transform = `translate(${f.clientWidth / 2}px, ${f.clientHeight * 0.56}px) rotateX(${cam.tilt}deg) rotateZ(${cam.rot}deg) scale(${cam.z}) translate(${-cam.c[0]}px, ${-cam.c[1]}px)`;
+  const pl = $('#cinePlane'); if (!pl) return;
+  pl.style.transform = `translate(${innerWidth / 2}px, ${innerHeight * 0.5}px) rotateX(${cam.tilt}deg) rotateZ(${cam.rot}deg) scale(${cam.z}) translate(${-cam.c[0]}px, ${-cam.c[1]}px)`;
 }
-function cineGrid(p){ return String(4400 + Math.round(p[0] / 4)).padStart(4, '0') + ' ' + String(3000 + Math.round((AO.h - p[1]) / 4)).padStart(4, '0'); }
-function cineObjective(id){
-  const S = cineCam.S, m = S.ms.find(x => x.id === id); if (!m) return '';
-  const st = m.done ? 'COMPLETE // ' + GRADE[m.grade][1].toUpperCase() : m.status === 'missed' ? 'MISSED' : m.priority ? 'PRIORITY TARGET' : m.status === 'blocked' ? 'LOCKED' : 'ACTIVE';
-  return `<div class="cobj"><div class="ct">OBJECTIVE // ${esc(m.name)}</div>
-    <div>// <b>TASK:</b> ${esc(m.detail.toUpperCase())}</div><div>// <b>TYPE:</b> ${m.kind === 'test' ? 'FINAL OBJECTIVE' : m.kind.toUpperCase()}</div>
-    <div>// <b>GRID:</b> ${cineGrid(AO.nodes[id])}</div><div>// <b>DEADLINE:</b> ${fmtDay(m.sun).toUpperCase()} 23:59</div><div>// <b>STATUS:</b> ${st}</div></div>`;
+function cineGrid(p){ return String(4400 + Math.round(p[0] / 4)).padStart(4, '0') + ', ' + String(3000 + Math.round((AO.h - p[1]) / 4)).padStart(4, '0'); }
+function cineGps(p){ return (57.1 + (AO.h - p[1]) / 9000).toFixed(4) + '° N, ' + (21.8 + p[0] / 6000).toFixed(4) + '° E'; }
+function cineSvg(S, focus){
+  const pts = [AO.sea, AO.lz].concat(S.ms.map(m => AO.nodes[m.id])).concat([AO.exfil]), path = l => l.map((p, i) => (i ? 'L' : 'M') + p[0] + ' ' + p[1]).join(' ');
+  const fi = S.ms.findIndex(m => m.id === focus);
+  const nodes = S.ms.map((m, i) => { const [x, y] = AO.nodes[m.id], open = aoSectorUnlocked(S, m.week);
+    if (m.id === focus) return `<g transform="translate(${x} ${y})"><rect x="-44" y="-44" width="88" height="88" class="tbox"/><path d="M0 -24 L22 16 L-22 16 Z" class="tri"/></g>`;
+    return `<g transform="translate(${x} ${y})" class="${m.done ? 'dn' : ''}"><rect x="-11" y="-11" width="22" height="22" class="wp"/>
+      <text x="22" y="8" class="wl">${String(i + 1).padStart(2, '0')}. ${open ? esc(m.name) : '██████'}</text></g>`; }).join('');
+  return `<svg class="csvg" viewBox="0 0 ${AO.w} ${AO.h}" width="${AO.w}" height="${AO.h}">
+    <defs><pattern id="cdots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.4" fill="rgba(150,225,240,.22)"/></pattern></defs>
+    <rect width="${AO.w}" height="${AO.h}" fill="url(#cdots)"/>
+    ${[...Array(Math.ceil(AO.w / 320))].map((_, i) => `<path class="cg" d="M${i * 320} 0V${AO.h}"/>`).join('')}${[...Array(Math.ceil(AO.h / 320))].map((_, i) => `<path class="cg" d="M0 ${i * 320}H${AO.w}"/>`).join('')}
+    <path class="croute" d="${path(pts)}"/>${fi >= 0 ? `<path class="croute hot" d="${path([fi > 0 ? AO.nodes[S.ms[fi - 1].id] : AO.lz, AO.nodes[focus]])}"/>` : ''}
+    <g transform="translate(${AO.lz[0]} ${AO.lz[1]})"><rect x="-11" y="-11" width="22" height="22" class="wp"/><text x="22" y="8" class="wl big">BLACK SAND</text></g>
+    ${nodes}</svg>`;
+}
+function cineOuter(){
+  const blk = (x, y, b, t) => `<span style="left:${x}px;top:${y}px">${b ? `<b>${b}</b>` : ''}${t}</span>`, W = AO.w, H = AO.h;
+  const data = [blk(-420, 60, '', `COM ${rhex(5)}-9-A`), blk(-420, 360, 'FLG', 'A–D'), blk(-300, 360, 'FLG', 'E–H'), blk(-420, 700, '', `COM D-${rhex(3)}-18\nLVD ${rhex(5)}`), blk(-420, 1040, 'AO', 'FROSTLINE'),
+    blk(W + 80, 60, '', `COM D-${rhex(3)}-18\nLVD ${rhex(5)}`), blk(W + 80, 300, 'SID', rhex(6)), blk(W + 80, 520, 'V-MODE', 'POS'), blk(W + 220, 520, 'S-MODE', 'CTR'), blk(W + 80, 900, '', `CLB ${rhex(12)}\nCBT ${rhex(12)}`),
+    blk(200, -170, 'MISSION OUTLINE', 'TACTICAL MAP'), blk(900, -170, 'ENCRYPTION', 'ACTIVE'), blk(1500, -170, 'KEY', rhex(4)), blk(2100, -170, 'NET', '552000 HZ'),
+    blk(200, H + 70, 'ACTIVE', 'PRM'), blk(700, H + 70, '', `WRD  LS   —   KPT\nDTL  HLK  DOC  VIS\nINF  SVN  IMG  LNG`), blk(1400, H + 70, 'LIBUNIT', 'GRP D'), blk(2000, H + 70, 'SCALE', '1:25 000')].join('');
+  return `<div class="couter"><div class="og"></div><div class="odata" style="left:2400px;top:1800px">${data}</div></div><div class="cedge"></div>`;
+}
+function cineObjective(S, id){
+  const i = S.ms.findIndex(x => x.id === id), m = S.ms[i];
+  const st = m.done ? 'COMPLETE // ' + GRADE[m.grade][1].toUpperCase() : m.status === 'missed' ? 'MISSED' : m.priority ? 'PRIORITY TARGET' : m.status === 'blocked' ? 'LOCKED' : m.status === 'future' ? 'PENDING' : 'ACTIVE';
+  const rows = [['TARGET', m.name], ['TEAM', 'ONE ZERO'], ['DESC', m.detail.toUpperCase()], ['GRID', cineGrid(AO.nodes[id])], ['GPS', cineGps(AO.nodes[id])], ['DEADLINE', fmtDay(m.sun).toUpperCase() + ' 23:59'], ['STATUS', st]];
+  return `<div class="cobj3d" id="cineObj3d" style="left:${AO.nodes[id][0] + 70}px;top:${AO.nodes[id][1] - 52}px"><div class="oh">${m.kind === 'test' ? 'FINAL OBJECTIVE' : 'OBJECTIVE ' + NATO[i]}</div>
+    ${rows.map(([k, v], j) => `<div class="or" style="animation-delay:${0.25 + j * 0.18}s">// <b>${k}</b>: ${esc(v)}</div>`).join('')}</div>`;
 }
 function sfxCine(kind){
   try {
@@ -1025,64 +1096,73 @@ function sfxCine(kind){
       const s = a.createBufferSource(), f = a.createBiquadFilter(); s.buffer = n; f.type = 'bandpass'; f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(2400, t + 0.8); f.Q.value = 0.8;
       g.gain.value = 0.10; s.connect(f).connect(g); s.start(t);
     } else {
-      const o = a.createOscillator(); o.type = 'square'; o.frequency.value = kind === 'boot' ? 220 : 1400; g.gain.setValueAtTime(kind === 'boot' ? 0.06 : 0.012, t); g.gain.exponentialRampToValueAtTime(0.0001, t + (kind === 'boot' ? 0.5 : 0.03));
+      const o = a.createOscillator(); o.type = 'square'; o.frequency.value = kind === 'boot' ? 220 : 1400; g.gain.setValueAtTime(kind === 'boot' ? 0.06 : 0.010, t); g.gain.exponentialRampToValueAtTime(0.0001, t + (kind === 'boot' ? 0.5 : 0.03));
       if (kind === 'boot') o.frequency.exponentialRampToValueAtTime(880, t + 0.4); o.connect(g); o.start(t); o.stop(t + (kind === 'boot' ? 0.5 : 0.04));
     }
   } catch (e) {}
 }
 async function cinePlay(id){
-  closeModal(); stopOps(); cineStop(true);
+  closeModal(); stopOps(); cineStop();
   const S = campaignState(); cineCam.S = S;
-  const m = S.ms.find(x => x.id === id), c = CAMPAIGN;
-  const head = id === 'intro' ? 'OPERATION ORDERS' : `SECTOR ${m.week + 1} // ${m.kind === 'test' ? 'FINAL OBJECTIVE' : 'MISSION ' + (m.n + 1)}`;
+  const i = S.ms.findIndex(x => x.id === id), m = S.ms[i], c = CAMPAIGN, intro = id === 'intro';
+  const p = intro ? AO.lz : AO.nodes[id];
+  const head = intro ? 'OPERATION ORDERS' : `SECTOR ${m.week + 1} // ${m.kind === 'test' ? 'FINAL OBJECTIVE' : 'MISSION ' + (m.n + 1)}`;
+  const ph = photos.filter(x => !x.use || x.use === 'hero' || x.hero), holoImg = ph.length ? ph[(Math.max(0, i) * 5 + 3) % ph.length].file : null;
   const el = document.createElement('div'); el.id = 'cine';
-  el.innerHTML = `<div class="cbar"><span>SECURE COMMUNICATION // OP ${esc(c.short)}</span><button data-a="cine-close">✕</button></div>
-    <div class="cframe" id="cineFrame"><div class="cplane" id="cinePlane" style="width:${AO.w}px;height:${AO.h}px"><img src="${AO.img}" alt="">${aoSvg(S, id === 'intro' ? null : id)}</div>
-      <div class="ctitle" id="cineTitle"><span>OP ${esc(c.short)} // ${esc(head)}</span><b>${esc(id === 'intro' ? 'FROSTLINE' : m.name)}</b></div>
-      <div class="chud tl"><i class="dot"></i>ENCRYPTION ACTIVE<br>CALL CONNECTED</div><div class="chud side">// ${esc(c.short)} MISSION PROFILE</div>
-      <div class="chud br"><span>${id === 'intro' ? 'INSERTION' : 'TIME REMAINING'}</span><b id="cineClock"></b></div><div class="cscan"></div><div class="cvig"></div></div>
+  el.innerHTML = `<div class="c3d" id="cineFrame"><div class="cplane" id="cinePlane" style="width:${AO.w}px;height:${AO.h}px">
+      ${cineOuter()}<img class="cmap" src="${AO.img}" alt="">${cineSvg(S, intro ? null : id)}
+      ${intro ? '' : `<div class="crings" style="left:${p[0]}px;top:${p[1]}px"><i style="--z:0px"></i><i style="--z:18px"></i><i style="--z:36px"></i><i class="far" style="--z:0px"></i></div>`}
+      ${intro ? '' : cineObjective(S, id)}
+      ${!intro && holoImg ? `<div class="cholo" id="cineHolo" style="left:${p[0] - 360}px;top:${p[1] - 230}px"><div class="hp"><img src="photos/${encodeURI(holoImg)}" alt=""><i></i></div></div>` : ''}
+    </div></div>
+    <div class="cscan"></div><div class="cvig"></div>
+    <div class="ccomms"><div class="ch">SECURE COMMUNICATION<small>// 552000 HZ<br>// CH 5</small></div>
+      <div class="crow on"><b>ZERO</b><small>HQ // ${esc(c.short)}</small><div class="wave">${'<i></i>'.repeat(26)}</div></div>
+      <div class="crow"><b>ONE ZERO</b><small>RECCE // YOU</small></div><div class="crow"><b>TWO ZERO</b><small>OBS POST</small></div><div class="crow"><b>THREE ZERO</b><small>QRF</small></div></div>
+    <div class="cstat"><span><i class="dot"></i>ONLINE</span><span>ENCRYPTION ACTIVE</span><span>CALL CONNECTED</span></div>
+    <div class="cside">// ${esc(c.short)} MISSION PROFILE</div>
+    <button class="cx" data-a="cine-close">✕</button>
+    <div class="ctitle2" id="cineTitle"><span>OP ${esc(c.short)} // ${esc(head)}</span><b>${esc(intro ? 'FROSTLINE' : m.name)}</b></div>
+    <div class="csub2"><div id="cineTxt"></div></div>
+    <div class="cclock"><span id="cineClkL">${intro ? 'INSERTION IN' : 'TIME REMAINING'}</span><b id="cineClock"></b></div>
     <div class="cprog"><i id="cineProg"></i></div>
-    <div class="csub"><div class="who">COMMAND</div><div class="txt" id="cineTxt"></div></div>
-    <div id="cineObj"></div>
-    <div class="cctl"><button class="btn" data-a="cine-replay">↺ Replay</button><button class="btn" data-a="cine-close">Close</button></div>`;
+    <div class="cend" id="cineEnd"><button data-a="cine-replay">↺ REPLAY</button><button data-a="cine-close">CLOSE</button></div>`;
   document.body.appendChild(el);
-  $('#cineTxt').textContent = 'Decrypting transmission…';
+  $('#cineTxt').textContent = 'DECRYPTING TRANSMISSION…';
+  const pl = $('#cinePlane'); pl.classList.add('snap'); cineSetCam(cineCam(id, 'start')); void pl.offsetWidth; pl.classList.remove('snap');
   await loadOps();
+  if (!document.getElementById('cine')) return;
   $('#cineTxt').textContent = '';
-  const beats = cineBeats(id), dur = beats.length ? beats[beats.length - 1].b + 1.2 : 10;
-  const deadline = id === 'intro' ? c.start + 'T00:00:00' : addDaysStr(m.sun, 1) + 'T00:00:00';
-  CINE = { id, beats, dur, cur: -1, beat: null, t0: null, raf: 0 };
-  cineSetCam({ tilt: 75, rot: -36, z: 0.22, c: id === 'intro' ? [1650, 700] : AO.nodes[id] }); $('#cinePlane').classList.add('snap');
-  void $('#cinePlane').offsetWidth; $('#cinePlane').classList.remove('snap');
+  const beats = cineBeats(id), dur = beats.length ? beats[beats.length - 1].b + 1.4 : 10;
+  const deadline = intro ? c.start + 'T00:00:00' : addDaysStr(m.sun, 1) + 'T00:00:00';
+  CINE = { id, beats, dur, cur: -1, beat: null, raf: 0 };
   sfxCine('boot');
-  // voice: recorded clip if present, otherwise the phone's voice
   const a = audio();
-  if (ops.buf && ops.map[id]) { const [off, d] = ops.map[id], s = a.createBufferSource(); s.buffer = ops.buf; s.connect(out()); const t0 = a.currentTime + 0.6; s.start(t0, off, d); ops.srcs.push(s); CINE.clock = () => a.currentTime - t0; }
-  else { const st = performance.now() + 600; CINE.clock = () => (performance.now() - st) / 1000; setTimeout(() => sayOps([id]), 600); }
+  if (ops.buf && ops.map[id]) { const [off, d] = ops.map[id], s = a.createBufferSource(); s.buffer = ops.buf; s.connect(out()); const t0 = a.currentTime + 0.5; s.start(t0, off, d); ops.srcs.push(s); CINE.clock = () => a.currentTime - t0; }
+  else { const st = performance.now() + 500; CINE.clock = () => (performance.now() - st) / 1000; setTimeout(() => sayOps([id]), 500); }
   const step = () => {
     if (!CINE || !document.getElementById('cine')) return;
-    const t = CINE.clock();
-    const clk = $('#cineClock'); if (clk) clk.textContent = aoClockText(deadline);
-    let i = -1; beats.forEach((b, k) => { if (t >= b.a - 0.05) i = k; });
-    if (i !== CINE.cur && i >= 0) {
-      CINE.cur = i; const b = beats[i];
+    const t = CINE.clock(), root = $('#cine');
+    const clk = $('#cineClock'); if (clk) { const over = new Date(deadline) <= new Date(); clk.textContent = over ? (intro ? 'LIVE' : m.done ? 'COMPLETE' : 'CLOSED') : aoClockText(deadline); $('#cineClkL').textContent = over ? 'STATUS' : intro ? 'INSERTION IN' : 'TIME REMAINING'; }
+    let k = -1; beats.forEach((b, j) => { if (t >= b.a - 0.05) k = j; });
+    const speaking = k >= 0 && t <= beats[k].b; root.classList.toggle('talk', speaking);
+    if (k !== CINE.cur && k >= 0) {
+      CINE.cur = k; const b = beats[k];
       if (b.beat !== CINE.beat) { CINE.beat = b.beat; cineSetCam(cineCam(id, b.beat)); sfxCine('whoosh');
+        const bn = b.beat.replace(/\d+$/, ''); root.dataset.beat = bn;
         $('#cineTitle').classList.toggle('on', b.beat === 'title' || b.beat === 'tour0');
-        const fr = $('#cineFrame'); fr.dataset.beat = b.beat.replace(/\d+$/, '');
-        if (b.beat === 'execution' && id !== 'intro') $('#cineObj').innerHTML = cineObjective(id); }
+        if (['situation', 'mission', 'execution'].includes(bn)) root.classList.add('s-sit');
+        if (['mission', 'execution'].includes(bn)) root.classList.add('s-obj'); }
     }
-    if (i >= 0) { const b = beats[i], frac = Math.min(1, (t - b.a) / Math.max(0.4, (b.b - b.a) * 0.85)), n = Math.round(b.txt.length * frac), tx = $('#cineTxt');
-      if (tx && tx.dataset.n !== String(n) + '|' + i) { tx.dataset.n = n + '|' + i; tx.textContent = b.txt.slice(0, n); if (n % 3 === 0 && frac < 1) sfxCine('blip'); } }
+    if (k >= 0) { const b = beats[k], frac = Math.min(1, (t - b.a) / Math.max(0.4, (b.b - b.a) * 0.8)), n = Math.round(b.txt.length * frac), tx = $('#cineTxt');
+      if (tx && tx.dataset.n !== n + '|' + k) { tx.dataset.n = n + '|' + k; tx.textContent = b.txt.slice(0, n); if (n % 3 === 0 && frac < 1) sfxCine('blip'); } }
     const pg = $('#cineProg'); if (pg) pg.style.width = Math.min(100, t / dur * 100) + '%';
-    if (t > dur) { if (CINE.beat !== 'end') { CINE.beat = 'end'; cineSetCam(cineCam(id, 'end')); if (id !== 'intro') $('#cineObj').innerHTML = cineObjective(id); } return; }
+    if (t > dur) { if (CINE.beat !== 'end') { CINE.beat = 'end'; cineSetCam(cineCam(id, 'end')); root.classList.add('ended'); root.classList.remove('talk'); } return; }
     CINE.raf = requestAnimationFrame(step);
   };
   CINE.raf = requestAnimationFrame(step);
 }
-function cineStop(silent){
-  if (CINE) cancelAnimationFrame(CINE.raf); CINE = null; stopOps();
-  const el = document.getElementById('cine'); if (el) el.remove();
-}
+function cineStop(){ if (CINE) cancelAnimationFrame(CINE.raf); CINE = null; stopOps(); const el = document.getElementById('cine'); if (el) el.remove(); }
 
 function vOps(){
   const S = campaignState(), R = ringState(), CT = commandoTests(), c = CAMPAIGN, chit = activeChit();
