@@ -151,6 +151,23 @@ section{margin:22px 0}
 .streak.cold .n{color:var(--dim)}
 .streak .l{font-size:11px;color:var(--muted);margin-top:4px;font-family:var(--head)}
 .streak .fz{font-size:11px;color:var(--blue);margin-top:2px;font-family:var(--head)}
+.ops h2{font-family:var(--head);font-size:20px;margin:4px 0}
+.ops .eyebrow,.brief .eyebrow{font-family:var(--head);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber)}
+.mrow{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;background:transparent;border:0;border-top:1px solid var(--line);color:var(--text);padding:10px 0;font:inherit}
+.mrow .ok,.ct .ok,.dline{color:var(--green-hi)}.mrow .no,.dline.no{color:#f1a99c}
+.opsring{display:flex;gap:12px;align-items:center;border-top:1px solid var(--line);padding-top:10px;margin-top:4px}
+.opsweek{border:1px solid var(--line);padding:8px 12px;margin-bottom:8px}
+.opsweek.cur{border-color:var(--amber)}
+.weekdots{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.wd{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line2);font-family:var(--head);font-size:13px}
+.wd.closed{border-color:var(--green-hi);color:var(--green-hi)}.wd.missed{border-color:#a5463a;color:#f1a99c}
+.ct{padding:8px 0;border-top:1px solid var(--line)}.ct:first-child{border-top:0}
+.ct .bar{height:4px;background:var(--line2);margin-top:6px}.ct .bar i{display:block;height:100%;background:var(--amber)}
+.brief h2{font-family:var(--head);font-size:30px;margin:4px 0;letter-spacing:.02em}
+.brief .obj{font-family:var(--head);color:var(--text);margin-bottom:4px}
+.brief p{line-height:1.55;color:var(--muted);margin:12px 0 14px}
+.dline{font-family:var(--head);font-size:16px;padding:6px 0;border-top:1px solid var(--line)}
+.ribbon{border:1px solid rgba(0,0,0,.4);vertical-align:middle}
 .repair{border:1px solid #2c4a63;border-left:3px solid var(--blue);background:rgba(90,160,220,.07);padding:12px 14px}
 .repair h3{font-family:var(--head);font-size:16px;margin:0 0 4px}
 .repair p{margin:0 0 10px;font-size:13px;line-height:1.45;color:var(--muted)}
@@ -367,7 +384,7 @@ body.typing #rest{display:none!important}
 <div id="toast"></div>
 
 <script>
-const APP_VERSION = 'cf-v18';
+const APP_VERSION = 'cf-v20';
 /* ================= utilities ================= */
 const $ = s => document.querySelector(s);
 const esc = v => String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -465,11 +482,32 @@ let route = 'home';
 function saveDraft(){ if (S) store.set('barker_draft', S); else store.del('barker_draft'); }
 let draftT; function saveDraftSoon(){ clearTimeout(draftT); draftT = setTimeout(saveDraft, 300); }
 
+// one-off: put decline sit-ups (3 x 18 to the RMC sit-up cadence) on leg day
+function ensureSitups(){
+  if (store.get('cf_mig_situps', false) || !B || !B.templates) return;
+  const tn = Object.keys(B.templates).find(n => /legs/i.test(n)); if (!tn) return;
+  store.set('cf_mig_situps', true);
+  const T = B.templates[tn]; if ((T.items || []).some(it => /sit[- ]?ups?/i.test(it.exercise))) return;
+  const name = 'Decline sit-ups';
+  if (!(B.exercises || []).some(x => x.exercise === name)) {
+    const ex = { exercise: name, measure: 'reps', load_note: 'bodyweight, steep decline', cadence: 'RMC sit-up', category: 'Core' };
+    B.exercises.push(ex); submit('saveExercise', ex, name);
+  }
+  const items = (T.items || []).map(it => ({ exercise: it.exercise, sets: it.sets, reps: it.reps, weight_kg: it.weight_kg, time_s: it.time_s, distance_m: it.distance_m, cadence: it.cadence, note: it.note }))
+    .concat([{ exercise: name, sets: 3, reps: 18, weight_kg: '', time_s: '', distance_m: '', cadence: 'RMC sit-up', note: 'Steep decline. +2 reps a set when all clean; at 3 x 25 hold a plate instead' }]);
+  submit('saveTemplate', { name: tn, old_name: tn, kind: T.kind || 'gym', rounds: T.rounds || 1, rest_s: T.rest_s || 90, items }, tn + ': sit-ups');
+  B.templates[tn] = Object.assign({}, T, { items: items.map((it, i) => Object.assign({ template: tn, order: i + 1 }, it)) });
+  B.targets[name] = { exercise: name, sets: 3, reps: 18, weight_kg: '', note: '' };
+  store.set('barker_boot', B);
+  setTimeout(() => toast('Decline sit-ups added to ' + tn + ': 3 × 18'), 800);
+}
 async function refreshBoot(){
   try {
     const b = await call('getBootstrap');
     const first = !B || B.today !== b.today; B = b; store.set('barker_boot', b);
+    ensureSitups();
     rankNotice2();
+    setTimeout(() => { if (!$('#promo.show') && !$('#modal.show')) opsCheck(); }, 600);
     if (first || route === 'home') render();
     $('#phase').textContent = B.phase; $('#phase').className = 'badge ' + B.phase;
   } catch (e) {
@@ -542,7 +580,7 @@ function render(){
   $('#phase').textContent = B.phase; $('#phase').className = 'badge ' + B.phase;
   updateSync();
   if (!fresh() && connected() && Date.now() - (render.lastStale || 0) > 15000) { render.lastStale = Date.now(); setTimeout(refreshBoot, 0); }
-  const fn = { home: vHome, session: vSession, run: vRun, swim: vSwim, daily: vDaily, event: vEvent, bench: vBench, settings: vSettings, rank: vRank, schedule: vSchedule, inbody: vInBody, report: vReport, progress: vProgress, plans: vPlans, history: vHistory }[route] || vHome;
+  const fn = { home: vHome, session: vSession, run: vRun, swim: vSwim, daily: vDaily, event: vEvent, bench: vBench, settings: vSettings, rank: vRank, schedule: vSchedule, inbody: vInBody, report: vReport, progress: vProgress, plans: vPlans, history: vHistory, ops: vOps }[route] || vHome;
   v.innerHTML = fn();
   if (keepY !== null) window.scrollTo(0, keepY);
   if (route === 'run' || route === 'swim') bindShots();
@@ -608,6 +646,202 @@ function vStatus(){
   const warns = (P.warnings || []).map(w => `<div class="warn">⚠ ${esc(w.text)}</div>`).join('');
   return `<div class="status"><button class="rankc" data-a="go" data-v="rank"><div class="rk">${insignia(P.rank_index)}<div><h2>${esc(P.rank)}</h2><div class="sub">+${P.xp_today} XP today · ${P.xp_28} in 28 days</div></div></div>${bar}${line}</button>${st}</div>${warns}`;
 }
+/* ---------- Ops: campaigns, weekly run ring, Commando tests, medical chits ---------- */
+const CAMPAIGN = {"id": "frostline", "name": "Operation Frostline", "short": "FROSTLINE", "start": "2026-11-30", "weeks": 6, "ribbon": ["#e9f1f6", "#1d3b5c", "#9cc3dd", "#1d3b5c", "#e9f1f6"], "intro": "This is Operation Frostline. Six weeks deployed in a cold northern country, with one job: recce. Watch, map, report, and never be seen. The enemy isn't the problem. The distance is. Each week you'll get three missions. Two runs minimum, every week, no excuses. All three earns the clasp. At the end of week six there's a final objective, and it's the bleep test. Recce troops move further, faster and quieter than anyone else. Time to become one. Good luck.", "phases": ["Insertion", "Route recce", "Lie-up", "Deep recce", "Close target recce", "Extraction"], "missions": [["w1m1", "easy", 30, "BIRCH LINE", "30 min easy, zone 2", "Operation Frostline, week one. Insertion. Mission one, codename Birch Line. Situation: you're in country. Snow on the ground, forest to the east, and nobody knows we're here. Mission: a thirty-minute route recce along the treeline. Execution: zone two the whole way. If you can't hold a conversation, you're too fast, and too loud. Move out."], ["w1m2", "intervals", 30, "GREY HARE", "8 × 400 m hard, walk 200 m between", "Mission two, codename Grey Hare. Situation: the route north crosses open farmland with no cover. Mission: eight bounds of four hundred metres across open ground, walking two hundred between each to recover in cover. Execution: hard but controlled, seven out of ten. Every bound at the same pace. Don't empty the tank on the first one."], ["w1m3", "long", 40, "LONG NIGHT", "40 min easy, continuous", "Mission three, codename Long Night. Situation: we need eyes on the river crossing before first light. Mission: forty minutes of continuous movement to the observation post. Execution: slow and steady, zone two. Walk the hills if you have to. Arriving fresh matters more than arriving fast."], ["w2m1", "easy", 35, "AMBER POST", "35 min easy, zone 2", "Week two. Route recce. Mission one, codename Amber Post. Situation: the observation post is in, and command wants the road network mapped. Mission: thirty-five minutes along the eastern roads. Execution: zone two, eyes open, breathing quiet. This is the work nobody sees. It's also the work that wins."], ["w2m2", "intervals", 35, "IRON FERRY", "5 × 800 m, walk 400 m between", "Mission two, codename Iron Ferry. Situation: a patrol has been seen near the crossing, and we need to move between two hides, fast. Mission: five bounds of eight hundred metres, walking four hundred between each. Execution: steady and strong. Hold your pace on the last one. That's the one that counts."], ["w2m3", "long", 45, "NORTH WIND", "45 min easy (an airsoft day counts)", "Mission three, codename North Wind. Situation: the weather's turning and the patrol window is closing. Mission: forty-five minutes, long and slow, to the far side of the valley. Execution: zone two, and fuel before you go. If you're deployed on a live exercise this weekend, the field day counts. Make it a good one."], ["w3m1", "easy", 30, "STILL WATER", "30 min properly easy", "Week three. Lie-up. Mission one, codename Still Water. Situation: we've been out for two weeks and the troop is tired. Command has ordered a lie-up. Mission: thirty minutes, easy. Execution: properly easy. Lie-up weeks are how you're still standing in week six. Don't waste it trying to be a hero."], ["w3m2", "strides", 25, "SNOW FOX", "20 min easy + 6 × 20 s quick pick-ups", "Mission two, codename Snow Fox. Situation: we keep the legs sharp without draining them. Mission: twenty minutes easy, then six pick-ups of twenty seconds, quick and relaxed, with full recovery between. Execution: fast feet, loose shoulders. Finish feeling like you could do it all again."], ["w3m3", "long", 40, "LONG SHADOW", "40 min easy", "Mission three, codename Long Shadow. Situation: the lie-up ends tonight. Mission: forty minutes to reposition the patrol. Execution: zone two, nothing harder. Next week, we go deeper."], ["w4m1", "easy", 35, "RED KESTREL", "35 min easy, zone 2", "Week four. Deep recce. Mission one, codename Red Kestrel. Situation: the holidays won't stop the enemy, and they won't stop us. Mission: thirty-five minutes, easy. Execution: zone two. Get it done early, before the festivities get you."], ["w4m2", "intervals", 40, "COLD IRON", "6 × 800 m, walk 400 m between", "Mission two, codename Cold Iron. Situation: the target area is further out than we first thought. Mission: six bounds of eight hundred metres, walking four hundred between each. Execution: one more rep than last time, at the same pace. That's what progress looks like."], ["w4m3", "long", 50, "DEEP SNOW", "50 min easy, continuous", "Mission three, codename Deep Snow. Situation: this is the longest move of the operation. Mission: fifty minutes, continuous. Execution: start slower than you think you need to. Eat something before you go, and drink. Bring the patrol home."], ["w5m1", "easy", 35, "GLASS EYE", "35 min easy, zone 2", "Week five. Close target recce. Mission one, codename Glass Eye. Situation: we're close now. Mission: thirty-five minutes, easy, to keep the engine ticking over. Execution: zone two. Save your legs for mission two."], ["w5m2", "intervals", 30, "KNIFE EDGE", "20 m shuttles: 8 × 1 min at bleep level 9–10 pace, 1 min rest", "Mission two, codename Knife Edge. Situation: final approach to the target, in short rushes under observation. Mission: on a twenty-metre line, eight rounds of one minute shuttling at bleep level nine to ten pace, with one minute of rest between. Execution: touch every line, turn hard, keep the rhythm. This is exactly what the bleep test feels like. Get used to it."], ["w5m3", "long", 50, "NEW DAWN", "50 min easy", "Mission three, codename New Dawn. Situation: new year, same mission. Mission: fifty minutes, easy. Execution: zone two all the way. Whatever you did last night, sweat it out steady."], ["w6m1", "easy", 30, "LAST LIGHT", "30 min easy, zone 2", "Week six. Extraction. Mission one, codename Last Light. Situation: the job's done, and the extraction window opens this week. Mission: thirty minutes, easy. Execution: zone two. Stay sharp. Don't get sloppy on the way out."], ["w6m2", "intervals", 25, "SHARP STEEL", "4 × 400 m quick, walk 200 m between", "Mission two, codename Sharp Steel. Situation: one last check of the legs before the final objective. Mission: four bounds of four hundred metres, walking two hundred between each. Execution: quick, but comfortable. Leave feeling sharp, not tired."], ["w6m3", "test", 0, "FINAL OBJECTIVE", "Full benchmark: bleep test, press-ups, sit-ups, pull-ups", "Final objective. Situation: six weeks ago you ran level eight point five. Since then, you've run in the cold, the dark and the holidays. Mission: the full benchmark. Bleep test, press-ups, sit-ups, pull-ups. Execution: eat ninety minutes before, warm up properly, and on the bleep test, go until you genuinely can't make the line. This is what all of it was for. Go and get it."]], "lines": {"deb1": "Mission complete. Good drills. Get some scoff in, and get your head down.", "deb2": "Mission complete. Intelligence logged. That's another one in the bank.", "deb3": "Mission complete. Nobody saw you, nobody heard you. Exactly right.", "deb4": "Mission complete. Steady work. The patrol's in good shape.", "ring_closed": "Two runs in. Weekly ring closed. The streak holds.", "week_clear": "All three missions complete this week. That's how it's done.", "ring_missed": "Weekly ring missed. The streak's gone. Regroup, and go again on Monday.", "final_gold": "Operation Frostline complete. Every mission done, and the final objective taken. Campaign medal, with clasp. Outstanding work.", "final_medal": "Operation Frostline complete. The job got done. Campaign medal awarded. Next time, every mission.", "final_none": "Operation Frostline is over. Too many missions were missed. No medal this time. Regroup, and go again.", "ct_endurance": "Commando test complete: the Endurance Course. Six kilometres in one go. One down, three to go.", "ct_tarzan": "Commando test complete: the Tarzan Assault Course. Every rep done, nothing left out there.", "ct_speedmarch": "Commando test complete: the nine-mile speed march. Fourteen and a half kilometres in a single week.", "ct_30miler": "Commando test complete: the thirty-miler. Forty-eight kilometres in four weeks. That's the big one.", "green_beret": "All four Commando tests complete. You've earned the green beret. Wear it well.", "chit_on": "Medical chit logged. Ring and streak are paused. Get yourself fixed, then get back out there."}, "order": ["intro", "w1m1", "w1m2", "w1m3", "w2m1", "w2m2", "w2m3", "w3m1", "w3m2", "w3m3", "w4m1", "w4m2", "w4m3", "w5m1", "w5m2", "w5m3", "w6m1", "w6m2", "w6m3", "deb1", "deb2", "deb3", "deb4", "ring_closed", "week_clear", "ring_missed", "final_gold", "final_medal", "final_none", "ct_endurance", "ct_tarzan", "ct_speedmarch", "ct_30miler", "green_beret", "chit_on"]};
+const RUN_MIN_S = 1200;
+const isRun = r => r && r.type !== 'Yomp' && num(r.s) >= RUN_MIN_S;
+const OPS_MIN = CAMPAIGN.missions.map((m, i) => ({ id: m[0], kind: m[1], min: m[2], name: m[3], detail: m[4], brief: m[5], week: Math.floor(i / 3), n: i % 3 }));
+function opsText(id){ if (id === 'intro') return CAMPAIGN.intro; const m = OPS_MIN.find(x => x.id === id); return m ? m.brief : (CAMPAIGN.lines[id] || ''); }
+function medicalDays(){ const o = {}; (B.phases || []).filter(p => p.phase === 'Medical').forEach(p => { for (let x = p.start; x && x <= p.end; x = addDaysStr(x, 1)) o[x] = p.notes || 'Medical'; }); return o; }
+function activeChit(){ const t = todayStr(); return (B.phases || []).find(p => p.phase === 'Medical' && p.start <= t && p.end >= t) || null; }
+
+function campaignState(){
+  const h = HX(), today = todayStr(), c = CAMPAIGN;
+  const weeks = [...Array(c.weeks)].map((_, i) => addDaysStr(c.start, 7 * i)), last = addDaysStr(weeks[weeks.length - 1], 6);
+  const ms = OPS_MIN.map(m => Object.assign({}, m));
+  weeks.forEach((mon, w) => {
+    const sun = addDaysStr(mon, 6);
+    let pool = h.runs.filter(r => r.date >= mon && r.date <= sun && isRun(r)).sort(byDate);
+    const take = (pred, pick) => { const cand = pool.filter(pred); if (!cand.length) return null; const r = pick ? pick(cand) : cand[0]; pool = pool.filter(x => x !== r); return r; };
+    const wm = ms.filter(m => m.week === w);
+    wm.filter(m => m.kind === 'intervals').forEach(m => { m.run = take(r => /interval|tempo/i.test(r.type || '')); });
+    wm.filter(m => m.kind === 'long').forEach(m => {
+      m.run = take(r => num(r.s) >= m.min * 48, cand => cand.reduce((a, b) => num(b.s) > num(a.s) ? b : a));
+      if (!m.run) m.live = h.events.find(e => e.status === 'done' && e.type === 'Airsoft' && e.date >= mon && e.date <= sun && (num(e.duration_h) || 0) >= 3) || null;
+    });
+    wm.filter(m => m.kind === 'strides' || m.kind === 'easy').forEach(m => { m.run = take(() => true); });
+    wm.filter(m => m.kind === 'test').forEach(m => { m.bench = h.benches.find(b => b.test === 'Bleep test' && b.date >= addDaysStr(mon, -7) && b.date <= sun) || null; });
+    wm.forEach(m => { m.mon = mon; m.sun = sun; m.done = !!(m.run || m.live || m.bench);
+      m.status = m.done ? 'done' : sun < today ? 'missed' : mon > today ? 'future' : 'open'; });
+  });
+  const done = ms.filter(m => m.done).length, total = ms.length, ended = today > last, started = today >= c.start;
+  const wi = started ? Math.min(c.weeks - 1, Math.floor(daysBetweenStr(c.start, today) / 7)) : -1;
+  const result = (ended || done === total) ? (done === total ? 'gold' : done >= Math.ceil(total * 0.8) ? 'medal' : 'none') : null;
+  return { ms, weeks, done, total, started, ended, wi, last, result, missed: ms.filter(m => m.status === 'missed').length };
+}
+
+function ringState(){
+  const h = HX(), today = todayStr(), med = medicalDays();
+  const count = (mon) => h.runs.filter(r => r.date >= mon && r.date <= addDaysStr(mon, 6) && isRun(r)).length;
+  let mon = CAMPAIGN.start, streak = 0, best = 0; const weeks = [];
+  while (mon <= today) {
+    const sun = addDaysStr(mon, 6), n = count(mon), excused = [...Array(7)].some((_, i) => med[addDaysStr(mon, i)]);
+    const st = n >= 2 ? 'closed' : sun >= today ? 'open' : excused ? 'excused' : 'missed';
+    if (st === 'closed') { streak++; best = Math.max(best, streak); } else if (st === 'missed') streak = 0;
+    weeks.push({ mon, n, st }); mon = addDaysStr(mon, 7);
+  }
+  const thisMon = mondayOf(today);
+  const cur = weeks.find(w => w.mon === thisMon) || { mon: thisMon, n: count(thisMon), st: count(thisMon) >= 2 ? 'closed' : 'open', preview: true };
+  return { streak, best, weeks, cur };
+}
+
+function commandoTests(){
+  const runs = HX().runs.filter(r => num(r.km) > 0).sort(byDate), today = todayStr();
+  const sumKm = list => Math.round(list.reduce((a, r) => a + num(r.km), 0) * 10) / 10;
+  const endurance = runs.find(r => r.type !== 'Yomp' && num(r.km) >= 6) || null;
+  const tarzan = runs.find(r => /interval/i.test(r.type || '')) || null;
+  let march = null, march28 = null; const wk = {};
+  runs.forEach(r => { const m = mondayOf(r.date); wk[m] = (wk[m] || 0) + num(r.km); if (!march && wk[m] >= 14.5) march = r;
+    const tot = sumKm(runs.filter(x => x.date >= addDaysStr(r.date, -27) && x.date <= r.date)); if (!march28 && tot >= 48) march28 = r; });
+  const bestRun = runs.filter(r => r.type !== 'Yomp').reduce((a, r) => Math.max(a, num(r.km)), 0);
+  const thisWeek = sumKm(runs.filter(r => r.date >= mondayOf(today))), last28 = sumKm(runs.filter(r => r.date >= addDaysStr(today, -27)));
+  const T = [
+    { key: 'ct_endurance', name: 'Endurance Course', rule: 'One run of 6 km or more', done: endurance, now: bestRun + ' km best', pct: Math.min(1, bestRun / 6) },
+    { key: 'ct_tarzan', name: 'Tarzan Assault Course', rule: 'An interval session, every rep done', done: tarzan, now: tarzan ? '' : 'No interval session yet', pct: tarzan ? 1 : 0 },
+    { key: 'ct_speedmarch', name: '9-Mile Speed March', rule: '14.5 km in one week (runs + yomps)', done: march, now: thisWeek + ' km this week', pct: Math.min(1, thisWeek / 14.5) },
+    { key: 'ct_30miler', name: '30-Miler', rule: '48 km within 28 days', done: march28, now: last28 + ' km in 28 days', pct: Math.min(1, last28 / 48) }
+  ];
+  return { tests: T, all: T.every(t => t.done) };
+}
+
+/* voice: campaign clips if recorded (audio/ops_<id>.mp3 + .json), otherwise the phone's own voice */
+let ops = { buf: null, map: null, ctx: null, srcs: [], none: false };
+function loadOps(){
+  const a = audio();
+  if ((ops.buf && ops.ctx === a) || ops.none) return Promise.resolve();
+  if (ops.loading) return ops.loading;
+  ops.loading = fetch('audio/ops_' + CAMPAIGN.id + '.json').then(r => { if (!r.ok) throw new Error('none'); return r.json(); })
+    .then(m => fetch('audio/ops_' + CAMPAIGN.id + '.mp3').then(r => r.arrayBuffer()).then(ab => new Promise((res, rej) => a.decodeAudioData(ab, res, rej)))
+      .then(buf => { ops.buf = buf; ops.map = m; ops.ctx = a; }))
+    .catch(() => { ops.none = true; }).finally(() => { ops.loading = null; });
+  return ops.loading;
+}
+function stopOps(){ (ops.srcs || []).forEach(s => { try { s.stop(); } catch (e) {} }); ops.srcs = []; try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {} }
+async function sayOps(ids){
+  stopOps(); await loadOps();
+  const a = audio();
+  if (ops.buf && ids.every(id => ops.map[id])) {
+    let t = a.currentTime + 0.1;
+    ids.forEach(id => { const [off, dur] = ops.map[id]; const s = a.createBufferSource(); s.buffer = ops.buf; s.connect(out()); s.start(t, off, dur); ops.srcs.push(s); t += dur + 0.7; });
+    return;
+  }
+  if (!window.speechSynthesis) return toast('No voice available on this phone', true);
+  const v = (speechSynthesis.getVoices() || []).find(x => /en[-_]GB/i.test(x.lang));
+  ids.forEach(id => { const u = new SpeechSynthesisUtterance(opsText(id)); if (v) u.voice = v; u.lang = 'en-GB'; u.rate = 0.97; speechSynthesis.speak(u); });
+}
+
+function ringSvg(n, size){
+  const r = size / 2 - 4, c = 2 * Math.PI * r, p = Math.min(1, n / 2);
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="ring"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--line2)" stroke-width="5"/>
+    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${p >= 1 ? 'var(--green-hi)' : 'var(--amber)'}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${c * p} ${c}" transform="rotate(-90 ${size / 2} ${size / 2})"/>
+    <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" font-family="Space Grotesk" font-weight="700" font-size="${size * 0.3}" fill="var(--text)">${n}/2</text></svg>`;
+}
+function ribbon(c, clasp, w){
+  const cols = c.ribbon, sw = (w || 54) / cols.length;
+  return `<svg width="${w || 54}" height="16" viewBox="0 0 ${w || 54} 16" class="ribbon">${cols.map((col, i) => `<rect x="${i * sw}" y="0" width="${sw + 0.5}" height="16" fill="${col}"/>`).join('')}
+    ${clasp ? `<g transform="translate(${(w || 54) / 2 - 7} 3)"><path d="M7 0 L9 4 L14 5 L10 8 L11 13 L7 10.5 L3 13 L4 8 L0 5 L5 4 Z" fill="#c9a24a" stroke="#6b5420" stroke-width=".6"/></g>` : ''}</svg>`;
+}
+const mIcon = st => st === 'done' ? '<span class="ok">✓</span>' : st === 'missed' ? '<span class="no">✗</span>' : '<span class="muted">○</span>';
+
+function vOpsCard(){
+  const S = campaignState(), R = ringState(), chit = activeChit(), c = CAMPAIGN;
+  const ringRow = `<div class="opsring">${ringSvg(R.cur.n, 54)}<div><b>Weekly run ring</b><br><span class="muted small">${R.cur.n >= 2 ? 'Closed. ' : (2 - R.cur.n) + ' more run' + (R.cur.n === 1 ? '' : 's') + ' of 20+ min by Sunday. '}${chit ? 'Paused: medical chit.' : R.streak ? R.streak + '-week streak' : 'No streak yet'}</span></div></div>`;
+  if (!S.started) return `<section><div class="ops card"><div class="eyebrow">${esc(c.name)} · starts ${fmtDay(c.start)}</div>
+    <h2>Recce ops, ${c.weeks} weeks</h2><p class="muted small">Three missions a week, a strict 2-run ring, and the bleep test as the final objective.</p>
+    <div class="row"><button class="btn sm" data-a="ops-say" data-v="intro">▶ Intro briefing</button><button class="btn sm" data-a="go" data-v="ops">Campaign ›</button></div>${ringRow}</div></section>`;
+  if (S.ended || S.result === 'gold') return `<section><div class="ops card"><div class="eyebrow">${esc(c.name)} · complete</div>
+    <h2>${S.result === 'gold' ? 'Campaign medal with clasp' : S.result === 'medal' ? 'Campaign medal' : 'No medal this time'}</h2><div class="row">${S.result !== 'none' ? ribbon(c, S.result === 'gold', 64) : ''}<span class="muted small">${S.done}/${S.total} missions</span>
+    <span class="spacer"></span><button class="btn sm" data-a="go" data-v="ops">Debrief ›</button></div>${ringRow}</div></section>`;
+  const wm = S.ms.filter(m => m.week === S.wi);
+  return `<section><div class="ops card"><div class="eyebrow">OP ${esc(c.short)} · Week ${S.wi + 1}/${c.weeks} · ${esc(c.phases[S.wi])}</div>
+    ${wm.map(m => `<button class="item mrow" data-a="ops-brief" data-v="${m.id}"><span>${mIcon(m.status)} <b>${esc(m.name)}</b><br><span class="muted small">${esc(m.detail)}${m.live ? ' · live exercise' : ''}</span></span><span class="muted small">Brief ›</span></button>`).join('')}
+    ${ringRow}<div class="row" style="margin-top:8px"><span class="muted small">${S.done}/${S.total} missions${S.missed ? ' · ' + S.missed + ' missed' : ''}</span><span class="spacer"></span><button class="btn sm" data-a="go" data-v="ops">Campaign ›</button></div></div></section>`;
+}
+
+function vOps(){
+  const S = campaignState(), R = ringState(), CT = commandoTests(), c = CAMPAIGN, chit = activeChit();
+  const weeks = S.weeks.map((mon, w) => { const wm = S.ms.filter(m => m.week === w);
+    return `<div class="opsweek ${w === S.wi ? 'cur' : ''}"><div class="row"><b>Week ${w + 1} · ${esc(c.phases[w])}</b><span class="spacer"></span><span class="muted small">${fmtDay(mon)} – ${fmtDay(addDaysStr(mon, 6))}</span></div>
+      ${wm.map(m => `<button class="item mrow" data-a="ops-brief" data-v="${m.id}"><span>${mIcon(m.status)} <b>${esc(m.name)}</b> <span class="muted small">${esc(m.detail)}</span></span><span class="muted small">›</span></button>`).join('')}</div>`; }).join('');
+  const proj = S.result ? S.result : (S.done + (S.total - S.done - S.missed) === S.total ? 'gold' : S.total - S.missed >= Math.ceil(S.total * 0.8) ? 'medal' : 'none');
+  return `<div class="line-title"><button class="back" data-a="home">← Home</button></div>${pstrip('report', true)}
+  <div class="page-h"><h1>${esc(c.name)}</h1><div class="sub">${fmtDay(c.start)} – ${fmtDay(S.last)} · ${S.done}/${S.total} missions</div></div>
+  ${chit ? `<div class="warn">🩹 Medical chit until ${fmtDay(chit.end)}${chit.notes ? ': ' + esc(chit.notes) : ''}. Ring, streak and the running standard are paused. <button class="btn sm" data-a="chit-end">End it</button></div>` : ''}
+  <section><div class="row"><button class="btn sm" data-a="ops-say" data-v="intro">▶ Intro briefing</button><button class="btn sm" data-a="ops-stop">■ Stop</button></div>
+    <div class="hint">${ops.none ? 'Briefings use your phone’s voice until the recorded clips are uploaded.' : 'Tap a mission for its briefing.'}</div></section>
+  <section><div class="label">Medal</div><div class="card"><div class="row">${proj !== 'none' ? ribbon(c, proj === 'gold', 72) : '<span class="no">No medal</span>'}<span class="muted small">${S.result ? 'Awarded' : 'On course for'}: ${proj === 'gold' ? 'medal with clasp (every mission + final objective)' : proj === 'medal' ? 'campaign medal (80%+ of missions)' : 'nothing. Under 80% of missions done'}</span></div></div></section>
+  <section><div class="label">Missions</div>${weeks}</section>
+  <section><div class="label">Weekly run ring</div><div class="card">${vRingWeeks(R)}<div class="hint">Two runs of 20+ minutes every Monday–Sunday. Miss a week and the streak resets. No freezes; only a medical chit pauses it. Yomps and airsoft don't count towards the ring.</div></div></section>
+  ${vCommando(CT)}
+  <section><button class="btn block" data-a="chit-open">${chit ? 'Extend medical chit' : 'Declare a medical chit (injured or ill)'}</button></section>`;
+}
+function vRingWeeks(R){
+  if (!R.weeks.length) return `<div class="row">${ringSvg(R.cur.n, 48)}<span class="muted small">This week: ${R.cur.n} run${R.cur.n === 1 ? '' : 's'} so far. The ring counts from ${fmtDay(CAMPAIGN.start)}.</span></div>`;
+  return `<div class="row"><b style="font-size:22px">${R.streak}</b><span class="muted small">week streak · best ${R.best}</span></div>
+    <div class="weekdots">${R.weeks.map(w => `<span class="wd ${w.st}" title="${fmtDay(w.mon)}">${w.st === 'closed' ? '✓' : w.st === 'missed' ? '✗' : w.st === 'excused' ? '🩹' : w.n}</span>`).join('')}</div>`;
+}
+function vCommando(CT){
+  return `<section><div class="label">Commando tests${CT.all ? ' · green beret earned' : ''}</div><div class="card">
+    ${CT.all ? `<div class="row" style="margin-bottom:8px">${beret(40)}<b>Green beret earned</b></div>` : ''}
+    ${CT.tests.map(t => `<div class="ct"><div class="row">${t.done ? '<span class="ok">✓</span>' : '<span class="muted">○</span>'}<b>${esc(t.name)}</b><span class="spacer"></span><span class="muted small">${t.done ? fmtDay(t.done.date) : esc(t.now)}</span></div>
+      <div class="muted small">${esc(t.rule)}</div>${t.done ? '' : `<div class="bar"><i style="width:${Math.round(t.pct * 100)}%"></i></div>`}</div>`).join('')}
+    <div class="hint">Based on the four real Commando tests. Finish all four for the green beret. Log weighted walks as run type "Yomp".</div></div></section>`;
+}
+function beret(s){ return `<svg width="${s}" height="${s * 0.7}" viewBox="0 0 40 28"><path d="M3 18 C2 8 14 2 25 4 C35 6 39 12 37 17 C35 22 26 23 18 22 C10 21 4 22 3 18 Z" fill="#2f5d34" stroke="#1d3a20"/><rect x="4" y="19" width="22" height="4" rx="2" fill="#1b1b1b"/><circle cx="9" cy="14" r="2.4" fill="#c9a24a"/></svg>`; }
+
+function opsBrief(id){
+  const S = campaignState(), m = S.ms.find(x => x.id === id), c = CAMPAIGN;
+  const head = id === 'intro' ? c.name : `OP ${c.short} · Week ${m.week + 1} · ${m.kind === 'test' ? 'Final objective' : 'Mission ' + (m.n + 1)}`;
+  const status = m ? (m.done ? `<div class="ok small">✓ Complete${m.live ? ' (live exercise: ' + esc(m.live.name || 'airsoft') + ')' : m.run ? ' · ' + fmtDay(m.run.date) + (m.run.km ? ' · ' + m.run.km + ' km' : '') : ''}</div>` : m.status === 'missed' ? '<div class="no small">✗ Missed</div>' : `<div class="muted small">Do it any day ${fmtDay(m.mon)} – ${fmtDay(m.sun)}</div>`) : '';
+  openModal(`<div class="brief"><div class="eyebrow">${esc(head)}</div><h2>${esc(m ? m.name : 'Intro briefing')}</h2>${m ? `<div class="obj">${esc(m.detail)}</div>` : ''}${status}
+    <p>${esc(opsText(id))}</p><div class="two"><button class="btn block go" data-a="ops-say" data-v="${id}">▶ Play briefing</button><button class="btn block" data-a="ops-close">Close</button></div></div>`);
+}
+
+/* new achievements since last look: debrief once */
+function opsAchievements(){
+  const S = campaignState(), R = ringState(), CT = commandoTests(), out = [];
+  S.ms.forEach((m, i) => { if (m.done) out.push({ k: 'm:' + m.id, clip: m.kind === 'test' ? null : 'deb' + (1 + i % 4), t: 'Mission complete: ' + m.name }); });
+  S.weeks.forEach((mon, w) => { if (S.ms.filter(m => m.week === w).every(m => m.done)) out.push({ k: 'wk:' + mon, clip: 'week_clear', t: 'Week ' + (w + 1) + ': all three missions complete' }); });
+  R.weeks.forEach(w => { if (w.st === 'closed') out.push({ k: 'ring:' + w.mon, clip: 'ring_closed', t: 'Weekly run ring closed' });
+    if (w.st === 'missed') out.push({ k: 'miss:' + w.mon, clip: 'ring_missed', t: 'Weekly run ring missed: streak reset', bad: 1 }); });
+  CT.tests.forEach(t => { if (t.done) out.push({ k: 'ct:' + t.key, clip: t.key, t: 'Commando test complete: ' + t.name }); });
+  if (CT.all) out.push({ k: 'beret', clip: 'green_beret', t: 'Green beret earned', big: 1 });
+  if (S.result) out.push({ k: 'final:' + CAMPAIGN.id, clip: 'final_' + S.result, t: S.result === 'gold' ? 'Campaign medal with clasp' : S.result === 'medal' ? 'Campaign medal' : 'Campaign over: no medal', big: 1 });
+  return out;
+}
+let opsQueue = [];
+function opsCheck(){
+  if (!B || !B.history) return;
+  const seen = store.get('cf_ops_seen', null), all = opsAchievements();
+  if (!seen) { const s = {}; all.forEach(a => s[a.k] = 1); store.set('cf_ops_seen', s); return; }     // first run: nothing to celebrate retroactively
+  const fresh = all.filter(a => !seen[a.k]); if (!fresh.length) return;
+  fresh.forEach(a => seen[a.k] = 1); store.set('cf_ops_seen', seen);
+  opsQueue = fresh;
+  const big = fresh.find(a => a.big);
+  openModal(`<div class="brief debrief"><div class="eyebrow">Debrief</div>${big && big.k === 'beret' ? `<div style="text-align:center">${beret(90)}</div>` : ''}
+    ${big && big.k.indexOf('final') === 0 && campaignState().result !== 'none' ? `<div style="text-align:center;margin:8px 0">${ribbon(CAMPAIGN, campaignState().result === 'gold', 110)}</div>` : ''}
+    ${fresh.map(a => `<div class="dline ${a.bad ? 'no' : ''}">${a.bad ? '✗' : '✓'} ${esc(a.t)}</div>`).join('')}
+    <div class="two" style="margin-top:14px"><button class="btn block go" data-a="ops-debrief">▶ Play</button><button class="btn block" data-a="ops-close">Carry on</button></div></div>`);
+}
+function chitModal(){
+  const c = activeChit();
+  openModal(`<h2>${c ? 'Extend medical chit' : 'Medical chit'}</h2><div class="form">
+    <div class="hint" style="margin-top:0">For a real injury or illness only. While it runs, the weekly ring and streak are paused (not broken), and the running standard for your rank shrinks to match.</div>
+    <div class="f"><label>How long</label><div class="seg" id="chitLen">${[3, 7, 10, 14].map(d => `<button type="button" data-a="chit-len" data-v="${d}" class="${d === 7 ? 'on' : ''}">${d} days</button>`).join('')}</div></div>
+    <div class="f"><label>What's wrong</label><input id="chitWhy" value="${esc(c ? c.notes : '')}" placeholder="e.g. left foot, cold"></div>
+    <div class="two"><button class="btn block" data-a="modal-close">Cancel</button><button class="btn block go" data-a="chit-save">Log chit</button></div></div>`);
+}
+
 function vRepair(){
   const P = (B && B.progress) || {}, M = P.missed_recent || [];
   if (!M.length) return '';
@@ -651,6 +885,7 @@ function vHome(){
   ${draft}
   <section>${vStatus()}</section>
   ${vRepair()}
+  ${vOpsCard()}
   <section>${vToday()}</section>
   ${vBodyCard() ? `<section>${vBodyCard()}</section>` : ''}
   ${countdown ? `<section>${countdown}</section>` : ''}
@@ -674,6 +909,12 @@ function vHome(){
   <section><button class="btn block" data-a="go" data-v="settings">Settings, audio and schedule</button></section>`;
 }
 
+function vRankOps(){
+  const S = campaignState(), CT = commandoTests(), R = ringState();
+  const medals = S.result && S.result !== 'none' ? [{ c: CAMPAIGN, gold: S.result === 'gold' }] : [];
+  return `<section><div class="label">Medals</div><div class="card"><div class="row">${medals.length ? medals.map(m => ribbon(m.c, m.gold, 60)).join('') : '<span class="muted small">No campaign medals yet.</span>'}${CT.all ? beret(36) : ''}</div>
+    <div class="muted small" style="margin-top:6px">${R.streak}-week run streak · Commando tests ${CT.tests.filter(t => t.done).length}/4 · <a href="#" data-a="go" data-v="ops">Campaign ›</a></div></div></section>`;
+}
 function vRank(){
   const P = B.progress || {}, R = B.ranks || [], X = B.xpRules || {};
   const reqRows = (tests) => tests.map(t => `<span>${esc(t.test.replace(' (RMC cadence)', ''))}</span><span class="muted">${t.latest ? esc(t.latest) + (t.due ? ' (retest due)' : '') : '—'} / ${esc(t.need)}</span><span class="${t.met && t.fresh ? 'ok' : 'no'}">${t.met && t.fresh ? '✓' : '✗'}</span>`).join('');
@@ -687,9 +928,11 @@ function vRank(){
     <span>XP</span><span class="muted">${P.xp_total} / ${nx.min_xp}</span><span class="${nx.xp_ok ? 'ok' : 'no'}">${nx.xp_ok ? '✓' : '✗'}</span>
     ${reqRows(nx.tests)}
     <span>Activity (28 days)</span><span class="muted">${P.xp_28} / ${nx.maint_xp_28d}</span><span class="${P.xp_28 >= nx.maint_xp_28d ? 'ok' : 'no'}">${P.xp_28 >= nx.maint_xp_28d ? '✓' : '✗'}</span>
+    ${nx.run_need ? `<span>Runs 20+ min (28 days)</span><span class="muted">${P.runs_28 || 0} / ${nx.run_need}</span><span class="${(P.runs_28 || 0) >= nx.run_need ? 'ok' : 'no'}">${(P.runs_28 || 0) >= nx.run_need ? '✓' : '✗'}</span>` : ''}
   </div><div class="hint">Promotion is automatic once every line is ticked. Test results count for 6 weeks (+1 week grace).</div>
   <button class="btn block" style="margin-top:12px" data-a="go" data-v="bench">Log a benchmark</button></div></section>` : ''}
-  ${(P.current_tests || []).length ? `<section><div class="label">Holding ${esc(P.rank)}</div><div class="card"><div class="req">${reqRows(P.current_tests)}</div>
+  ${vRankOps()}
+  ${(P.current_tests || []).length ? `<section><div class="label">Holding ${esc(P.rank)}</div><div class="card"><div class="req">${reqRows(P.current_tests)}${P.run_need_cur ? `<span>Runs 20+ min (28 days)</span><span class="muted">${P.runs_28 || 0} / ${P.run_need_cur}</span><span class="${(P.runs_28 || 0) >= P.run_need_cur ? 'ok' : 'no'}">${(P.runs_28 || 0) >= P.run_need_cur ? '✓' : '✗'}</span>` : ''}</div>
     <div class="hint">Fall below any of these on a retest, let a result go stale, or let 28-day activity drop for more than a week, and you're demoted.</div></div></section>` : ''}
   <section><div class="label">Rank ladder</div><div class="card list ladder" style="padding:4px 16px">${ladder}</div>
     <div class="hint">Press-ups / sit-ups / pull-ups to RMC cadence. Sergeant = Royal Marines Candidate Preparation Course pass. Edit the Ranks tab in your sheet to change any standard.</div></section>
@@ -941,7 +1184,7 @@ function vRun(){
   return `<div class="line-title"><button class="back" data-a="home">← Home</button></div>${pstrip('run', true)}<div class="page-h"><h1>Log run</h1></div>
   <form class="form" id="f" style="margin-top:14px">
     <div class="two"><div class="f"><label>Date</label>${dateField('name="date"')}</div>
-      <div class="f"><label>Type</label><select name="run_type">${opt(['Zone 2','Easy','Long','Tempo','Intervals','2.4 km test','Race'], (formPrefill.run || {}).type || 'Zone 2')}</select></div></div>
+      <div class="f"><label>Type</label><select name="run_type">${opt(['Zone 2','Easy','Long','Tempo','Intervals','Yomp','2.4 km test','Race'], (formPrefill.run || {}).type || 'Zone 2')}</select></div></div>
     <div class="f"><label>Surface</label><select name="surface">${opt(['Road','Track','Treadmill','Trail'], (formPrefill.run || {}).surface || 'Road')}</select></div>
     <div class="two"><div class="f"><label>Distance (km)</label><input name="distance_km" inputmode="decimal" placeholder="4.30"></div>
       <div class="f"><label>Workout time</label><input name="workout_time" placeholder="30:01"></div></div>
@@ -1846,7 +2089,7 @@ document.addEventListener('blur', e => { if (e.target.type === 'date') onField(e
 $('#cadPreset').addEventListener('change', e => { cadStop(); cad.preset = Number(e.target.value); cad.reps = 0; cad.started = false; cad.done = false; cad.tgt = cadDefaultTarget(); cadUI(); $('#cadPhase').textContent = 'READY'; });
 
 /* ================= v12: report, targets, charts, plans, history ================= */
-const EASY = ['Taper', 'Race', 'Recovery', 'Deload'];
+const EASY = ['Taper', 'Race', 'Recovery', 'Deload', 'Medical'];
 const HX = () => (B && B.history) || { sessions: [], lifts: [], runs: [], swims: [], benches: [], events: [], daily: [] };
 function mondayOf(d){ const t = new Date(d + 'T00:00:00'); t.setDate(t.getDate() - (t.getDay() + 6) % 7); return todayStr(t); }
 function planOn(date){
@@ -1916,6 +2159,16 @@ const stepFor = (w, ex) => /\bdb\b|dumbbell/i.test((EX(ex).load_note || '') + ' 
 function targetSuggestions(){
   const out = [], dis = store.get('cf_tgt_dismiss', {});
   Object.values(B.targets || {}).forEach(t => {
+    if (t.exercise && EX(t.exercise).measure === 'reps' && num(t.reps) !== '') {
+      const r = num(t.reps), cap = /sit[- ]?ups?/i.test(t.exercise) ? 25 : 0;
+      const v = HX().lifts.filter(L => L.ex === t.exercise && !EASY.includes(L.phase) && L.tr === r).sort(byDate).map(L => ({ L, ok: liftClean(L, t) })).filter(x => x.ok !== null);
+      if (!v.length) return;
+      const last = v[v.length - 1], key = t.exercise + '|' + last.L.date + '|r' + r; if (dis[key]) return;
+      if (last.ok && (!cap || r < cap)) out.push({ ex: t.exercise, from: r, to: cap ? Math.min(cap, r + 2) : r + 2, dir: 'up', unit: 'reps', key, why: 'Every set clean at ' + r + ' reps on ' + fmtDay(last.L.date) });
+      else if (last.ok && cap) out.push({ ex: t.exercise, from: r, to: r, dir: 'up', unit: 'reps', key, why: 'Clean at ' + cap + ' reps: stop adding reps and hold a plate on your chest instead' });
+      else if (v.length >= 2 && !v[v.length - 2].ok) out.push({ ex: t.exercise, from: r, to: Math.max(1, r - 2), dir: 'down', unit: 'reps', key, why: 'Missed the target twice running (' + fmtDay(v[v.length - 2].L.date) + ', ' + fmtDay(last.L.date) + ')' });
+      return;
+    }
     const w = num(t.weight_kg); if (w === '' || !t.exercise || EX(t.exercise).measure !== 'reps_weight') return;
     const v = HX().lifts.filter(L => L.ex === t.exercise && !EASY.includes(L.phase) && L.tw === w).sort(byDate)
       .map(L => ({ L, ok: liftClean(L, t) })).filter(x => x.ok !== null);
@@ -1934,7 +2187,7 @@ function vSuggestions(){
   return `<div class="label">Target changes to approve</div>` + sugCache.map((s, i) => `<div class="sug ${s.dir}">
     <div class="row"><b>${esc(s.ex)}</b><span class="spacer"></span><span class="chip ${s.dir === 'up' ? 'cad' : 'nig'}">${s.dir === 'up' ? '▲ Go up' : '▼ Ease off'}</span></div>
     <div class="small muted" style="margin:4px 0 8px">${esc(s.why)}. Taper and race weeks are ignored.</div>
-    <div class="row"><span class="num">${s.from} kg →</span><input class="inp w" inputmode="decimal" id="sug${i}" value="${s.to}"><span class="unit">kg</span><span class="spacer"></span>
+    <div class="row"><span class="num">${s.from} ${s.unit || 'kg'} →</span><input class="inp w" inputmode="decimal" id="sug${i}" value="${s.to}"><span class="unit">${s.unit || 'kg'}</span><span class="spacer"></span>
       <button class="btn sm" data-a="tg-hold" data-v="${i}">Hold</button><button class="btn sm go" data-a="tg-ok" data-v="${i}">Approve</button></div></div>`).join('');
 }
 
@@ -2140,7 +2393,7 @@ function vPlans(){
   <section><div class="label">Training phases</div>
     ${ph.length ? `<div class="card list" style="padding:4px 16px;margin-bottom:10px">${ph.map((p, i) => `<div class="item"><span><b>${esc(p.phase)}</b> <span class="muted small">${fmtDay(p.start)} to ${fmtDay(p.end)}</span></span><button class="mini" data-a="ph2-del" data-v="${esc(p.start)}">✕</button></div>`).join('')}</div>` : ''}
     <div class="form"><div class="two"><div class="f"><label>From</label>${dateField('id="phFrom"')}</div><div class="f"><label>To</label>${dateField('id="phTo"', addDaysStr(todayStr(), 6))}</div></div>
-      <div class="f"><label>Phase</label><select id="phType">${opt(['Recovery', 'Deload', 'Taper', 'Race', 'Build'], 'Recovery')}</select></div>
+      <div class="f"><label>Phase</label><select id="phType">${opt(['Recovery', 'Deload', 'Taper', 'Race', 'Build', 'Medical'], 'Recovery')}</select></div>
       <button class="btn block" type="button" data-a="ph2-add">Add phase</button></div>
     <div class="hint">Anything outside these dates counts as Build. Taper, Race, Recovery and Deload weeks are shaded on charts, ignored for target changes, and don't count against your rank.</div></section>
   <section><div class="label">Schedule</div><button class="btn block" data-a="go" data-v="schedule">Edit weekly schedule</button></section>`;
@@ -2165,7 +2418,7 @@ function vPlanEdit(){
     const f = (m === 'reps_weight' ? (circuit ? '' : fld('sets', it.sets, 'sets', 46)) + fld('reps', it.reps, 'reps', 46) + fld('weight_kg', it.weight_kg, 'kg', 66)
       : m === 'reps' ? (circuit ? '' : fld('sets', it.sets, 'sets', 46)) + fld('reps', it.reps, 'reps', 46)
       : m === 'time' ? fld('time_s', it.time_s, 'sec') : m === 'distance' ? fld('distance_m', it.distance_m, 'm') : fld('distance_m', it.distance_m, 'm') + fld('weight_kg', it.weight_kg, 'kg', 66));
-    return `<div class="pitem" data-i="${i}"><div class="row"><select data-pk="exercise" style="flex:1;min-width:0">${opt(exNames.includes(it.exercise) ? exNames : exNames.concat([it.exercise]), it.exercise)}</select>
+    return `<div class="pitem" data-i="${i}"><div class="row"><select data-pk="exercise" style="flex:1;min-width:0">${opt(exNames.includes(it.exercise) ? exNames : exNames.concat([it.exercise]), it.exercise)}<option value="__new__">+ New exercise…</option></select>
       <button class="mini" data-a="pl-up" data-v="${i}">↑</button><button class="mini" data-a="pl-down" data-v="${i}">↓</button><button class="mini" data-a="pl-del" data-v="${i}">✕</button></div>
       <div class="prow">${f}<select data-pk="cadence" class="pcad">${cadOpts.map(c => `<option value="${esc(c)}" ${c === (it.cadence || '') ? 'selected' : ''}>${c ? '♪ ' + esc(c) : 'No cadence'}</option>`).join('')}</select></div>
       <input class="inp pnote" data-pk="note" value="${esc(it.note)}" placeholder="Note (optional)"></div>`; }).join('');
@@ -2197,6 +2450,7 @@ function exerciseModal(){
     <div class="f"><label>Logged as</label><select id="exMeasure">${Object.keys(MEASURES).map(k => `<option value="${k}">${MEASURES[k]}</option>`).join('')}</select></div>
     <div class="f"><label>How the weight is counted (optional)</label><input id="exLoad" placeholder="e.g. plates both sides, per DB, stack"></div>
     <div class="f"><label>Default cadence</label><select id="exCad"><option value="">None</option>${presets.map(p => `<option>${esc(p.name)}</option>`).join('')}</select></div>
+    <div class="hint">Bodyweight moves like sit-ups or pull-ups: pick "Reps only".</div>
     <div class="two"><button class="btn block" data-a="modal-close">Cancel</button><button class="btn block go" data-a="ex-save">Add</button></div></div>`);
 }
 
@@ -2237,7 +2491,7 @@ function histModal(e){
   } else if (e.k === 'run') {
     body = `<div class="form"><div class="two"><div class="f"><label>Distance (km)</label><input id="hKm" inputmode="decimal" value="${esc(r.km === null ? '' : r.km)}"></div><div class="f"><label>Time</label><input id="hTime" value="${esc(r.s ? fmtTime(r.s) : '')}" placeholder="30:01"></div></div>
       <div class="two"><div class="f"><label>Avg HR</label><input id="hHr" inputmode="numeric" value="${esc(r.hr === null ? '' : r.hr)}"></div><div class="f"><label>Zone 2 time</label><input id="hZ2" value="${esc(r.z2 ? fmtTime(r.z2) : '')}" placeholder="22:25"></div></div>
-      <div class="f"><label>Type</label><select id="hType">${opt(['Zone 2', 'Easy', 'Long', 'Tempo', 'Intervals', '2.4 km test', 'Race'], r.type || 'Zone 2')}</select></div>
+      <div class="f"><label>Type</label><select id="hType">${opt(['Zone 2', 'Easy', 'Long', 'Tempo', 'Intervals', 'Yomp', '2.4 km test', 'Race'], r.type || 'Zone 2')}</select></div>
       ${r.shots ? '<div class="hint">Screenshots for this run are in your Drive folder "BARKER Screenshots".</div>' : ''}</div>`;
   } else if (e.k === 'swim') {
     body = `<div class="form"><div class="two"><div class="f"><label>Distance (m)</label><input id="hM" inputmode="numeric" value="${esc(r.m === null ? '' : r.m)}"></div><div class="f"><label>Time</label><input id="hTime" value="${esc(r.s ? fmtTime(r.s) : '')}"></div></div></div>`;
@@ -2361,9 +2615,12 @@ document.addEventListener('click', e => {
   const el = e.target.closest('[data-a]'); if (!el) return;
   const a = el.dataset.a, v = el.dataset.v;
   switch (a) {
-    case 'tg-ok': { const s = sugCache[Number(v)], val = num($('#sug' + v).value); if (!s || val === '') return toast('Enter a weight', true);
-      B.targets[s.ex] = Object.assign({}, B.targets[s.ex], { weight_kg: val }); submit('saveTargets', { targets: [{ exercise: s.ex, weight_kg: val }] }, s.ex + ' target');
-      store.set('barker_boot', B); render(); toast(s.ex + ' target now ' + val + ' kg'); break; }
+    case 'tg-ok': { const s = sugCache[Number(v)], val = num($('#sug' + v).value); if (!s || val === '') return toast('Enter a number', true);
+      const fld = s.unit === 'reps' ? 'reps' : 'weight_kg';
+      if (s.unit === 'reps' && val === s.from) { const d = store.get('cf_tgt_dismiss', {}); d[s.key] = 1; store.set('cf_tgt_dismiss', d); render(); break; }
+      B.targets[s.ex] = Object.assign({}, B.targets[s.ex], { [fld]: val }); submit('saveTargets', { targets: [{ exercise: s.ex, [fld]: val }] }, s.ex + ' target');
+      Object.values(B.templates || {}).forEach(T => (T.items || []).forEach(it => { if (it.exercise === s.ex) it[fld] = val; }));
+      store.set('barker_boot', B); render(); toast(s.ex + ' target now ' + val + ' ' + (s.unit || 'kg')); break; }
     case 'tg-hold': { const s = sugCache[Number(v)]; if (!s) return; const d = store.get('cf_tgt_dismiss', {}); d[s.key] = 1; store.set('cf_tgt_dismiss', d); render(); break; }
     case 'rep-nav': repOffset = Math.min(0, repOffset + Number(v)); render(); window.scrollTo(0, 0); break;
     case 'rep-copy': { const txt = reportText(weekData(addDaysStr(mondayOf(todayStr()), 7 * repOffset)));
@@ -2381,12 +2638,13 @@ document.addEventListener('click', e => {
     case 'pl-remove': confirmBox('Delete ' + planDraft.old + '?', 'The plan is removed from the app and your schedule. Past sessions stay in your history.', 'Delete plan', () => {
       submit('saveTemplate', { name: planDraft.old, old_name: planDraft.old, remove: true }, 'Plan delete'); const old = planDraft.old; delete B.templates[old];
       (B.schedule || []).forEach(r => r.plan = planItems(r.plan).filter(x => x !== old).join(' + ') || 'Rest'); store.set('barker_boot', B); planDraft = null; go('plans'); }); break;
-    case 'ex-new': syncPlanDraft(); exerciseModal(); break;
+    case 'ex-new': syncPlanDraft(); if (planDraft) delete planDraft.replaceIdx; exerciseModal(); break;
     case 'ex-save': { const name = $('#exName').value.trim(); if (!name) return toast('Give it a name', true);
       if ((B.exercises || []).some(x => x.exercise.toLowerCase() === name.toLowerCase())) return toast('That exercise already exists', true);
       const ex = { exercise: name, measure: $('#exMeasure').value, load_note: $('#exLoad').value.trim(), cadence: $('#exCad').value, category: '' };
       B.exercises.push(ex); submit('saveExercise', ex, name);
-      if (planDraft) planDraft.items.push({ exercise: name, sets: 3, reps: ex.measure.indexOf('reps') === 0 ? 10 : '', weight_kg: '', time_s: ex.measure === 'time' ? 45 : '', distance_m: '', cadence: ex.cadence, note: '' });
+      if (planDraft) { syncPlanDraft(); const nu = { exercise: name, sets: 3, reps: ex.measure.indexOf('reps') === 0 ? 10 : '', weight_kg: '', time_s: ex.measure === 'time' ? 45 : '', distance_m: '', cadence: ex.cadence, note: '' };
+        if (planDraft.replaceIdx !== undefined && planDraft.items[planDraft.replaceIdx]) planDraft.items[planDraft.replaceIdx] = nu; else planDraft.items.push(nu); delete planDraft.replaceIdx; }
       store.set('barker_boot', B); closeModal(); render(); break; }
     case 'ph2-add': { const from = $('#phFrom').value, to = $('#phTo').value; if (!from || !to || to < from) return toast('Check the dates', true);
       B.phases = (B.phases || []).concat([{ start: from, end: to, phase: $('#phType').value, notes: '' }]); submit('savePhases', { phases: B.phases }, 'Phases');
@@ -2399,6 +2657,22 @@ document.addEventListener('click', e => {
     case 'promo-close': $('#promo').className = 'ov'; $('#promo').style.backgroundImage = ''; break;
     case 'promo-rank': $('#promo').className = 'ov'; $('#promo').style.backgroundImage = ''; go('rank'); break;
     case 'app-update': doUpdate(); break;
+    case 'ops-brief': opsBrief(v); break;
+    case 'ops-say': sayOps([v]); break;
+    case 'ops-stop': stopOps(); break;
+    case 'ops-close': stopOps(); closeModal(); break;
+    case 'ops-debrief': sayOps(opsQueue.map(a => a.clip).filter(Boolean)); break;
+    case 'chit-open': chitModal(); break;
+    case 'chit-len': document.querySelectorAll('#chitLen button').forEach(b => b.classList.toggle('on', b.dataset.v === v)); break;
+    case 'chit-save': { const len = Number(($('#chitLen .on') || {}).dataset ? $('#chitLen .on').dataset.v : 7) || 7, why = $('#chitWhy').value.trim();
+      if (!why) return toast('Say what the injury or illness is', true);
+      const cur = activeChit(), t = todayStr();
+      if (cur) { cur.end = addDaysStr(cur.end, len); cur.notes = why; } else B.phases = (B.phases || []).concat([{ start: t, end: addDaysStr(t, len - 1), phase: 'Medical', notes: why }]);
+      submit('savePhases', { phases: B.phases }, 'Medical chit'); store.set('barker_boot', B); closeModal(); render(); toast('Medical chit logged until ' + fmtDay((activeChit() || {}).end || t));
+      sayOps(['chit_on']); break; }
+    case 'chit-end': { const cur = activeChit(); if (!cur) break; const y = addDaysStr(todayStr(), -1);
+      if (cur.start > y) B.phases = B.phases.filter(p => p !== cur); else cur.end = y;
+      submit('savePhases', { phases: B.phases }, 'Medical chit'); store.set('barker_boot', B); render(); toast('Medical chit ended. Back to it.'); break; }
     case 'repair-day': dailyState = null; dailyDate = v; go('daily'); break;
     case 'ng-on': saveNudge({ on: v === '1' }); break;
     case 'ng-email': saveNudge({ email: v === '1' }); break;
@@ -2409,6 +2683,8 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('change', e => {
   if (e.target.id === 'progEx') { progEx = e.target.value; render(); }
+  else if (e.target.dataset && e.target.dataset.pk === 'exercise' && planDraft && e.target.value === '__new__') {
+    const i = Number(e.target.closest('.pitem').dataset.i); e.target.value = planDraft.items[i].exercise; planDraft.replaceIdx = i; exerciseModal(); }
   else if (e.target.dataset && e.target.dataset.pk === 'exercise' && planDraft) { syncPlanDraft(); const it = planDraft.items[Number(e.target.closest('.pitem').dataset.i)]; if (it && !it.cadence) it.cadence = EX(it.exercise).cadence || ''; render(); }
 });
 
