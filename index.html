@@ -204,30 +204,24 @@ details.mlog summary{cursor:pointer;list-style:none}
 #cine .cplane{position:absolute;left:0;top:0;transform-origin:0 0;transform-style:preserve-3d;transition:transform 2.6s cubic-bezier(.5,.05,.2,1)}
 #cine .cplane.snap{transition:none}
 #cine .cmap{position:absolute;inset:0;width:100%;height:100%;filter:brightness(.95) contrast(1.05)}
-#cine .couter{position:absolute;left:-2400px;top:-1800px;width:calc(100% + 4800px);height:calc(100% + 3600px);transform:translateZ(-2px);pointer-events:none;
-  -webkit-mask-image:radial-gradient(closest-side,#000 35%,transparent 95%);mask-image:radial-gradient(closest-side,#000 35%,transparent 95%)}
-#cine .couter .og{position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(120,200,230,.16) 0 2px,transparent 2px 320px),repeating-linear-gradient(0deg,rgba(120,200,230,.16) 0 2px,transparent 2px 320px),
-  repeating-linear-gradient(90deg,rgba(120,200,230,.06) 0 1px,transparent 1px 80px),repeating-linear-gradient(0deg,rgba(120,200,230,.06) 0 1px,transparent 1px 80px)}
-#cine .odata{position:absolute}
-#cine .odata span{position:absolute;font:22px/1.35 'Share Tech Mono',monospace;color:rgba(150,210,235,.55);letter-spacing:.08em;white-space:pre}
-#cine .odata span b{display:block;font:600 30px Rajdhani,sans-serif;color:rgba(220,240,250,.8);letter-spacing:.08em}
-#cine .cedge{position:absolute;inset:-3px;border:3px solid rgba(120,215,235,.55);box-shadow:0 0 30px rgba(80,200,230,.35),inset 0 0 60px rgba(0,0,0,.6);pointer-events:none}
+#cine .couter{position:absolute;left:-2400px;top:-1800px;width:calc(100% + 4800px);height:calc(100% + 3600px);transform:translateZ(-2px);pointer-events:none}
+#cine .cedge{position:absolute;inset:-3px;border:4px solid rgba(120,215,235,.6);pointer-events:none}
 #cine .csvg{position:absolute;inset:0;overflow:visible}
 #cine .csvg .cg{stroke:rgba(150,225,240,.14);stroke-width:2}
 #cine .csvg .croute{fill:none;stroke:rgba(240,248,250,.55);stroke-width:4;stroke-dasharray:3 12;stroke-linecap:round}
-#cine .csvg .croute.hot{stroke:#fff;stroke-width:5;stroke-dasharray:none;filter:drop-shadow(0 0 6px rgba(255,255,255,.6));stroke-dasharray:2000;stroke-dashoffset:2000}
-#cine.s-obj .csvg .croute.hot{animation:draw 2.4s ease forwards}
-@keyframes draw{to{stroke-dashoffset:0}}
+#cine .csvg .croute.hot{stroke:#fff;stroke-width:6;stroke-dasharray:none;opacity:0;transition:opacity 1s}
+#cine.s-obj .csvg .croute.hot{opacity:1}
 #cine .csvg .wp{fill:#f2f6f8;stroke:none}
 #cine .csvg .dn .wp{fill:#6fd3e6}
 #cine .csvg .wl{fill:rgba(235,245,248,.85);font:500 24px Rajdhani,sans-serif;letter-spacing:.08em}
 #cine .csvg .wl.big{font-weight:700;font-size:34px}
 #cine .csvg .tbox{fill:none;stroke:#fff;stroke-width:3}
-#cine .csvg .tri{fill:#e3122c;filter:drop-shadow(0 0 10px rgba(255,30,50,.8))}
+#cine .csvg .tri{fill:#e3122c}
 #cine .crings{position:absolute;width:0;height:0;transform-style:preserve-3d}
-#cine .crings i{position:absolute;left:-250px;top:-250px;width:500px;height:500px;border-radius:50%;border:5px dashed #ff2d42;box-shadow:0 0 18px rgba(255,40,60,.65),inset 0 0 18px rgba(255,40,60,.45);
+#cine .crings i{position:absolute;left:-260px;top:-260px;width:520px;height:520px;
   transform:translateZ(var(--z)) rotate(0deg);animation:ring 30s linear infinite;opacity:.9}
-#cine .crings i.far{left:-470px;top:-470px;width:940px;height:940px;border-width:4px;opacity:.55;animation-duration:60s;animation-direction:reverse}
+#cine .crings i svg{width:100%;height:100%;display:block}
+#cine .crings i.far{left:-470px;top:-470px;width:940px;height:940px;opacity:.5;animation-duration:60s;animation-direction:reverse}
 @keyframes ring{to{transform:translateZ(var(--z)) rotate(360deg)}}
 #cine .cobj3d{position:absolute;transform:translateZ(6px);opacity:0;transition:opacity .4s;white-space:nowrap;text-shadow:-2px 0 rgba(255,0,60,.35),2px 0 rgba(0,220,255,.35)}
 #cine.s-obj .cobj3d{opacity:1}
@@ -238,11 +232,10 @@ details.mlog summary{cursor:pointer;list-style:none}
 @keyframes rowin{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:none}}
 #cine .cholo{position:absolute;width:300px;height:0;transform-style:preserve-3d;opacity:0;transition:opacity .8s}
 #cine.s-sit .cholo{opacity:1}
-#cine .cholo .hp{position:absolute;left:0;bottom:0;width:300px;height:190px;transform-origin:50% 100%;transform:rotateX(-90deg);border:2px solid rgba(140,235,255,.8);box-shadow:0 0 30px rgba(80,210,255,.7);overflow:hidden;background:#0a3642}
-#cine .cholo img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) brightness(1.3) contrast(1.2);mix-blend-mode:screen;opacity:.85}
-#cine .cholo .hp::before{content:'';position:absolute;inset:0;background:rgba(40,200,240,.55);mix-blend-mode:multiply;z-index:1}
-#cine .cholo .hp i{position:absolute;inset:0;z-index:2;background:repeating-linear-gradient(0deg,rgba(180,250,255,.25) 0 2px,transparent 2px 5px);animation:holo 3s linear infinite}
-@keyframes holo{to{background-position:0 60px}}
+#cine .cholo .hp{position:absolute;left:0;bottom:0;width:300px;height:190px;transform-origin:50% 100%;transform:rotateX(-90deg);border:2px solid rgba(140,235,255,.8);overflow:hidden;background:#0d5466}
+#cine .cholo img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.2);opacity:.5}
+#cine .cholo .hp::before{content:'';position:absolute;inset:0;background:rgba(60,210,240,.28);z-index:1}
+#cine .cholo .hp i{position:absolute;inset:0;z-index:2;background:repeating-linear-gradient(0deg,rgba(180,250,255,.22) 0 2px,transparent 2px 5px)}
 #cine .cscan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px)}
 #cine .cvig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,transparent 45%,rgba(0,0,0,.85) 100%)}
 #cine .ccomms{position:absolute;left:12px;top:calc(env(safe-area-inset-top) + 12px);width:44%;max-width:220px;font-family:Rajdhani,sans-serif;text-shadow:-1px 0 rgba(255,0,60,.35),1px 0 rgba(0,220,255,.35)}
@@ -502,7 +495,7 @@ body.typing #rest{display:none!important}
 <div id="toast"></div>
 
 <script>
-const APP_VERSION = 'cf-v23';
+const APP_VERSION = 'cf-v24';
 /* ================= utilities ================= */
 const $ = s => document.querySelector(s);
 const esc = v => String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1073,13 +1066,33 @@ function cineSvg(S, focus){
     <g transform="translate(${AO.lz[0]} ${AO.lz[1]})"><rect x="-11" y="-11" width="22" height="22" class="wp"/><text x="22" y="8" class="wl big">BLACK SAND</text></g>
     ${nodes}</svg>`;
 }
+let CINE_OUTER = null;
+const CRING = '<svg viewBox="-260 -260 520 520"><circle r="244" fill="none" stroke="rgba(255,40,60,.22)" stroke-width="18"/><circle r="244" fill="none" stroke="#ff2d42" stroke-width="6" stroke-dasharray="18 12"/></svg>';
 function cineOuter(){
-  const blk = (x, y, b, t) => `<span style="left:${x}px;top:${y}px">${b ? `<b>${b}</b>` : ''}${t}</span>`, W = AO.w, H = AO.h;
-  const data = [blk(-420, 60, '', `COM ${rhex(5)}-9-A`), blk(-420, 360, 'FLG', 'A–D'), blk(-300, 360, 'FLG', 'E–H'), blk(-420, 700, '', `COM D-${rhex(3)}-18\nLVD ${rhex(5)}`), blk(-420, 1040, 'AO', 'FROSTLINE'),
-    blk(W + 80, 60, '', `COM D-${rhex(3)}-18\nLVD ${rhex(5)}`), blk(W + 80, 300, 'SID', rhex(6)), blk(W + 80, 520, 'V-MODE', 'POS'), blk(W + 220, 520, 'S-MODE', 'CTR'), blk(W + 80, 900, '', `CLB ${rhex(12)}\nCBT ${rhex(12)}`),
-    blk(200, -170, 'MISSION OUTLINE', 'TACTICAL MAP'), blk(900, -170, 'ENCRYPTION', 'ACTIVE'), blk(1500, -170, 'KEY', rhex(4)), blk(2100, -170, 'NET', '552000 HZ'),
-    blk(200, H + 70, 'ACTIVE', 'PRM'), blk(700, H + 70, '', `WRD  LS   —   KPT\nDTL  HLK  DOC  VIS\nINF  SVN  IMG  LNG`), blk(1400, H + 70, 'LIBUNIT', 'GRP D'), blk(2000, H + 70, 'SCALE', '1:25 000')].join('');
-  return `<div class="couter"><div class="og"></div><div class="odata" style="left:2400px;top:1800px">${data}</div></div><div class="cedge"></div>`;
+  // One small canvas, baked (grid + data blocks + edge fade) and stretched: a single cheap image layer instead of a 7000px masked div (iOS GPU memory).
+  if (!CINE_OUTER) {
+    const K = 4, W = AO.w + 4800, H = AO.h + 3600, ox = 2400, oy = 1800, cv = document.createElement('canvas'); cv.width = W / K; cv.height = H / K;
+    const g = cv.getContext('2d'); g.scale(1 / K, 1 / K);
+    g.lineWidth = 4; g.strokeStyle = 'rgba(120,200,230,.16)';
+    for (let x = ox % 320; x < W; x += 320) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
+    for (let y = oy % 320; y < H; y += 320) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+    g.lineWidth = 3; g.strokeStyle = 'rgba(120,200,230,.06)';
+    for (let x = ox % 80; x < W; x += 80) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
+    for (let y = oy % 80; y < H; y += 80) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+    const blk = (x, y, b, t) => { x += ox; y += oy; if (b) { g.font = '600 44px Rajdhani, sans-serif'; g.fillStyle = 'rgba(220,240,250,.8)'; g.fillText(b, x, y); y += 46; }
+      g.font = '36px "Share Tech Mono", monospace'; g.fillStyle = 'rgba(150,210,235,.6)'; t.split('\n').forEach((l, i) => g.fillText(l, x, y + i * 44)); };
+    const Wm = AO.w, Hm = AO.h;
+    [[-560, 80, '', `COM ${rhex(5)}-9-A`], [-560, 380, 'FLG', 'A–D'], [-360, 380, 'FLG', 'E–H'], [-560, 720, '', `COM D-${rhex(3)}-18\nLVD ${rhex(5)}`], [-560, 1060, 'AO', 'FROSTLINE'],
+     [Wm + 90, 80, '', `COM D-${rhex(3)}-18\nLVD ${rhex(5)}`], [Wm + 90, 320, 'SID', rhex(6)], [Wm + 90, 540, 'V-MODE', 'POS'], [Wm + 330, 540, 'S-MODE', 'CTR'], [Wm + 90, 920, '', `CLB ${rhex(12)}\nCBT ${rhex(12)}`],
+     [200, -200, 'MISSION OUTLINE', 'TACTICAL MAP'], [900, -200, 'ENCRYPTION', 'ACTIVE'], [1500, -200, 'KEY', rhex(4)], [2050, -200, 'NET', '552000 HZ'],
+     [200, Hm + 110, 'ACTIVE', 'PRM'], [700, Hm + 110, '', `WRD  LS   —   KPT\nDTL  HLK  DOC  VIS\nINF  SVN  IMG  LNG`], [1400, Hm + 110, 'LIBUNIT', 'GRP D'], [2000, Hm + 110, 'SCALE', '1:25 000']].forEach(r => blk(...r));
+    g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'destination-in';
+    g.translate(cv.width / 2, cv.height / 2); g.scale(cv.width / 2, cv.height / 2);
+    const rg = g.createRadialGradient(0, 0, 0, 0, 0, 1); rg.addColorStop(0, '#000'); rg.addColorStop(0.35, '#000'); rg.addColorStop(0.95, 'rgba(0,0,0,0)');
+    g.fillStyle = rg; g.fillRect(-1, -1, 2, 2);
+    CINE_OUTER = cv.toDataURL('image/png');
+  }
+  return `<img class="couter" src="${CINE_OUTER}" alt=""><div class="cedge"></div>`;
 }
 function cineObjective(S, id){
   const i = S.ms.findIndex(x => x.id === id), m = S.ms[i];
@@ -1111,7 +1124,7 @@ async function cinePlay(id){
   const el = document.createElement('div'); el.id = 'cine';
   el.innerHTML = `<div class="c3d" id="cineFrame"><div class="cplane" id="cinePlane" style="width:${AO.w}px;height:${AO.h}px">
       ${cineOuter()}<img class="cmap" src="${AO.img}" alt="">${cineSvg(S, intro ? null : id)}
-      ${intro ? '' : `<div class="crings" style="left:${p[0]}px;top:${p[1]}px"><i style="--z:0px"></i><i style="--z:18px"></i><i style="--z:36px"></i><i class="far" style="--z:0px"></i></div>`}
+      ${intro ? '' : `<div class="crings" style="left:${p[0]}px;top:${p[1]}px">${[0, 18, 36].map(z => `<i style="--z:${z}px">${CRING}</i>`).join('')}<i class="far" style="--z:0px">${CRING}</i></div>`}
       ${intro ? '' : cineObjective(S, id)}
       ${!intro && holoImg ? `<div class="cholo" id="cineHolo" style="left:${p[0] - 360}px;top:${p[1] - 230}px"><div class="hp"><img src="photos/${encodeURI(holoImg)}" alt=""><i></i></div></div>` : ''}
     </div></div>
