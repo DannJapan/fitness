@@ -155,6 +155,78 @@ section{margin:22px 0}
 .ops .eyebrow,.brief .eyebrow{font-family:var(--head);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber)}
 .mrow{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;background:transparent;border:0;border-top:1px solid var(--line);color:var(--text);padding:10px 0;font:inherit}
 .mrow .ok,.ct .ok,.dline{color:var(--green-hi)}.mrow .no,.dline.no{color:#f1a99c}
+.aomap{position:relative;height:62vh;min-height:340px;overflow:hidden;margin:0 -16px;background:#03090c;touch-action:none;user-select:none;-webkit-user-select:none;border-bottom:1px solid #12313a}
+.aoworld{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+.aoworld img{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.aosvg{position:absolute;inset:0;overflow:visible}
+.aosvg .grid path{stroke:rgba(140,220,235,.10);stroke-width:1.5}
+.aosvg .glab text{fill:rgba(160,230,240,.45);font:600 18px var(--head)}
+.aosvg .route{fill:none;stroke-linejoin:round;stroke-linecap:round}
+.aosvg .route.ahead{stroke:rgba(230,245,250,.45);stroke-width:4;stroke-dasharray:4 14}
+.aosvg .route.done{stroke:#f2f6f8;stroke-width:5;filter:drop-shadow(0 0 6px rgba(255,255,255,.5))}
+.aosvg .rings circle{fill:none;stroke:#ff2d3d;stroke-width:5;stroke-dasharray:14 9;opacity:.85}
+.aosvg .rings .r2{stroke-width:3;opacity:.55;stroke-dasharray:4 10}
+.aosvg .rings .spin{animation:aorot 40s linear infinite;transform-origin:0 0}
+@keyframes aorot{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.aosvg .sec{fill:rgba(207,239,245,.75);font:700 24px var(--head);letter-spacing:.12em;paint-order:stroke;stroke:rgba(0,0,0,.6);stroke-width:6}
+.aosvg .sec.lock{fill:rgba(255,90,90,.7)}
+.aosvg .node{cursor:pointer}
+.aosvg .node rect{fill:rgba(4,14,18,.85);stroke:#e9f4f7;stroke-width:3}
+.aosvg .node .ic{fill:#e9f4f7;font:700 26px var(--head)}
+.aosvg .node .lb{fill:#fff;font:700 26px var(--head);letter-spacing:.06em;paint-order:stroke;stroke:rgba(0,0,0,.75);stroke-width:7}
+.aosvg .node .lb2{fill:#9fd6e2;font:600 17px var(--head);letter-spacing:.14em;paint-order:stroke;stroke:rgba(0,0,0,.75);stroke-width:6}
+.aosvg .node.open rect{stroke:var(--amber)}.aosvg .node.open .ic{fill:var(--amber)}
+.aosvg .node.priority rect{stroke:#ff3b3b;fill:rgba(60,0,0,.85)}.aosvg .node.priority .ic,.aosvg .node.priority .lb2{fill:#ff6b6b}
+.aosvg .node.done rect{stroke:var(--green-hi)}.aosvg .node.done.gold .ic{fill:#f5c542}.aosvg .node.done.silver .ic{fill:#dfe6ea}.aosvg .node.done.bronze .ic{fill:#cd8b4f}
+.aosvg .node.missed rect{stroke:#a5463a}.aosvg .node.missed .ic{fill:#f1a99c}.aosvg .node.missed .lb{fill:#f1a99c;text-decoration:line-through}
+.aosvg .node.locked{opacity:.75}.aosvg .node.locked rect{stroke:rgba(255,80,80,.6);stroke-dasharray:6 5}.aosvg .node.locked .lb{fill:#e33}.aosvg .node.locked .lb2{fill:rgba(255,120,120,.7)}
+.aosvg .node.blocked rect{stroke:#888}.aosvg .node.lz rect{fill:#e9f4f7;stroke:none}
+.aosvg .node .pulse{fill:none;stroke:var(--amber);stroke-width:4;animation:aopulse 1.6s ease-out infinite;transform-box:fill-box;transform-origin:center}
+.aosvg .node.priority .pulse{stroke:#ff3b3b}
+@keyframes aopulse{from{scale:.7;opacity:1}to{scale:1.6;opacity:0}}
+.aohud{position:absolute;pointer-events:none;font-family:var(--head);color:#cfeff5;text-shadow:0 1px 3px #000;display:flex;flex-direction:column;gap:2px;font-size:11px;letter-spacing:.14em}
+.aohud b{color:#fff;font-size:14px;letter-spacing:.12em}
+.aohud.tl{left:12px;top:10px;background:rgba(3,10,13,.55);padding:8px 10px;border-left:2px solid #6fd3e6}
+.aohud.br{right:12px;bottom:12px;text-align:right}.aohud.br b{font-size:24px;letter-spacing:.06em;font-variant-numeric:tabular-nums}
+.aobtns{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
+.aobtns button{width:36px;height:36px;background:rgba(3,10,13,.7);border:1px solid #2c5560;color:#cfeff5;font:700 18px var(--head)}
+.aoscan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.12) 0 1px,transparent 1px 3px)}
+.aostats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.aostats div{border:1px solid var(--line);padding:6px 8px}.aostats span{display:block;font-size:10px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}.aostats b{font-family:var(--head)}
+.verdict{font-family:var(--head);font-size:18px;margin:8px 0 2px}.verdict.gold{color:#f5c542}.verdict.silver{color:#dfe6ea}.verdict.bronze{color:#cd8b4f}.verdict.missed{color:#f1a99c}
+.brief h2.red{color:#e33;letter-spacing:.1em}
+.pri{font-family:var(--head);font-size:10px;letter-spacing:.14em;color:#ff6b6b;border:1px solid #ff6b6b;padding:1px 5px;margin-right:4px}
+.gm.gold{color:#f5c542}.gm.silver{color:#dfe6ea}.gm.bronze{color:#cd8b4f}
+details.mlog summary{cursor:pointer;list-style:none}
+#cine{position:fixed;inset:0;z-index:90;background:#02070a;display:flex;flex-direction:column;overflow-y:auto;padding-top:env(safe-area-inset-top);animation:cinein .35s ease}
+@keyframes cinein{from{opacity:0}to{opacity:1}}
+.cbar{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;font:600 11px var(--head);letter-spacing:.16em;color:#8fd8e8}
+.cbar button{background:none;border:0;color:#cfeff5;font-size:20px}
+.cframe{position:relative;width:100%;margin-top:4vh;aspect-ratio:16/9;max-height:70vh;overflow:hidden;perspective:900px;background:#01060a;border-top:1px solid #12313a;border-bottom:1px solid #12313a}
+.cplane{position:absolute;left:0;top:0;transform-origin:0 0;transition:transform 2.4s cubic-bezier(.45,.05,.2,1);transform-style:preserve-3d}
+.cplane.snap{transition:none}
+.cplane img{position:absolute;inset:0;width:100%;height:100%}
+.cplane .aosvg .sec{display:none}
+.ctitle{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;opacity:0;transition:opacity .6s;pointer-events:none}
+.ctitle.on{opacity:1}
+.ctitle span{display:block;font:600 11px var(--head);letter-spacing:.2em;color:#cfeff5;margin-bottom:4px;text-shadow:0 1px 4px #000}
+.ctitle b{font:800 clamp(38px,13vw,90px)/.9 var(--head);color:#ff2d3d;letter-spacing:-.01em;text-shadow:0 0 24px rgba(255,40,60,.45)}
+.chud{position:absolute;font:600 9px var(--head);letter-spacing:.16em;color:#9fdcea;text-shadow:0 1px 3px #000;pointer-events:none}
+.chud.tl{left:10px;top:8px;line-height:1.5}.chud .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#46e07a;margin-right:6px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.2}}
+.chud.side{right:-58px;top:50%;transform:rotate(90deg);opacity:.5}
+.chud.br{right:10px;bottom:8px;text-align:right}.chud.br b{display:block;font-size:18px;color:#fff;letter-spacing:.05em;font-variant-numeric:tabular-nums}
+.cscan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 1px,transparent 1px 3px)}
+.cvig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.7) 100%)}
+.cframe[data-beat="situation"] .aosvg .rings circle{stroke-width:7}
+.cprog{height:2px;background:#0c242b}.cprog i{display:block;height:100%;width:0;background:#6fd3e6}
+.csub{padding:16px 16px 6px;min-height:118px}
+.csub .who{font:700 11px var(--head);letter-spacing:.2em;color:var(--amber);margin-bottom:6px}
+.csub .txt{font:500 18px/1.45 var(--head);color:#eaf6f8}
+.cobj{margin:4px 16px 8px;border:1px solid #6fd3e6;background:rgba(10,40,48,.5);padding:10px 12px;font:500 12px/1.7 var(--head);letter-spacing:.06em;color:#cfeff5;animation:cinein .5s ease}
+.cobj .ct{background:#e9f4f7;color:#02070a;font-weight:800;letter-spacing:.12em;padding:2px 6px;display:inline-block;margin-bottom:6px}
+.cobj b{color:#fff}
+.cctl{display:flex;gap:8px;padding:8px 16px 24px;margin-top:auto}.cctl .btn{flex:1}
 .opsring{display:flex;gap:12px;align-items:center;border-top:1px solid var(--line);padding-top:10px;margin-top:4px}
 .opsweek{border:1px solid var(--line);padding:8px 12px;margin-bottom:8px}
 .opsweek.cur{border-color:var(--amber)}
@@ -384,7 +456,7 @@ body.typing #rest{display:none!important}
 <div id="toast"></div>
 
 <script>
-const APP_VERSION = 'cf-v20';
+const APP_VERSION = 'cf-v22';
 /* ================= utilities ================= */
 const $ = s => document.querySelector(s);
 const esc = v => String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -507,7 +579,7 @@ async function refreshBoot(){
     const first = !B || B.today !== b.today; B = b; store.set('barker_boot', b);
     ensureSitups();
     rankNotice2();
-    setTimeout(() => { if (!$('#promo.show') && !$('#modal.show')) opsCheck(); }, 600);
+    setTimeout(() => { if (['home', 'ops'].includes(route) && !$('#promo.show') && !$('#modal.show')) opsCheck(); }, 600);
     if (first || route === 'home') render();
     $('#phase').textContent = B.phase; $('#phase').className = 'badge ' + B.phase;
   } catch (e) {
@@ -582,6 +654,7 @@ function render(){
   if (!fresh() && connected() && Date.now() - (render.lastStale || 0) > 15000) { render.lastStale = Date.now(); setTimeout(refreshBoot, 0); }
   const fn = { home: vHome, session: vSession, run: vRun, swim: vSwim, daily: vDaily, event: vEvent, bench: vBench, settings: vSettings, rank: vRank, schedule: vSchedule, inbody: vInBody, report: vReport, progress: vProgress, plans: vPlans, history: vHistory, ops: vOps }[route] || vHome;
   v.innerHTML = fn();
+  if (route === 'ops') { const keep = $('#aoMap') && aoView.placed ? Object.assign({}, aoView) : null; aoMount(); if (keep) { aoView = keep; aoApply(); } aoView.placed = true; } else aoView.placed = false;
   if (keepY !== null) window.scrollTo(0, keepY);
   if (route === 'run' || route === 'swim') bindShots();
   if (route === 'inbody') { const inp = $('#ibShotIn'); if (inp) inp.onchange = async () => { for (const f of inp.files) ibShots.push(await compress(f)); $('#ibThumbs').innerHTML = ibShots.map(x => `<img src="data:${x.mime};base64,${x.data}">`).join(''); }; }
@@ -655,31 +728,56 @@ function opsText(id){ if (id === 'intro') return CAMPAIGN.intro; const m = OPS_M
 function medicalDays(){ const o = {}; (B.phases || []).filter(p => p.phase === 'Medical').forEach(p => { for (let x = p.start; x && x <= p.end; x = addDaysStr(x, 1)) o[x] = p.notes || 'Medical'; }); return o; }
 function activeChit(){ const t = todayStr(); return (B.phases || []).find(p => p.phase === 'Medical' && p.start <= t && p.end >= t) || null; }
 
+// Missions inside a week can be done in any order, except: a slot missed last week becomes this week's PRIORITY TARGET,
+// and the other missions stay locked until it's done.
 function campaignState(){
   const h = HX(), today = todayStr(), c = CAMPAIGN;
   const weeks = [...Array(c.weeks)].map((_, i) => addDaysStr(c.start, 7 * i)), last = addDaysStr(weeks[weeks.length - 1], 6);
   const ms = OPS_MIN.map(m => Object.assign({}, m));
+  const ORDER = ['intervals', 'strides', 'long', 'easy', 'test'];
+  let prevMissed = [];
   weeks.forEach((mon, w) => {
     const sun = addDaysStr(mon, 6);
     let pool = h.runs.filter(r => r.date >= mon && r.date <= sun && isRun(r)).sort(byDate);
     const take = (pred, pick) => { const cand = pool.filter(pred); if (!cand.length) return null; const r = pick ? pick(cand) : cand[0]; pool = pool.filter(x => x !== r); return r; };
-    const wm = ms.filter(m => m.week === w);
-    wm.filter(m => m.kind === 'intervals').forEach(m => { m.run = take(r => /interval|tempo/i.test(r.type || '')); });
-    wm.filter(m => m.kind === 'long').forEach(m => {
-      m.run = take(r => num(r.s) >= m.min * 48, cand => cand.reduce((a, b) => num(b.s) > num(a.s) ? b : a));
-      if (!m.run) m.live = h.events.find(e => e.status === 'done' && e.type === 'Airsoft' && e.date >= mon && e.date <= sun && (num(e.duration_h) || 0) >= 3) || null;
-    });
-    wm.filter(m => m.kind === 'strides' || m.kind === 'easy').forEach(m => { m.run = take(() => true); });
-    wm.filter(m => m.kind === 'test').forEach(m => { m.bench = h.benches.find(b => b.test === 'Bleep test' && b.date >= addDaysStr(mon, -7) && b.date <= sun) || null; });
-    wm.forEach(m => { m.mon = mon; m.sun = sun; m.done = !!(m.run || m.live || m.bench);
-      m.status = m.done ? 'done' : sun < today ? 'missed' : mon > today ? 'future' : 'open'; });
+    const assign = (m, from) => {
+      if (m.kind === 'intervals') m.run = take(r => r.date >= from && /interval|tempo/i.test(r.type || ''));
+      else if (m.kind === 'long') {
+        m.run = take(r => r.date >= from && num(r.s) >= m.min * 48, cand => cand.reduce((a, b) => num(b.s) > num(a.s) ? b : a));
+        if (!m.run) m.live = h.events.find(e => e.status === 'done' && e.type === 'Airsoft' && e.date >= mon && e.date >= from && e.date <= sun && (num(e.duration_h) || 0) >= 3) || null;
+      } else if (m.kind === 'test') m.bench = h.benches.find(b => b.test === 'Bleep test' && b.date >= addDaysStr(mon, -7) && b.date >= from && b.date <= sun) || null;
+      else m.run = take(r => r.date >= from);
+      m.done = !!(m.run || m.live || m.bench); m.doneDate = m.run ? m.run.date : m.live ? m.live.date : m.bench ? m.bench.date : null;
+    };
+    const wm = ms.filter(m => m.week === w), sortK = l => l.slice().sort((a, b) => ORDER.indexOf(a.kind) - ORDER.indexOf(b.kind));
+    const pri = wm.filter(m => prevMissed.includes(m.n) && m.kind !== 'test');
+    pri.forEach(m => { m.priority = true; });
+    sortK(pri).forEach(m => assign(m, '0000'));
+    const gate = !pri.length ? '0000' : pri.every(m => m.done) ? pri.map(m => m.doneDate).sort().pop() : null;
+    sortK(wm.filter(m => !m.priority)).forEach(m => { if (gate === null) { m.blocked = true; m.done = false; } else assign(m, gate); });
+    wm.forEach(m => { m.mon = mon; m.sun = sun;
+      m.status = m.done ? 'done' : sun < today ? 'missed' : mon > today ? 'future' : m.blocked ? 'blocked' : 'open';
+      m.grade = gradeOf(m); });
+    prevMissed = wm.filter(m => m.status === 'missed').map(m => m.n);
   });
   const done = ms.filter(m => m.done).length, total = ms.length, ended = today > last, started = today >= c.start;
   const wi = started ? Math.min(c.weeks - 1, Math.floor(daysBetweenStr(c.start, today) / 7)) : -1;
   const result = (ended || done === total) ? (done === total ? 'gold' : done >= Math.ceil(total * 0.8) ? 'medal' : 'none') : null;
-  return { ms, weeks, done, total, started, ended, wi, last, result, missed: ms.filter(m => m.status === 'missed').length };
+  return { ms, weeks, done, total, started, ended, wi, last, result, missed: ms.filter(m => m.status === 'missed').length,
+    stars: ms.filter(m => m.grade === 'above').length };
 }
-
+// met / above / below the standard for a completed mission
+function gradeOf(m){
+  if (!m.done) return null;
+  if (m.live) return 'met';
+  if (m.kind === 'test') { const v = bleepNum(m.bench.result); return v >= bleepNum('9.7') ? 'above' : v > bleepNum('8.5') ? 'met' : 'below'; }
+  const s = num(m.run.s) || 0, z = num(m.run.z2p), full = s >= m.min * 57;
+  if (m.kind === 'easy') return full ? (z !== '' && z >= 80 ? 'above' : 'met') : 'below';
+  if (m.kind === 'long') return full && z !== '' && z >= 80 ? 'above' : 'met';
+  if (m.kind === 'intervals') return /\[all reps\]/i.test(m.run.notes || '') && /\[even\]/i.test(m.run.notes || '') ? 'above' : 'met';
+  return 'met';
+}
+const GRADE = { above: ['★', 'Above the standard', 'gold'], met: ['●', 'Met the standard', 'silver'], below: ['◐', 'Completed, below standard', 'bronze'] };
 function ringState(){
   const h = HX(), today = todayStr(), med = medicalDays();
   const count = (mon) => h.runs.filter(r => r.date >= mon && r.date <= addDaysStr(mon, 6) && isRun(r)).length;
@@ -751,7 +849,7 @@ function ribbon(c, clasp, w){
   return `<svg width="${w || 54}" height="16" viewBox="0 0 ${w || 54} 16" class="ribbon">${cols.map((col, i) => `<rect x="${i * sw}" y="0" width="${sw + 0.5}" height="16" fill="${col}"/>`).join('')}
     ${clasp ? `<g transform="translate(${(w || 54) / 2 - 7} 3)"><path d="M7 0 L9 4 L14 5 L10 8 L11 13 L7 10.5 L3 13 L4 8 L0 5 L5 4 Z" fill="#c9a24a" stroke="#6b5420" stroke-width=".6"/></g>` : ''}</svg>`;
 }
-const mIcon = st => st === 'done' ? '<span class="ok">✓</span>' : st === 'missed' ? '<span class="no">✗</span>' : '<span class="muted">○</span>';
+const mIcon = (st, m) => st === 'done' ? `<span class="gm ${m && m.grade ? GRADE[m.grade][2] : 'ok'}">${m && m.grade ? GRADE[m.grade][0] : '✓'}</span>` : st === 'missed' ? '<span class="no">✗</span>' : st === 'blocked' ? '<span class="muted">🔒</span>' : m && m.priority ? '<span class="no">◎</span>' : '<span class="muted">○</span>';
 
 function vOpsCard(){
   const S = campaignState(), R = ringState(), chit = activeChit(), c = CAMPAIGN;
@@ -764,23 +862,242 @@ function vOpsCard(){
     <span class="spacer"></span><button class="btn sm" data-a="go" data-v="ops">Debrief ›</button></div>${ringRow}</div></section>`;
   const wm = S.ms.filter(m => m.week === S.wi);
   return `<section><div class="ops card"><div class="eyebrow">OP ${esc(c.short)} · Week ${S.wi + 1}/${c.weeks} · ${esc(c.phases[S.wi])}</div>
-    ${wm.map(m => `<button class="item mrow" data-a="ops-brief" data-v="${m.id}"><span>${mIcon(m.status)} <b>${esc(m.name)}</b><br><span class="muted small">${esc(m.detail)}${m.live ? ' · live exercise' : ''}</span></span><span class="muted small">Brief ›</span></button>`).join('')}
+    ${wm.map(m => `<button class="item mrow" data-a="ops-brief" data-v="${m.id}"><span>${mIcon(m.status, m)} <b>${esc(m.name)}</b>${m.priority && !m.done ? ' <span class="pri">PRIORITY</span>' : ''}<br><span class="muted small">${m.status === 'blocked' ? 'Locked until the priority target is done' : esc(m.detail)}${m.live ? ' · live exercise' : ''}</span></span><span class="muted small">Brief ›</span></button>`).join('')}
     ${ringRow}<div class="row" style="margin-top:8px"><span class="muted small">${S.done}/${S.total} missions${S.missed ? ' · ' + S.missed + ' missed' : ''}</span><span class="spacer"></span><button class="btn sm" data-a="go" data-v="ops">Campaign ›</button></div></div></section>`;
+}
+
+/* ---------- AO map: the campaign as a route across a satellite map ---------- */
+const AO = { w: 2576, h: 1338, img: 'photos/ao_frostline.webp', credit: 'AO imagery: generated for Commando Fit',
+  lz: [1060, 760], sea: [640, 930], exfil: [1560, 1310],
+  nodes: { w1m1: [1180, 700], w1m2: [1300, 830], w1m3: [1440, 760], w2m1: [1560, 640], w2m2: [1650, 520], w2m3: [1560, 385],
+    w3m1: [1720, 300], w3m2: [1880, 230], w3m3: [2000, 365], w4m1: [2140, 470], w4m2: [2300, 385], w4m3: [2385, 565],
+    w5m1: [2265, 720], w5m2: [2110, 825], w5m3: [2225, 965], w6m1: [2065, 1080], w6m2: [1885, 1150], w6m3: [1720, 1232] } };
+let aoView = { s: 1, x: 0, y: 0 }, aoTimer = null, aoMoved = false;
+const REDACT = '██████';
+function aoSectorUnlocked(S, w){ return S.started ? w <= S.wi : w === 0; }
+function aoCurrent(S){
+  if (!S.started) return { node: null, deadline: CAMPAIGN.start + 'T00:00:00', label: 'INSERTION IN', at: AO.lz };
+  const wm = S.ms.filter(m => m.week === S.wi);
+  const cur = wm.find(m => m.priority && !m.done) || wm.find(m => m.status === 'open') || wm.find(m => !m.done) || wm[wm.length - 1];
+  return { node: cur, deadline: addDaysStr(S.weeks[S.wi], 7) + 'T00:00:00', label: S.ended ? 'CAMPAIGN COMPLETE' : 'TIME REMAINING', at: AO.nodes[cur.id] };
+}
+function aoClockText(deadline){
+  const ms = new Date(deadline) - new Date(); if (ms <= 0) return '00:00:00';
+  const d = Math.floor(ms / 864e5), h = Math.floor(ms / 36e5) % 24, m = Math.floor(ms / 6e4) % 60, s = Math.floor(ms / 1e3) % 60, p = n => String(n).padStart(2, '0');
+  return (d ? d + 'D ' : '') + p(h) + ':' + p(m) + ':' + p(s);
+}
+function aoSvg(S, focus){
+  const cur = aoCurrent(S), ringAt = focus ? (AO.nodes[focus] || null) : cur.at, pts = [AO.sea, AO.lz].concat(S.ms.map(m => AO.nodes[m.id])).concat([AO.exfil]);
+  // the route: solid up to the furthest finished or current node, dotted beyond
+  const reach = S.started ? Math.max(1, ...S.ms.map((m, i) => (m.done || m.week <= S.wi) ? i + 2 : 0)) : 1;
+  const path = l => l.map((p, i) => (i ? 'L' : 'M') + p[0] + ' ' + p[1]).join(' ');
+  const grid = [...Array(Math.ceil(AO.w / 160))].map((_, i) => `<path d="M${i * 160} 0V${AO.h}" />`).join('') + [...Array(Math.ceil(AO.h / 160))].map((_, i) => `<path d="M0 ${i * 160}H${AO.w}" />`).join('');
+  const glabels = [...Array(Math.ceil(AO.w / 160))].map((_, i) => `<text x="${i * 160 + 6}" y="20">${String(40 + i).padStart(2, '0')}</text>`).join('') +
+    [...Array(Math.ceil(AO.h / 160))].map((_, i) => `<text x="6" y="${i * 160 + 36}">${String(71 + i).padStart(2, '0')}</text>`).join('');
+  const sectors = S.weeks.map((mon, w) => { const ns = S.ms.filter(m => m.week === w).map(m => AO.nodes[m.id]);
+    const cx = ns.reduce((a, p) => a + p[0], 0) / 3, cy = ns.reduce((a, p) => a + p[1], 0) / 3, open = aoSectorUnlocked(S, w);
+    return `<text class="sec ${open ? '' : 'lock'}" x="${cx}" y="${Math.min(...ns.map(p => p[1])) - 70}" text-anchor="middle">SECTOR ${w + 1} // ${open ? esc(CAMPAIGN.phases[w]).toUpperCase() : REDACT}</text>`; }).join('');
+  const rings = ringAt ? `<g class="rings" transform="translate(${ringAt[0]} ${ringAt[1]})"><g class="spin"><circle r="150"/><circle r="165"/><circle r="260" class="r2"/></g></g>` : '';
+  const nodes = S.ms.map(m => { const [x, y] = AO.nodes[m.id], open = aoSectorUnlocked(S, m.week), isCur = cur.node && cur.node.id === m.id;
+    const cls = !open ? 'locked' : m.status === 'done' ? 'done ' + (m.grade ? GRADE[m.grade][2] : '') : m.status === 'missed' ? 'missed' : m.status === 'blocked' ? 'blocked' : m.priority ? 'priority' : 'open';
+    const icon = !open || m.status === 'blocked' ? '🔒' : m.status === 'done' ? (m.grade ? GRADE[m.grade][0] : '✓') : m.status === 'missed' ? '✗' : m.kind === 'test' ? '◆' : m.kind === 'intervals' ? '▲' : '●';
+    return `<g class="node ${cls} ${isCur ? 'cur' : ''}" data-a="ao-node" data-v="${m.id}" transform="translate(${x} ${y})">
+      ${isCur ? '<circle class="pulse" r="34"/>' : ''}<rect x="-24" y="-24" width="48" height="48" rx="3" transform="rotate(45)"/><text class="ic" y="9" text-anchor="middle">${icon}</text>
+      <text class="lb" x="34" y="-6">${open ? esc(m.name) : REDACT}</text><text class="lb2" x="34" y="18">${open ? (m.priority && !m.done ? 'PRIORITY TARGET' : esc(m.kind === 'test' ? 'FINAL OBJECTIVE' : m.kind.toUpperCase())) : 'CLASSIFIED'}</text></g>`; }).join('');
+  return `<svg class="aosvg" viewBox="0 0 ${AO.w} ${AO.h}" width="${AO.w}" height="${AO.h}">
+    <g class="grid">${grid}</g><g class="glab">${glabels}</g>${rings}
+    <path class="route ahead" d="${path(pts)}"/><path class="route done" d="${path(pts.slice(0, reach + 1))}"/>
+    <g class="node lz" transform="translate(${AO.lz[0]} ${AO.lz[1]})"><rect x="-14" y="-14" width="28" height="28"/><text class="lb" x="24" y="6">LZ // BLACK SAND</text></g>
+    <g class="node lz" transform="translate(${AO.exfil[0]} ${AO.exfil[1]})"><rect x="-14" y="-14" width="28" height="28"/><text class="lb" x="24" y="6">EXFIL</text></g>
+    ${sectors}${nodes}</svg>`;
+}
+function vAoMap(S){
+  const cur = aoCurrent(S);
+  return `<div class="aomap" id="aoMap"><div class="aoworld" id="aoWorld" style="width:${AO.w}px;height:${AO.h}px"><img src="${AO.img}" alt="" draggable="false">${aoSvg(S)}</div>
+    <div class="aohud tl"><b>OP ${esc(CAMPAIGN.short)}</b><span>${S.started ? 'SECTOR ' + (S.wi + 1) + ' // ' + esc(CAMPAIGN.phases[S.wi]).toUpperCase() : 'AWAITING INSERTION'}</span><span>${S.done}/${S.total} MISSIONS${S.stars ? ' · ' + S.stars + '★' : ''}</span></div>
+    <div class="aohud br"><span>${cur.label}</span><b id="aoClock">${aoClockText(cur.deadline)}</b></div>
+    <div class="aobtns"><button data-a="ao-zoom" data-v="1.4">+</button><button data-a="ao-zoom" data-v="0.7">−</button><button data-a="ao-centre">◎</button></div>
+    <div class="aoscan"></div></div>`;
+}
+function aoApply(){ const w = $('#aoWorld'); if (w) w.style.transform = `translate(${aoView.x}px,${aoView.y}px) scale(${aoView.s})`; }
+function aoClamp(){
+  const box = $('#aoMap'); if (!box) return; const bw = box.clientWidth, bh = box.clientHeight;
+  const minS = Math.max(bw / AO.w, bh / AO.h); aoView.s = Math.min(1.6, Math.max(minS, aoView.s));
+  aoView.x = Math.min(0, Math.max(bw - AO.w * aoView.s, aoView.x)); aoView.y = Math.min(0, Math.max(bh - AO.h * aoView.s, aoView.y));
+}
+function aoCentre(pt, s){
+  const box = $('#aoMap'); if (!box) return; if (s) aoView.s = s;
+  aoView.x = box.clientWidth / 2 - pt[0] * aoView.s; aoView.y = box.clientHeight / 2 - pt[1] * aoView.s; aoClamp(); aoApply();
+}
+function aoMount(){
+  const box = $('#aoMap'); if (!box) return;
+  const S = campaignState(), cur = aoCurrent(S);
+  aoCentre(cur.at || AO.lz, Math.max(box.clientHeight / AO.h * 1.3, 0.38));
+  const P = new Map(); let last = null;
+  box.addEventListener('pointerdown', e => { if (e.target.closest('.aobtns')) return; box.setPointerCapture(e.pointerId); P.set(e.pointerId, [e.clientX, e.clientY]); aoMoved = false; last = null; });
+  box.addEventListener('pointermove', e => {
+    if (!P.has(e.pointerId)) return; const prev = P.get(e.pointerId); P.set(e.pointerId, [e.clientX, e.clientY]);
+    if (P.size === 1) { const dx = e.clientX - prev[0], dy = e.clientY - prev[1]; if (Math.abs(dx) + Math.abs(dy) > 1) aoMoved = aoMoved || Math.hypot(dx, dy) > 0; aoView.x += dx; aoView.y += dy; }
+    else if (P.size === 2) { const [a, b] = [...P.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]), r = box.getBoundingClientRect(), mx = (a[0] + b[0]) / 2 - r.left, my = (a[1] + b[1]) / 2 - r.top;
+      if (last) { const k = d / last, ns = Math.min(1.6, aoView.s * k); const kk = ns / aoView.s; aoView.x = mx - (mx - aoView.x) * kk; aoView.y = my - (my - aoView.y) * kk; aoView.s = ns; }
+      last = d; aoMoved = true; }
+    aoClamp(); aoApply();
+  });
+  const up = e => { P.delete(e.pointerId); last = null; };
+  box.addEventListener('pointerup', up); box.addEventListener('pointercancel', up);
+  box.addEventListener('wheel', e => { e.preventDefault(); const r = box.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top, ns = Math.min(1.6, aoView.s * (e.deltaY < 0 ? 1.12 : 0.89)), kk = ns / aoView.s;
+    aoView.x = mx - (mx - aoView.x) * kk; aoView.y = my - (my - aoView.y) * kk; aoView.s = ns; aoClamp(); aoApply(); }, { passive: false });
+  box.addEventListener('click', e => { if (aoMoved && !e.target.closest('.aobtns')) { e.stopPropagation(); e.preventDefault(); aoMoved = false; } }, true);
+  clearInterval(aoTimer);
+  aoTimer = setInterval(() => { const el = $('#aoClock'); if (!el || route !== 'ops') return clearInterval(aoTimer); el.textContent = aoClockText(cur.deadline); }, 1000);
+}
+function aoNode(id){
+  const S = campaignState(), m = S.ms.find(x => x.id === id); if (!m) return;
+  const open = aoSectorUnlocked(S, m.week);
+  if (!open) return openModal(`<div class="brief"><div class="eyebrow">OP ${esc(CAMPAIGN.short)} · Sector ${m.week + 1}</div><h2 class="red">${REDACT}</h2>
+    <p>Classified. This sector unlocks on ${fmtDay(m.mon)}${S.started ? ', once the operation reaches it' : ''}.</p><button class="btn block" data-a="ops-close">Close</button></div>`);
+  const r = m.run, g = m.grade && GRADE[m.grade];
+  const why = !m.done ? '' : m.live ? 'Live exercise: ' + esc(m.live.name || 'airsoft day') + ' counted for this mission.'
+    : m.kind === 'test' ? `Bleep test ${esc(m.bench.result)}. Standard: beat 8.5. Above: 9.7 or better.`
+    : m.kind === 'easy' ? `${Math.round((num(r.s) || 0) / 60)} of ${m.min} min${num(r.z2p) !== '' ? ', ' + r.z2p + '% in zone 2' : ', zone 2 not logged'}. Above standard needs the full time with 80%+ in zone 2.`
+    : m.kind === 'long' ? `${Math.round((num(r.s) || 0) / 60)} of ${m.min} min${num(r.z2p) !== '' ? ', ' + r.z2p + '% in zone 2' : ''}. Above standard needs the full time with 80%+ in zone 2.`
+    : m.kind === 'intervals' ? 'Above standard: every rep done and the last rep as fast as the first (tick both when you log the run).' : '';
+  const stats = r ? `<div class="aostats">${[['Date', fmtDay(r.date)], ['Distance', r.km ? r.km + ' km' : '—'], ['Time', r.s ? fmtTime(r.s) : '—'], ['Pace', r.pace ? fmtTime(r.pace) + '/km' : '—'], ['Avg HR', r.hr || '—'], ['Zone 2', num(r.z2p) !== '' ? r.z2p + '%' : '—']]
+    .map(([k, v]) => `<div><span>${k}</span><b>${esc(String(v))}</b></div>`).join('')}</div>` : '';
+  const state = m.done ? `<div class="verdict ${g[2]}">${g[0]} ${g[1]}</div><div class="muted small">${why}</div>${stats}`
+    : m.status === 'missed' ? `<div class="verdict missed">✗ Missed</div><div class="muted small">${m.kind === 'test' ? '' : 'The same slot is next week\'s priority target.'}</div>`
+    : m.status === 'blocked' ? `<div class="verdict missed">🔒 Locked</div><div class="muted small">Complete this week's priority target first: ${esc(S.ms.filter(x => x.week === m.week && x.priority && !x.done).map(x => x.name).join(', '))}.</div>`
+    : m.status === 'future' ? `<div class="muted small">Opens ${fmtDay(m.mon)} · deadline ${fmtDay(m.sun)}</div>`
+    : `<div class="muted small">${m.priority ? '<span class="pri">PRIORITY TARGET</span> Missed last week: do this one first. ' : ''}Deadline ${fmtDay(m.sun)} 23:59 · <b id="aoNodeClock">${aoClockText(addDaysStr(m.sun, 1) + 'T00:00:00')}</b></div>`;
+  openModal(`<div class="brief"><div class="eyebrow">OP ${esc(CAMPAIGN.short)} · Sector ${m.week + 1} · ${m.kind === 'test' ? 'Final objective' : 'Mission ' + (m.n + 1)}</div>
+    <h2>${esc(m.name)}</h2><div class="obj">${esc(m.detail)}</div>${state}
+    <div class="two" style="margin-top:14px"><button class="btn block go" data-a="ops-brief" data-v="${m.id}">▶ Play briefing</button><button class="btn block" data-a="ops-close">Close</button></div></div>`);
+}
+
+/* ---------- Briefing cinematic: widescreen map film in portrait, synced to the voice ---------- */
+const OPS_SUBS = {"intro": [[0.05, 2.34, "This is Operation Frostline."], [2.86, 6.77, "Six weeks deployed in a cold northern country, with one job: recce."], [7.27, 10.19, "Watch, map, report, and never be seen."], [10.47, 13.26, "The enemy isn't the problem."], [13.62, 14.8, "The distance is."], [15.49, 17.29, "Each week you'll get three missions."], [17.7, 20.62, "Two runs minimum, every week, no excuses."], [21.18, 22.89, "All three earns the clasp."], [23.55, 27.71, "At the end of week six there's a final objective, and it's the bleep test."], [28.48, 32.47, "Recce troops move further, faster and quieter than anyone else."], [33.06, 33.78, "Time to become one."], [34.42, 34.79, "Good luck."]], "w1m1": [[0.12, 2.16, "Operation Frostline, week one."], [2.59, 3.22, "Insertion."], [4.19, 6.43, "Mission one, codename Birch Line."], [7.36, 9.05, "Situation: you're in country."], [9.54, 13.31, "Snow on the ground, forest to the east, and nobody knows we're here."], [14.3, 18.48, "Mission: a thirty-minute route recce along the treeline."], [19.01, 20.37, "Execution: zone two the whole way."], [21.02, 24.4, "If you can't hold a conversation, you're too fast, and too loud."], [25.05, 25.49, "Move out."]], "w1m2": [[0.3, 2.61, "Mission two, codename Grey Hare."], [3.24, 6.85, "Situation: the route north crosses open farmland with no cover."], [7.74, 14.94, "Mission: eight bounds of four hundred metres across open ground, walking two hundred between each to recover in cover."], [15.71, 19.17, "Execution: hard but controlled, seven out of ten."], [19.82, 21.73, "Every bound at the same pace."], [22.23, 23.59, "Don't empty the tank on the first one."]], "w1m3": [[0.05, 2.55, "Mission three, codename Long Night."], [3.24, 6.92, "Situation: we need eyes on the river crossing before first light."], [7.66, 11.58, "Mission: forty minutes of continuous movement to the observation post."], [12.31, 15.0, "Execution: slow and steady, zone two."], [15.53, 16.67, "Walk the hills if you have to."], [17.17, 19.81, "Arriving fresh matters more than arriving fast."]], "w2m1": [[0.06, 0.61, "Week two."], [1.31, 1.83, "Route recce."], [2.63, 4.78, "Mission one, codename Amber Post."], [5.56, 10.65, "Situation: the observation post is in, and command wants the road network mapped."], [11.16, 13.48, "Mission: thirty-five minutes along the eastern roads."], [14.1, 17.73, "Execution: zone two, eyes open, breathing quiet."], [18.35, 19.84, "This is the work nobody sees."], [20.36, 21.68, "It's also the work that wins."]], "w2m2": [[0.05, 2.38, "Mission two, codename Iron Ferry."], [3.15, 9.55, "Situation: a patrol has been seen near the crossing, and we need to move between two hides, fast."], [10.1, 15.14, "Mission: five bounds of eight hundred metres, walking four hundred between each."], [15.55, 16.77, "Execution: steady and strong."], [17.46, 18.93, "Hold your pace on the last one."], [19.35, 20.44, "That's the one that counts."]], "w3m1": [[0.05, 0.65, "Week three."], [1.06, 1.55, "Lie-up."], [2.1, 4.47, "Mission one, codename Still Water."], [5.17, 8.97, "Situation: we've been out for two weeks and the troop is tired."], [9.72, 11.07, "Command has ordered a lie-up."], [11.86, 13.94, "Mission: thirty minutes, easy."], [14.64, 16.72, "Execution: properly easy."], [17.44, 20.26, "Lie-up weeks are how you're still standing in week six."], [20.7, 22.17, "Don't waste it trying to be a hero."]], "w3m2": [[0.06, 2.37, "Mission two, codename Snow Fox."], [2.98, 6.2, "Situation: we keep the legs sharp without draining them."], [6.86, 14.37, "Mission: twenty minutes easy, then six pick-ups of twenty seconds, quick and relaxed, with full recovery between."], [14.99, 17.77, "Execution: fast feet, loose shoulders."], [18.31, 20.28, "Finish feeling like you could do it all again."]], "w3m3": [[0.11, 2.57, "Mission three, codename Long Shadow."], [3.26, 5.6, "Situation: the lie-up ends tonight."], [6.18, 8.72, "Mission: forty minutes to reposition the patrol."], [9.44, 12.1, "Execution: zone two, nothing harder."], [12.77, 14.07, "Next week, we go deeper."]], "w4m1": [[0.06, 0.65, "Week four."], [1.18, 1.8, "Deep recce."], [2.63, 4.82, "Mission one, codename Red Kestrel."], [5.57, 9.34, "Situation: the holidays won't stop the enemy, and they won't stop us."], [9.98, 12.25, "Mission: thirty-five minutes, easy."], [12.88, 14.38, "Execution: zone two."], [14.94, 17.45, "Get it done early, before the festivities get you."]], "w4m2": [[0.06, 2.63, "Mission two, codename Cold Iron."], [3.22, 6.81, "Situation: the target area is further out than we first thought."], [7.48, 11.98, "Mission: six bounds of eight hundred metres, walking four hundred between each."], [12.58, 16.24, "Execution: one more rep than last time, at the same pace."], [16.8, 18.07, "That's what progress looks like."]], "w4m3": [[0.06, 2.34, "Mission three, codename Deep Snow."], [2.92, 5.85, "Situation: this is the longest move of the operation."], [6.49, 8.84, "Mission: fifty minutes, continuous."], [9.41, 12.24, "Execution: start slower than you think you need to."], [12.93, 15.02, "Eat something before you go, and drink."], [15.73, 16.73, "Bring the patrol home."]], "w5m1": [[0.06, 0.7, "Week five."], [1.17, 2.27, "Close target recce."], [3.09, 5.13, "Mission one, codename Glass Eye."], [5.84, 7.59, "Situation: we're close now."], [8.28, 13.48, "Mission: thirty-five minutes, easy, to keep the engine ticking over."], [13.79, 14.4, "Execution: zone two."], [15.09, 16.69, "Save your legs for mission two."]], "w5m2": [[0.05, 2.05, "Mission two, codename Knife Edge."], [2.71, 7.08, "Situation: final approach to the target, in short rushes under observation."], [7.67, 15.74, "Mission: on a twenty-metre line, eight rounds of one minute shuttling at bleep level nine to ten pace, with one minute of rest between."], [16.7, 20.66, "Execution: touch every line, turn hard, keep the rhythm."], [21.41, 23.76, "This is exactly what the bleep test feels like."], [24.21, 24.84, "Get used to it."]], "w5m3": [[0.06, 2.51, "Mission three, codename New Dawn."], [3.26, 5.65, "Situation: new year, same mission."], [6.42, 8.54, "Mission: fifty minutes, easy."], [9.29, 11.61, "Execution: zone two all the way."], [12.25, 14.74, "Whatever you did last night, sweat it out steady."]], "w6m1": [[0.07, 0.7, "Week six."], [1.16, 1.71, "Extraction."], [2.6, 4.88, "Mission one, codename Last Light."], [5.6, 9.49, "Situation: the job's done, and the extraction window opens this week."], [10.2, 12.4, "Mission: thirty minutes, easy."], [13.38, 14.93, "Execution: zone two."], [15.72, 16.28, "Stay sharp."], [16.92, 18.23, "Don't get sloppy on the way out."]], "w6m2": [[0.06, 2.33, "Mission two, codename Sharp Steel."], [3.07, 6.62, "Situation: one last check of the legs before the final objective."], [7.36, 11.88, "Mission: four bounds of four hundred metres, walking two hundred between each."], [12.65, 14.63, "Execution: quick, but comfortable."], [15.08, 17.03, "Leave feeling sharp, not tired."]], "w6m3": [[0.1, 1.0, "Final objective."], [1.71, 5.45, "Situation: six weeks ago you ran level eight point five."], [6.01, 9.7, "Since then, you've run in the cold, the dark and the holidays."], [10.61, 12.45, "Mission: the full benchmark."], [12.98, 15.99, "Bleep test, press-ups, sit-ups, pull-ups."], [16.9, 24.25, "Execution: eat ninety minutes before, warm up properly, and on the bleep test, go until you genuinely can't make the line."], [25.16, 26.38, "This is what all of it was for."], [27.09, 27.68, "Go and get it."]], "w2m3": [[0.05, 2.9, "Mission three, codename North Wind."], [3.58, 8.68, "Situation: the weather's turning and the patrol window is closing."], [9.26, 14.25, "Mission: forty-five minutes, long and slow, to the far side of the valley."], [14.54, 16.7, "Execution: zone two, and fuel before you go."], [17.55, 21.59, "If you're deployed on a live exercise this weekend, the field day counts."], [21.94, 22.7, "Make it a good one."]]};
+let CINE = null;
+function cineBeats(id){
+  // sentence list with start/end (seconds into the clip) and a beat for each
+  const est = () => { let t = 0.3; return opsText(id).split(/(?<=[.!?])\s+/).map(s => { const d = Math.max(1.2, s.length / 14); const r = [t, t + d, s]; t += d + 0.45; return r; }); };
+  const subs = (ops.buf && OPS_SUBS[id]) ? OPS_SUBS[id] : est();
+  let beat = 'title';
+  return subs.map(([a, b, txt], i) => {
+    if (/^situation/i.test(txt)) beat = 'situation'; else if (/^mission:/i.test(txt)) beat = 'mission'; else if (/^execution/i.test(txt)) beat = 'execution';
+    else if (i === 0) beat = 'title';
+    return { a, b, txt, beat: id === 'intro' ? 'tour' + i : beat };
+  });
+}
+function cineCam(id, beat){
+  const S = cineCam.S, m = S.ms.find(x => x.id === id);
+  const sectorC = w => { const ns = S.ms.filter(x => x.week === w).map(x => AO.nodes[x.id]); return [ns.reduce((a, p) => a + p[0], 0) / 3, ns.reduce((a, p) => a + p[1], 0) / 3]; };
+  if (id === 'intro') {
+    const k = Number(beat.slice(4)) || 0;
+    if (k === 0) return { tilt: 64, rot: -24, z: 0.32, c: [1700, 760] };
+    if (k >= 10) return { tilt: 0, rot: 0, z: 0.3, c: [1650, 700] };
+    const w = Math.min(5, Math.floor((k - 1) * 6 / 9)), c = sectorC(w);
+    return { tilt: 52, rot: k % 2 ? -14 : 12, z: 0.62, c };
+  }
+  const p = AO.nodes[id], prevIdx = S.ms.findIndex(x => x.id === id) - 1, prev = prevIdx >= 0 ? AO.nodes[S.ms[prevIdx].id] : AO.lz, sc = sectorC(m.week);
+  if (beat === 'title') return { tilt: 62, rot: -22, z: 0.36, c: sc };
+  if (beat === 'situation') return { tilt: 52, rot: -10, z: 0.62, c: [(sc[0] + p[0]) / 2, (sc[1] + p[1]) / 2] };
+  if (beat === 'mission') return { tilt: 46, rot: 8, z: 0.95, c: [(prev[0] + p[0]) / 2, (prev[1] + p[1]) / 2] };
+  if (beat === 'execution') return { tilt: 40, rot: 18, z: 1.15, c: p };
+  return { tilt: 0, rot: 0, z: 0.6, c: p };
+}
+function cineSetCam(cam){
+  const f = $('#cineFrame'), pl = $('#cinePlane'); if (!f || !pl) return;
+  pl.style.transform = `translate(${f.clientWidth / 2}px, ${f.clientHeight * 0.56}px) rotateX(${cam.tilt}deg) rotateZ(${cam.rot}deg) scale(${cam.z}) translate(${-cam.c[0]}px, ${-cam.c[1]}px)`;
+}
+function cineGrid(p){ return String(4400 + Math.round(p[0] / 4)).padStart(4, '0') + ' ' + String(3000 + Math.round((AO.h - p[1]) / 4)).padStart(4, '0'); }
+function cineObjective(id){
+  const S = cineCam.S, m = S.ms.find(x => x.id === id); if (!m) return '';
+  const st = m.done ? 'COMPLETE // ' + GRADE[m.grade][1].toUpperCase() : m.status === 'missed' ? 'MISSED' : m.priority ? 'PRIORITY TARGET' : m.status === 'blocked' ? 'LOCKED' : 'ACTIVE';
+  return `<div class="cobj"><div class="ct">OBJECTIVE // ${esc(m.name)}</div>
+    <div>// <b>TASK:</b> ${esc(m.detail.toUpperCase())}</div><div>// <b>TYPE:</b> ${m.kind === 'test' ? 'FINAL OBJECTIVE' : m.kind.toUpperCase()}</div>
+    <div>// <b>GRID:</b> ${cineGrid(AO.nodes[id])}</div><div>// <b>DEADLINE:</b> ${fmtDay(m.sun).toUpperCase()} 23:59</div><div>// <b>STATUS:</b> ${st}</div></div>`;
+}
+function sfxCine(kind){
+  try {
+    const a = audio(), t = a.currentTime, g = a.createGain(); g.connect(out());
+    if (kind === 'whoosh') {
+      const n = a.createBuffer(1, a.sampleRate * 0.9, a.sampleRate), d = n.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * i / d.length);
+      const s = a.createBufferSource(), f = a.createBiquadFilter(); s.buffer = n; f.type = 'bandpass'; f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(2400, t + 0.8); f.Q.value = 0.8;
+      g.gain.value = 0.10; s.connect(f).connect(g); s.start(t);
+    } else {
+      const o = a.createOscillator(); o.type = 'square'; o.frequency.value = kind === 'boot' ? 220 : 1400; g.gain.setValueAtTime(kind === 'boot' ? 0.06 : 0.012, t); g.gain.exponentialRampToValueAtTime(0.0001, t + (kind === 'boot' ? 0.5 : 0.03));
+      if (kind === 'boot') o.frequency.exponentialRampToValueAtTime(880, t + 0.4); o.connect(g); o.start(t); o.stop(t + (kind === 'boot' ? 0.5 : 0.04));
+    }
+  } catch (e) {}
+}
+async function cinePlay(id){
+  closeModal(); stopOps(); cineStop(true);
+  const S = campaignState(); cineCam.S = S;
+  const m = S.ms.find(x => x.id === id), c = CAMPAIGN;
+  const head = id === 'intro' ? 'OPERATION ORDERS' : `SECTOR ${m.week + 1} // ${m.kind === 'test' ? 'FINAL OBJECTIVE' : 'MISSION ' + (m.n + 1)}`;
+  const el = document.createElement('div'); el.id = 'cine';
+  el.innerHTML = `<div class="cbar"><span>SECURE COMMUNICATION // OP ${esc(c.short)}</span><button data-a="cine-close">✕</button></div>
+    <div class="cframe" id="cineFrame"><div class="cplane" id="cinePlane" style="width:${AO.w}px;height:${AO.h}px"><img src="${AO.img}" alt="">${aoSvg(S, id === 'intro' ? null : id)}</div>
+      <div class="ctitle" id="cineTitle"><span>OP ${esc(c.short)} // ${esc(head)}</span><b>${esc(id === 'intro' ? 'FROSTLINE' : m.name)}</b></div>
+      <div class="chud tl"><i class="dot"></i>ENCRYPTION ACTIVE<br>CALL CONNECTED</div><div class="chud side">// ${esc(c.short)} MISSION PROFILE</div>
+      <div class="chud br"><span>${id === 'intro' ? 'INSERTION' : 'TIME REMAINING'}</span><b id="cineClock"></b></div><div class="cscan"></div><div class="cvig"></div></div>
+    <div class="cprog"><i id="cineProg"></i></div>
+    <div class="csub"><div class="who">COMMAND</div><div class="txt" id="cineTxt"></div></div>
+    <div id="cineObj"></div>
+    <div class="cctl"><button class="btn" data-a="cine-replay">↺ Replay</button><button class="btn" data-a="cine-close">Close</button></div>`;
+  document.body.appendChild(el);
+  $('#cineTxt').textContent = 'Decrypting transmission…';
+  await loadOps();
+  $('#cineTxt').textContent = '';
+  const beats = cineBeats(id), dur = beats.length ? beats[beats.length - 1].b + 1.2 : 10;
+  const deadline = id === 'intro' ? c.start + 'T00:00:00' : addDaysStr(m.sun, 1) + 'T00:00:00';
+  CINE = { id, beats, dur, cur: -1, beat: null, t0: null, raf: 0 };
+  cineSetCam({ tilt: 75, rot: -36, z: 0.22, c: id === 'intro' ? [1650, 700] : AO.nodes[id] }); $('#cinePlane').classList.add('snap');
+  void $('#cinePlane').offsetWidth; $('#cinePlane').classList.remove('snap');
+  sfxCine('boot');
+  // voice: recorded clip if present, otherwise the phone's voice
+  const a = audio();
+  if (ops.buf && ops.map[id]) { const [off, d] = ops.map[id], s = a.createBufferSource(); s.buffer = ops.buf; s.connect(out()); const t0 = a.currentTime + 0.6; s.start(t0, off, d); ops.srcs.push(s); CINE.clock = () => a.currentTime - t0; }
+  else { const st = performance.now() + 600; CINE.clock = () => (performance.now() - st) / 1000; setTimeout(() => sayOps([id]), 600); }
+  const step = () => {
+    if (!CINE || !document.getElementById('cine')) return;
+    const t = CINE.clock();
+    const clk = $('#cineClock'); if (clk) clk.textContent = aoClockText(deadline);
+    let i = -1; beats.forEach((b, k) => { if (t >= b.a - 0.05) i = k; });
+    if (i !== CINE.cur && i >= 0) {
+      CINE.cur = i; const b = beats[i];
+      if (b.beat !== CINE.beat) { CINE.beat = b.beat; cineSetCam(cineCam(id, b.beat)); sfxCine('whoosh');
+        $('#cineTitle').classList.toggle('on', b.beat === 'title' || b.beat === 'tour0');
+        const fr = $('#cineFrame'); fr.dataset.beat = b.beat.replace(/\d+$/, '');
+        if (b.beat === 'execution' && id !== 'intro') $('#cineObj').innerHTML = cineObjective(id); }
+    }
+    if (i >= 0) { const b = beats[i], frac = Math.min(1, (t - b.a) / Math.max(0.4, (b.b - b.a) * 0.85)), n = Math.round(b.txt.length * frac), tx = $('#cineTxt');
+      if (tx && tx.dataset.n !== String(n) + '|' + i) { tx.dataset.n = n + '|' + i; tx.textContent = b.txt.slice(0, n); if (n % 3 === 0 && frac < 1) sfxCine('blip'); } }
+    const pg = $('#cineProg'); if (pg) pg.style.width = Math.min(100, t / dur * 100) + '%';
+    if (t > dur) { if (CINE.beat !== 'end') { CINE.beat = 'end'; cineSetCam(cineCam(id, 'end')); if (id !== 'intro') $('#cineObj').innerHTML = cineObjective(id); } return; }
+    CINE.raf = requestAnimationFrame(step);
+  };
+  CINE.raf = requestAnimationFrame(step);
+}
+function cineStop(silent){
+  if (CINE) cancelAnimationFrame(CINE.raf); CINE = null; stopOps();
+  const el = document.getElementById('cine'); if (el) el.remove();
 }
 
 function vOps(){
   const S = campaignState(), R = ringState(), CT = commandoTests(), c = CAMPAIGN, chit = activeChit();
   const weeks = S.weeks.map((mon, w) => { const wm = S.ms.filter(m => m.week === w);
     return `<div class="opsweek ${w === S.wi ? 'cur' : ''}"><div class="row"><b>Week ${w + 1} · ${esc(c.phases[w])}</b><span class="spacer"></span><span class="muted small">${fmtDay(mon)} – ${fmtDay(addDaysStr(mon, 6))}</span></div>
-      ${wm.map(m => `<button class="item mrow" data-a="ops-brief" data-v="${m.id}"><span>${mIcon(m.status)} <b>${esc(m.name)}</b> <span class="muted small">${esc(m.detail)}</span></span><span class="muted small">›</span></button>`).join('')}</div>`; }).join('');
+      ${wm.map(m => `<button class="item mrow" data-a="ops-brief" data-v="${m.id}"><span>${mIcon(m.status, m)} <b>${esc(m.name)}</b> <span class="muted small">${esc(m.detail)}</span></span><span class="muted small">›</span></button>`).join('')}</div>`; }).join('');
   const proj = S.result ? S.result : (S.done + (S.total - S.done - S.missed) === S.total ? 'gold' : S.total - S.missed >= Math.ceil(S.total * 0.8) ? 'medal' : 'none');
-  return `<div class="line-title"><button class="back" data-a="home">← Home</button></div>${pstrip('report', true)}
-  <div class="page-h"><h1>${esc(c.name)}</h1><div class="sub">${fmtDay(c.start)} – ${fmtDay(S.last)} · ${S.done}/${S.total} missions</div></div>
+  return `<div class="line-title"><button class="back" data-a="home">← Home</button></div>
+  ${vAoMap(S)}
+  <div class="page-h" style="margin-top:12px"><h1>${esc(c.name)}</h1><div class="sub">${fmtDay(c.start)} – ${fmtDay(S.last)} · ${S.done}/${S.total} missions${S.stars ? ' · ' + S.stars + ' ★' : ''}</div></div>
   ${chit ? `<div class="warn">🩹 Medical chit until ${fmtDay(chit.end)}${chit.notes ? ': ' + esc(chit.notes) : ''}. Ring, streak and the running standard are paused. <button class="btn sm" data-a="chit-end">End it</button></div>` : ''}
   <section><div class="row"><button class="btn sm" data-a="ops-say" data-v="intro">▶ Intro briefing</button><button class="btn sm" data-a="ops-stop">■ Stop</button></div>
     <div class="hint">${ops.none ? 'Briefings use your phone’s voice until the recorded clips are uploaded.' : 'Tap a mission for its briefing.'}</div></section>
   <section><div class="label">Medal</div><div class="card"><div class="row">${proj !== 'none' ? ribbon(c, proj === 'gold', 72) : '<span class="no">No medal</span>'}<span class="muted small">${S.result ? 'Awarded' : 'On course for'}: ${proj === 'gold' ? 'medal with clasp (every mission + final objective)' : proj === 'medal' ? 'campaign medal (80%+ of missions)' : 'nothing. Under 80% of missions done'}</span></div></div></section>
-  <section><div class="label">Missions</div>${weeks}</section>
+  <section><details class="mlog"><summary class="label">Mission log</summary>${weeks}</details></section>
   <section><div class="label">Weekly run ring</div><div class="card">${vRingWeeks(R)}<div class="hint">Two runs of 20+ minutes every Monday–Sunday. Miss a week and the streak resets. No freezes; only a medical chit pauses it. Yomps and airsoft don't count towards the ring.</div></div></section>
   ${vCommando(CT)}
   <section><button class="btn block" data-a="chit-open">${chit ? 'Extend medical chit' : 'Declare a medical chit (injured or ill)'}</button></section>`;
@@ -2657,8 +2974,15 @@ document.addEventListener('click', e => {
     case 'promo-close': $('#promo').className = 'ov'; $('#promo').style.backgroundImage = ''; break;
     case 'promo-rank': $('#promo').className = 'ov'; $('#promo').style.backgroundImage = ''; go('rank'); break;
     case 'app-update': doUpdate(); break;
-    case 'ops-brief': opsBrief(v); break;
-    case 'ops-say': sayOps([v]); break;
+    case 'ops-brief': cinePlay(v); break;
+    case 'ops-text': opsBrief(v); break;
+    case 'cine-close': cineStop(); break;
+    case 'cine-replay': { const id = CINE ? CINE.id : null; if (id) cinePlay(id); break; }
+    case 'ao-node': aoNode(v); break;
+    case 'ao-zoom': { const box = $('#aoMap'); if (!box) break; const k = Number(v), mx = box.clientWidth / 2, my = box.clientHeight / 2, ns = Math.min(1.6, aoView.s * k), kk = ns / aoView.s;
+      aoView.x = mx - (mx - aoView.x) * kk; aoView.y = my - (my - aoView.y) * kk; aoView.s = ns; aoClamp(); aoApply(); break; }
+    case 'ao-centre': { const S = campaignState(); aoCentre(aoCurrent(S).at || AO.lz); break; }
+    case 'ops-say': if (v === 'intro' || OPS_MIN.some(m => m.id === v)) cinePlay(v); else sayOps([v]); break;
     case 'ops-stop': stopOps(); break;
     case 'ops-close': stopOps(); closeModal(); break;
     case 'ops-debrief': sayOps(opsQueue.map(a => a.clip).filter(Boolean)); break;
