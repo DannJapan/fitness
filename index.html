@@ -222,16 +222,24 @@ details.mlog summary{cursor:pointer;list-style:none}
 #cine .csvg .tbox{fill:none;stroke:#fff;stroke-width:3}
 #cine .csvg .tri{fill:#f5b82e}
 #cine .crings{position:absolute;width:0;height:0;transform-style:preserve-3d}
-#cine .crings i{position:absolute;left:-260px;top:-260px;width:520px;height:520px;
-  transform:translateZ(var(--z)) rotate(0deg);animation:ring 30s linear infinite;opacity:.9}
-#cine .crings i svg{width:100%;height:100%;display:block}
-#cine .crings i.far{left:-470px;top:-470px;width:940px;height:940px;opacity:.5;animation-duration:60s;animation-direction:reverse}
-@keyframes ring{to{transform:translateZ(var(--z)) rotate(360deg)}}
+#cine .crings i{position:absolute;left:-260px;top:-260px;width:520px;height:520px;transform:translateZ(0px) scale(1);opacity:0;transition:transform .9s cubic-bezier(.2,.7,.2,1),opacity .6s}
+#cine .crings i svg{width:100%;height:100%;display:block;animation:rspin 30s linear infinite}
+@keyframes rspin{to{transform:rotate(360deg)}}
+#cine .crings i.far{left:-470px;top:-470px;width:940px;height:940px;transform:scale(.55);transition-duration:1.2s,.9s}
+#cine .crings i.far svg{animation-duration:60s;animation-direction:reverse}
+#cine .crings .drw{stroke-dasharray:1534;stroke-dashoffset:1534}
+#cine.r-in .crings i.base{opacity:.95;transition:none}
+#cine.r-in .crings i.base .drw{transition:stroke-dashoffset 1.1s ease-in-out;stroke-dashoffset:0}
+#cine.r-up .crings i.l1{opacity:.9;transform:translateZ(18px)}
+#cine.r-up .crings i.l2{opacity:.9;transform:translateZ(36px);transition-delay:.15s}
+#cine.r-up .crings i.far{opacity:.5;transform:scale(1);transition-delay:.25s}
+#cine.r-out .crings i.l1,#cine.r-out .crings i.l2{transform:translateZ(0px);transition:transform .45s ease-in,opacity .45s;transition-delay:0s}
+#cine.r-out .crings i{animation:rclose .7s ease-in .45s forwards}
+@keyframes rclose{to{transform:translateZ(0px) scale(.12);opacity:0}}
 #cine .cobj3d{position:absolute;transform:translateZ(6px);opacity:0;transition:opacity .4s;white-space:nowrap;text-shadow:-2px 0 rgba(255,0,60,.35),2px 0 rgba(0,220,255,.35)}
 #cine.obj-in .cobj3d{opacity:1}
 #cine .csvg .wl{transition:opacity .8s}#cine.s-obj .csvg .wl{opacity:0}
-#cine.s-obj .crings i{animation:ringout .9s ease-in forwards}#cine.s-obj .crings i:nth-child(2){animation-delay:.1s}#cine.s-obj .crings i:nth-child(3){animation-delay:.2s}
-@keyframes ringout{from{transform:translateZ(var(--z)) scale(1);opacity:.9}to{transform:translateZ(calc(var(--z) + 80px)) scale(1.6);opacity:0;visibility:hidden}}
+#cine .csvg .fut{transition:opacity .8s}#cine.obj-in .csvg .fut{opacity:0}
 #cine .cobj3d .oh{display:inline-block;background:#f4f7f8;color:#05090c;font:700 46px/1 Rajdhani,sans-serif;letter-spacing:.06em;padding:6px 14px 4px;border:3px solid #05090c;box-shadow:0 0 0 3px #f4f7f8;margin:0 0 12px -4px;text-shadow:none}
 #cine .cobj3d .or{font:500 30px/1.3 Rajdhani,sans-serif;color:#e8f3f6;letter-spacing:.07em;opacity:0;margin-left:30px}
 #cine .cobj3d .or b{font-weight:700;color:#fff}
@@ -502,7 +510,7 @@ body.typing #rest{display:none!important}
 <div id="toast"></div>
 
 <script>
-const APP_VERSION = 'cf-v28';
+const APP_VERSION = 'cf-v29';
 /* ================= utilities ================= */
 const $ = s => document.querySelector(s);
 const esc = v => String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1065,21 +1073,23 @@ function cineGps(p){ return (57.1 + (AO.h - p[1]) / 9000).toFixed(4) + '° N, ' 
 function cineSvg(S, focus){
   const pts = [AO.sea, AO.lz].concat(S.ms.map(m => AO.nodes[m.id])).concat([AO.exfil]), path = l => l.map((p, i) => (i ? 'L' : 'M') + p[0] + ' ' + p[1]).join(' ');
   const fi = S.ms.findIndex(m => m.id === focus);
-  const nodes = S.ms.map((m, i) => { const [x, y] = AO.nodes[m.id], open = aoSectorUnlocked(S, m.week);
+  const nodes = S.ms.map((m, i) => { const [x, y] = AO.nodes[m.id], open = aoSectorUnlocked(S, m.week), fut = fi >= 0 && i > fi ? ' fut' : '';
     if (m.id === focus) return `<g transform="translate(${x} ${y})"><rect x="-44" y="-44" width="88" height="88" class="tbox"/><path d="M0 -24 L22 16 L-22 16 Z" class="tri"/></g>`;
     const c2 = !open || m.status === 'blocked' ? 'lk' : m.done ? 'dn' : m.status === 'missed' ? 'ms' : 'op';
-    return `<g transform="translate(${x} ${y})" class="${c2}"><rect x="-11" y="-11" width="22" height="22" class="wp"/>
+    return `<g transform="translate(${x} ${y})" class="${c2}${fut}"><rect x="-11" y="-11" width="22" height="22" class="wp"/>
       <text x="22" y="8" class="wl">${String(i + 1).padStart(2, '0')}. ${open ? esc(m.name) : '██████'}</text></g>`; }).join('');
   return `<svg class="csvg" viewBox="0 0 ${AO.w} ${AO.h}" width="${AO.w}" height="${AO.h}">
     <defs><pattern id="cdots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.4" fill="rgba(150,225,240,.22)"/></pattern></defs>
     <rect width="${AO.w}" height="${AO.h}" fill="url(#cdots)"/>
     ${[...Array(Math.ceil(AO.w / 320))].map((_, i) => `<path class="cg" d="M${i * 320} 0V${AO.h}"/>`).join('')}${[...Array(Math.ceil(AO.h / 320))].map((_, i) => `<path class="cg" d="M0 ${i * 320}H${AO.w}"/>`).join('')}
-    <path class="croute" d="${path(pts)}"/>${fi >= 0 ? `<path class="croute hot" d="${path([fi > 0 ? AO.nodes[S.ms[fi - 1].id] : AO.lz, AO.nodes[focus]])}"/>` : ''}
+    ${fi >= 0 ? `<path class="croute" d="${path(pts.slice(0, fi + 3))}"/><path class="croute fut" d="${path(pts.slice(fi + 2))}"/>` : `<path class="croute" d="${path(pts)}"/>`}${fi >= 0 ? `<path class="croute hot" d="${path([fi > 0 ? AO.nodes[S.ms[fi - 1].id] : AO.lz, AO.nodes[focus]])}"/>` : ''}
     <g transform="translate(${AO.lz[0]} ${AO.lz[1]})"><rect x="-11" y="-11" width="22" height="22" class="wp"/><text x="22" y="8" class="wl big">BLACK SAND</text></g>
     ${nodes}</svg>`;
 }
 let CINE_OUTER = null;
-const CRING = '<svg viewBox="-260 -260 520 520"><circle r="244" fill="none" stroke="rgba(255,40,60,.22)" stroke-width="18"/><circle r="244" fill="none" stroke="#ff2d42" stroke-width="6" stroke-dasharray="18 12"/></svg>';
+const CRING_IN = '<circle r="244" fill="none" stroke="rgba(245,184,46,.22)" stroke-width="18"/><circle r="244" fill="none" stroke="#f5b82e" stroke-width="6" stroke-dasharray="18 12"/>';
+const CRING = '<svg viewBox="-260 -260 520 520">' + CRING_IN + '</svg>';
+const CRING_DRAW = '<svg viewBox="-260 -260 520 520"><defs><mask id="crDraw" maskUnits="userSpaceOnUse" x="-260" y="-260" width="520" height="520"><circle class="drw" r="244" fill="none" stroke="#fff" stroke-width="30" transform="rotate(-90)"/></mask></defs><g mask="url(#crDraw)">' + CRING_IN + '</g></svg>';
 function cineOuter(){
   // One small canvas, baked (grid + data blocks + edge fade) and stretched: a single cheap image layer instead of a 7000px masked div (iOS GPU memory).
   if (!CINE_OUTER) {
@@ -1180,7 +1190,7 @@ async function cinePlay(id){
   const el = document.createElement('div'); el.id = 'cine';
   el.innerHTML = `<div class="c3d" id="cineFrame"><div class="cplane" id="cinePlane" style="width:${AO.w}px;height:${AO.h}px">
       ${cineOuter()}<img class="cmap" src="${AO.img}" alt="">${cineSvg(S, intro ? null : id)}
-      ${intro ? '' : `<div class="crings" style="left:${p[0]}px;top:${p[1]}px">${[0, 18, 36].map(z => `<i style="--z:${z}px">${CRING}</i>`).join('')}<i class="far" style="--z:0px">${CRING}</i></div>`}
+      ${intro ? '' : `<div class="crings" style="left:${p[0]}px;top:${p[1]}px"><i class="far">${CRING}</i><i class="base">${CRING_DRAW}</i><i class="l1">${CRING}</i><i class="l2">${CRING}</i></div>`}
       ${intro ? '' : cineObjective(S, id)}
       ${!intro && holoImg ? `<div class="cglow" id="cineGlow" style="left:${p[0] - 40}px;top:${p[1] - 220}px"></div><div class="cholo3" style="left:${p[0] + 50}px;top:${p[1] - 110}px"><div class="hp" id="cineHoloP"><canvas id="cineHoloC" width="448" height="252"></canvas></div></div>` : ''}
     </div></div>
@@ -1207,6 +1217,7 @@ async function cinePlay(id){
   const beats = cineBeats(id), dur = beats.length ? beats[beats.length - 1].b + 1.4 : 10;
   const deadline = intro ? c.start + 'T00:00:00' : addDaysStr(m.sun, 1) + 'T00:00:00';
   CINE = { id, beats, dur, cur: -1, beat: null, raf: 0, timers: [], holo, holoState: 0 };
+  if (!intro) { cineLater(() => el.classList.add('r-in'), 3300); cineLater(() => { if (!el.classList.contains('s-obj')) el.classList.add('r-up'); }, 4500); }
   sfxCine('boot');
   const a = audio();
   if (ops.buf && ops.map[id]) { const [off, d] = ops.map[id], s = a.createBufferSource(); s.buffer = ops.buf; s.connect(out()); const t0 = a.currentTime + 0.5; s.start(t0, off, d); ops.srcs.push(s); CINE.clock = () => a.currentTime - t0; }
@@ -1224,7 +1235,7 @@ async function cinePlay(id){
         $('#cineTitle').classList.toggle('on', b.beat === 'title' || b.beat === 'tour0');
         if (['situation', 'mission', 'execution'].includes(bn)) root.classList.add('s-sit');
         if (['mission', 'execution'].includes(bn) && !root.classList.contains('s-obj')) { root.classList.add('s-obj');
-          cineLater(() => { const r = $('#cine .crings'); if (r) r.remove(); }, 1400);
+          root.classList.add('r-out'); cineLater(() => { const r = $('#cine .crings'); if (r) r.remove(); }, 1300);
           cineLater(() => { root.classList.add('obj-in'); holoIn(); }, 2700); } }
     }
     if (k >= 0) { const b = beats[k], frac = Math.min(1, (t - b.a) / Math.max(0.4, (b.b - b.a) * 0.8)), n = Math.round(b.txt.length * frac), tx = $('#cineTxt');
