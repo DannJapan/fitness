@@ -237,11 +237,12 @@ details.mlog summary{cursor:pointer;list-style:none}
 #cine .cobj3d .or b{font-weight:700;color:#fff}
 #cine.obj-in .cobj3d .or{animation:rowin .3s ease forwards}
 @keyframes rowin{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:none}}
-#cine .cholo3{position:absolute;width:360px;height:0;transform-style:preserve-3d;pointer-events:none}
-#cine .cholo3 .hp{position:absolute;left:0;bottom:0;width:360px;height:216px;transform-origin:50% 100%;transform:rotateX(-90deg);opacity:0}
+#cine .cholo3{position:absolute;width:448px;height:0;transform-style:preserve-3d;pointer-events:none}
+#cine .cholo3 .hp{position:absolute;left:0;bottom:0;width:448px;height:252px;transform-origin:50% 100%;transform:rotateX(-90deg);opacity:0}
 #cine .cholo3 canvas{width:100%;height:100%;display:block}
 #cine .cglow{position:absolute;width:640px;height:220px;transform:translateZ(1px);background:radial-gradient(closest-side,rgba(130,235,255,.75),rgba(60,200,240,.25) 55%,rgba(60,200,240,0));opacity:0;transition:opacity .25s;pointer-events:none}
 #cine .cglow.on{opacity:1}
+#cine .chcred{position:absolute;left:12px;bottom:calc(env(safe-area-inset-bottom) + 12px);font:600 9px Rajdhani,var(--head);letter-spacing:.12em;color:rgba(200,235,242,.7);opacity:0;transition:opacity .4s}#cine.holo-on .chcred{opacity:1}
 #cine .cscan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px)}
 #cine .cvig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,transparent 45%,rgba(0,0,0,.85) 100%)}
 #cine .ccomms{position:absolute;left:12px;top:calc(env(safe-area-inset-top) + 12px);width:44%;max-width:220px;font-family:Rajdhani,sans-serif;text-shadow:-1px 0 rgba(255,0,60,.35),1px 0 rgba(0,220,255,.35)}
@@ -501,7 +502,7 @@ body.typing #rest{display:none!important}
 <div id="toast"></div>
 
 <script>
-const APP_VERSION = 'cf-v27';
+const APP_VERSION = 'cf-v28';
 /* ================= utilities ================= */
 const $ = s => document.querySelector(s);
 const esc = v => String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1057,7 +1058,7 @@ function cineCam(id, beat){
 }
 function cineSetCam(cam){
   const pl = $('#cinePlane'); if (!pl) return;
-  pl.style.transform = `translate(${innerWidth / 2}px, ${innerHeight * 0.5}px) rotateX(${cam.tilt}deg) rotateZ(${cam.rot}deg) scale(${cam.z}) translate(${-cam.c[0]}px, ${-cam.c[1]}px)`;
+  pl.style.transform = `translate(${innerWidth / 2}px, ${innerHeight * 0.5}px) rotateX(${cam.tilt}deg) rotateZ(${cam.rot}deg) scale3d(${cam.z}, ${cam.z}, ${cam.z}) translate(${-cam.c[0]}px, ${-cam.c[1]}px)`;
 }
 function cineGrid(p){ return String(4400 + Math.round(p[0] / 4)).padStart(4, '0') + ', ' + String(3000 + Math.round((AO.h - p[1]) / 4)).padStart(4, '0'); }
 function cineGps(p){ return (57.1 + (AO.h - p[1]) / 9000).toFixed(4) + '° N, ' + (21.8 + p[0] / 6000).toFixed(4) + '° E'; }
@@ -1125,11 +1126,20 @@ function sfxCine(kind){
     }
   } catch (e) {}
 }
+// Hologram plates (MOD, LPhot Hutchins): rucking = long, static = easy, action = intervals/strides, beach landing = insertion
+const HOLO_CREDIT = 'IMG: LPhot Hutchins / MOD © Crown copyright';
+const HOLO = { insert: 1, test: 11, long: [2, 4, 5, 12, 15], easy: [3, 6, 13, 14], action: [7, 8, 9, 10, 11] };
+function holoFor(S, m){
+  const f = n => 'holo/h' + String(n).padStart(2, '0') + '.webp', grp = x => x.kind === 'long' ? 'long' : x.kind === 'easy' ? 'easy' : 'action';
+  if (m.id === S.ms[0].id) return f(HOLO.insert); if (m.kind === 'test') return f(HOLO.test);
+  const g = grp(m), i = S.ms.findIndex(x => x.id === m.id), k = S.ms.slice(1, i).filter(x => x.kind !== 'test' && grp(x) === g).length;
+  return f(HOLO[g][k % HOLO[g].length]);
+}
 function cineLater(fn, ms){ if (!CINE) return; CINE.timers.push(setTimeout(() => { if (CINE) fn(); }, ms)); }
 // Cyan hologram plate: tint, scanlines and frame baked once into a canvas
 function holoPrep(src){
   return new Promise(res => { const im = new Image(); im.onload = () => {
-    const W = 420, H = 252, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+    const W = 448, H = 252, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
     const r = Math.max(W / im.width, H / im.height), w = im.width * r, h = im.height * r; g.drawImage(im, (W - w) / 2, (H - h) / 2, w, h);
     try { const d = g.getImageData(0, 0, W, H), a = d.data;
       for (let i = 0; i < a.length; i += 4) { const y = (i / 4 / W) | 0; let L = (a[i] * 0.3 + a[i + 1] * 0.59 + a[i + 2] * 0.11) / 255;
@@ -1155,9 +1165,9 @@ function holoSeq(steps, done){
   if (done) cineLater(done, steps[steps.length - 1][0] + 10);
 }
 // glitches in, then pixelation passes resolve to a clean image
-function holoIn(){ if (!CINE || !CINE.holo || CINE.holoState) return; CINE.holoState = 1;
+function holoIn(){ if (!CINE || !CINE.holo || CINE.holoState) return; CINE.holoState = 1; $('#cine').classList.add('holo-on');
   holoSeq([[0, 28, 3, 0.8], [60, 28, 0, 0], [130, 20, 2, 0.85], [230, 20, 4, 0], [290, 14, 2, 0.85], [420, 10, 1, 0.85], [560, 7, 2, 0.85], [700, 5, 0, 0.85], [840, 3, 1, 0.85], [960, 2, 0, 0.85], [1080, 1, 0, 0.85], [1500, 1, 1, 0.85], [1560, 1, 0, 0.85]]); }
-function holoOut(){ if (!CINE || CINE.holoState !== 1) return; CINE.holoState = 2;
+function holoOut(){ if (!CINE || CINE.holoState !== 1) return; CINE.holoState = 2; $('#cine').classList.remove('holo-on');
   holoSeq([[0, 3, 2, 0.85], [80, 8, 3, 0.85], [160, 16, 0, 0], [220, 22, 3, 0.6], [300, 1, 0, 0]]); }
 async function cinePlay(id){
   closeModal(); stopOps(); cineStop();
@@ -1165,14 +1175,14 @@ async function cinePlay(id){
   const i = S.ms.findIndex(x => x.id === id), m = S.ms[i], c = CAMPAIGN, intro = id === 'intro';
   const p = intro ? AO.lz : AO.nodes[id];
   const head = intro ? 'OPERATION ORDERS' : `SECTOR ${m.week + 1} // ${m.kind === 'test' ? 'FINAL OBJECTIVE' : 'MISSION ' + (m.n + 1)}`;
-  const ph = photos.filter(x => !x.use || x.use === 'hero' || x.hero), holoImg = ph.length ? ph[(Math.max(0, i) * 5 + 3) % ph.length].file : null;
+  const holoImg = intro ? null : holoFor(S, m);
   document.body.classList.add('cine-on');
   const el = document.createElement('div'); el.id = 'cine';
   el.innerHTML = `<div class="c3d" id="cineFrame"><div class="cplane" id="cinePlane" style="width:${AO.w}px;height:${AO.h}px">
       ${cineOuter()}<img class="cmap" src="${AO.img}" alt="">${cineSvg(S, intro ? null : id)}
       ${intro ? '' : `<div class="crings" style="left:${p[0]}px;top:${p[1]}px">${[0, 18, 36].map(z => `<i style="--z:${z}px">${CRING}</i>`).join('')}<i class="far" style="--z:0px">${CRING}</i></div>`}
       ${intro ? '' : cineObjective(S, id)}
-      ${!intro && holoImg ? `<div class="cglow" id="cineGlow" style="left:${p[0] - 80}px;top:${p[1] - 220}px"></div><div class="cholo3" style="left:${p[0] + 60}px;top:${p[1] - 110}px"><div class="hp" id="cineHoloP"><canvas id="cineHoloC" width="420" height="252"></canvas></div></div>` : ''}
+      ${!intro && holoImg ? `<div class="cglow" id="cineGlow" style="left:${p[0] - 40}px;top:${p[1] - 220}px"></div><div class="cholo3" style="left:${p[0] + 50}px;top:${p[1] - 110}px"><div class="hp" id="cineHoloP"><canvas id="cineHoloC" width="448" height="252"></canvas></div></div>` : ''}
     </div></div>
 
     <div class="cscan"></div><div class="cvig"></div>
@@ -1185,7 +1195,7 @@ async function cinePlay(id){
     <div class="ctitle2" id="cineTitle"><span>OP ${esc(c.short)} // ${esc(head)}</span><b>${esc(intro ? 'FROSTLINE' : m.name)}</b></div>
     <div class="csub2"><div id="cineTxt"></div></div>
     <div class="cclock"><span id="cineClkL">${intro ? 'INSERTION IN' : 'TIME REMAINING'}</span><b id="cineClock"></b></div>
-    <div class="cprog"><i id="cineProg"></i></div>
+    <div class="cprog"><i id="cineProg"></i></div><div class="chcred" id="cineCred">${esc(HOLO_CREDIT)}</div>
     <div class="cend" id="cineEnd"><button data-a="cine-replay">↺ REPLAY</button><button data-a="cine-close">CLOSE</button></div>`;
   document.body.appendChild(el);
   $('#cineTxt').textContent = 'DECRYPTING TRANSMISSION…';
@@ -1858,7 +1868,7 @@ function vSettings(){
   ${vNudges()}
   <section><div class="label">App</div><div class="card small"><span class="muted">Version ${esc(APP_VERSION)}</span>
     <div class="big-btns"><button class="btn" data-a="app-update">Check for update</button><button class="btn" data-a="app-backup">Back up my sheet</button></div>
-    <div class="hint" style="margin-top:10px">Photos via Wikimedia Commons, photographers credited on each picture. UK Ministry of Defence photos © Crown copyright, licensed under the Open Government Licence v3.0; U.S. military photos are in the public domain. This app is a personal project and is not affiliated with or endorsed by the Royal Marines or the MOD.</div>
+    <div class="hint" style="margin-top:10px">Photos via Wikimedia Commons, photographers credited on each picture. UK Ministry of Defence photos © Crown copyright, licensed under the Open Government Licence v3.0; briefing hologram photos by LPhot Hutchins / MOD © Crown copyright; U.S. military photos are in the public domain. This app is a personal project and is not affiliated with or endorsed by the Royal Marines or the MOD.</div>
     <div class="hint">Back up saves a dated copy of your whole training log to your Google Drive.</div></div></section>
   <section><div class="label">Sheet link</div><div class="card small"><div class="muted" style="word-break:break-all">${esc(cfg.url)}</div>
     <div class="row" style="margin-top:10px"><button class="btn sm" data-a="go" data-v="connect">Change link or passphrase</button></div></div></section>`;
