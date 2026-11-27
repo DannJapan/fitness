@@ -207,7 +207,16 @@ details.mlog summary{cursor:pointer;list-style:none}
 #cine .c3d{position:absolute;inset:0;perspective:1100px;perspective-origin:50% 40%;overflow:hidden}
 #cine .cplane{position:absolute;left:0;top:0;transform-origin:0 0;transform-style:preserve-3d;transition:transform 2.6s cubic-bezier(.5,.05,.2,1)}
 #cine .cplane.snap{transition:none}
-#cine .cmap{position:absolute;inset:0;width:100%;height:100%;filter:brightness(.95) contrast(1.05)}
+#cine .cmap{position:absolute;inset:0;width:100%;height:100%}
+#cine .cmapfx{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;transform:translateZ(1px);pointer-events:none;opacity:0}
+#cine.map-off .cmap,#cine.map-off .csvg,#cine.map-off .couter,#cine.map-off .cedge{opacity:0}
+#cine .csvg,#cine .couter,#cine .cedge{transition:opacity .5s}
+#cine .cship .hull,.aosvg .aoship .hull{fill:#dfe9ee;stroke:#05090c;stroke-width:2}
+#cine .cship .deck,.aosvg .aoship .deck{stroke:rgba(5,9,12,.45);stroke-width:2;fill:none;stroke-dasharray:6 6}
+#cine .cship .isl,.aosvg .aoship .isl{fill:#8fa3ab}
+#cine .cship .sl{fill:#f2f7f9;font:700 26px Rajdhani,sans-serif;letter-spacing:.1em}#cine .cship .sl2{fill:#f5b82e;font:600 18px Rajdhani,sans-serif;letter-spacing:.16em}
+.aosvg .aoship .sl{fill:#f2f7f9;font:700 24px Rajdhani,var(--head);letter-spacing:.1em;paint-order:stroke;stroke:rgba(0,0,0,.7);stroke-width:6}
+.aosvg .aoship .sl2{fill:#f5b82e;font:600 17px Rajdhani,var(--head);letter-spacing:.16em;paint-order:stroke;stroke:rgba(0,0,0,.7);stroke-width:5}
 #cine .couter{position:absolute;left:-2400px;top:-1800px;width:calc(100% + 4800px);height:calc(100% + 3600px);transform:translateZ(-2px);pointer-events:none}
 #cine .cedge{position:absolute;inset:-3px;border:4px solid rgba(120,215,235,.6);pointer-events:none}
 #cine .csvg{position:absolute;inset:0;overflow:visible}
@@ -240,6 +249,7 @@ details.mlog summary{cursor:pointer;list-style:none}
 #cine.obj-in .cobj3d{opacity:1}
 #cine .csvg .wl{transition:opacity .8s}#cine.s-obj .csvg .wl{opacity:0}
 #cine .csvg .fut{transition:opacity .8s}#cine.obj-in .csvg .fut{opacity:0}
+#cine .cobj3d.ship .oh{font-size:40px}
 #cine .cobj3d .oh{display:inline-block;background:#f4f7f8;color:#05090c;font:700 46px/1 Rajdhani,sans-serif;letter-spacing:.06em;padding:6px 14px 4px;border:3px solid #05090c;box-shadow:0 0 0 3px #f4f7f8;margin:0 0 12px -4px;text-shadow:none}
 #cine .cobj3d .or{font:500 30px/1.3 Rajdhani,sans-serif;color:#e8f3f6;letter-spacing:.07em;opacity:0;margin-left:30px}
 #cine .cobj3d .or b{font-weight:700;color:#fff}
@@ -510,7 +520,7 @@ body.typing #rest{display:none!important}
 <div id="toast"></div>
 
 <script>
-const APP_VERSION = 'cf-v30';
+const APP_VERSION = 'cf-v31';
 /* ================= utilities ================= */
 const $ = s => document.querySelector(s);
 const esc = v => String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -975,7 +985,7 @@ function aoSvg(S, focus){
   return `<svg class="aosvg" viewBox="0 0 ${AO.w} ${AO.h}" width="${AO.w}" height="${AO.h}">
     <defs><pattern id="aodots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.4" fill="rgba(150,225,240,.2)"/></pattern></defs><rect width="${AO.w}" height="${AO.h}" fill="url(#aodots)"/><g class="grid">${grid}</g><g class="glab">${glabels}</g>${rings}
     <path class="route ahead" d="${path(pts)}"/><path class="route done" d="${path(pts.slice(0, reach + 1))}"/>
-    <g class="node lz" transform="translate(${AO.lz[0]} ${AO.lz[1]})"><rect x="-14" y="-14" width="28" height="28"/><text class="lb" x="24" y="8">LZ // BLACK SAND</text></g>
+    ${shipSvg('aoship')}<g class="node lz" transform="translate(${AO.lz[0]} ${AO.lz[1]})"><rect x="-14" y="-14" width="28" height="28"/><text class="lb" x="24" y="8">LZ // BLACK SAND</text></g>
     <g class="node lz" transform="translate(${AO.exfil[0]} ${AO.exfil[1]})"><rect x="-14" y="-14" width="28" height="28"/><text class="lb" x="24" y="6">EXFIL</text></g>
     ${sectors}${nodes}</svg>`;
 }
@@ -1063,18 +1073,19 @@ function cineCam(id, beat){
   if (id === 'intro') {
     const k = Number(beat.slice(4)) || 0;
     if (beat === 'start') return { tilt: 74, rot: -34, z: 0.16, c: [1650, 700] };
-    if (k === 0) return { tilt: 66, rot: -22, z: 0.24, c: [1650, 720] };
+    if (beat !== 'end' && k <= 4) return { tilt: 50, rot: 0, z: 0.38, c: [AO.sea[0], AO.sea[1] + 50] };
     if (k >= 10 || beat === 'end') return { tilt: 60, rot: -8, z: 0.22, c: [1650, 700] };
-    const w = Math.min(5, Math.floor((k - 1) * 6 / 9));
+    const w = Math.min(5, Math.floor((k - 5) * 6 / 4));
     return { tilt: 56, rot: k % 2 ? -16 : 14, z: 0.5, c: sectorC(w) };
   }
   const i = S.ms.findIndex(x => x.id === id), m = S.ms[i], p = AO.nodes[id], prev = i > 0 ? AO.nodes[S.ms[i - 1].id] : AO.lz, sc = sectorC(m.week);
   if (beat === 'start') return { tilt: 74, rot: -34, z: 0.18, c: p };
   if (beat === 'title') return { tilt: 66, rot: -20, z: 0.3, c: sc };
   if (beat === 'situation') return { tilt: 58, rot: -8, z: 0.62, c: [p[0] - 60, p[1]] };
-  if (beat === 'mission') return { tilt: 50, rot: 6, z: 0.5, c: [p[0] + 300, p[1] + 90] };
+  const ob = document.getElementById('cineObj3d'), bw = ob ? ob.offsetWidth : 560, bh = ob ? ob.offsetHeight : 330, fitW = innerWidth * 0.9;
+  if (beat === 'mission') { const l = p[0] + 50, r = Math.max(p[0] + 498, p[0] + 70 + bw); return { tilt: 50, rot: 4, z: Math.min(0.5, fitW / (r - l)), c: [(l + r) / 2, p[1] + 90] }; }
   if (beat === 'execution') return cineCam(id, 'mission');
-  return { tilt: 62, rot: -12, z: 0.42, c: p };
+  return { tilt: 46, rot: 0, z: Math.min(0.6, fitW / bw), c: [p[0] + 70 + bw / 2, p[1] - 52 + bh / 2 + 30] };
 }
 function cineSetCam(cam){
   const pl = $('#cinePlane'); if (!pl) return;
@@ -1082,6 +1093,12 @@ function cineSetCam(cam){
 }
 function cineGrid(p){ return String(4400 + Math.round(p[0] / 4)).padStart(4, '0') + ', ' + String(3000 + Math.round((AO.h - p[1]) / 4)).padStart(4, '0'); }
 function cineGps(p){ return (57.1 + (AO.h - p[1]) / 9000).toFixed(4) + '° N, ' + (21.8 + p[0] / 6000).toFixed(4) + '° E'; }
+// HMS Queen Elizabeth: start of the route, bow pointed at the LZ
+function shipSvg(cls){ const [x, y] = AO.sea, ang = Math.atan2(AO.lz[1] - y, AO.lz[0] - x) * 180 / Math.PI;
+  return `<g class="${cls}" transform="translate(${x} ${y})"><g transform="rotate(${ang.toFixed(1)})">
+    <path class="hull" d="M-78 -13 L52 -18 L80 -7 L80 7 L52 17 L-78 14 Z"/><path class="deck" d="M-70 -6 L60 -12 M-70 6 L64 0"/>
+    <rect class="isl" x="-30" y="8" width="16" height="9"/><rect class="isl" x="4" y="9" width="16" height="9"/></g>
+    <text class="sl" x="0" y="${cls === 'aoship' ? 58 : 62}" text-anchor="middle">HMS QUEEN ELIZABETH</text><text class="sl2" x="0" y="${cls === 'aoship' ? 82 : 88}" text-anchor="middle">// R08 // TASK GROUP</text></g>`; }
 function cineSvg(S, focus){
   const pts = [AO.sea, AO.lz].concat(S.ms.map(m => AO.nodes[m.id])).concat([AO.exfil]), path = l => l.map((p, i) => (i ? 'L' : 'M') + p[0] + ' ' + p[1]).join(' ');
   const fi = S.ms.findIndex(m => m.id === focus);
@@ -1095,7 +1112,7 @@ function cineSvg(S, focus){
     <rect width="${AO.w}" height="${AO.h}" fill="url(#cdots)"/>
     ${[...Array(Math.ceil(AO.w / 320))].map((_, i) => `<path class="cg" d="M${i * 320} 0V${AO.h}"/>`).join('')}${[...Array(Math.ceil(AO.h / 320))].map((_, i) => `<path class="cg" d="M0 ${i * 320}H${AO.w}"/>`).join('')}
     ${fi >= 0 ? `<path class="croute" d="${path(pts.slice(0, fi + 3))}"/><path class="croute fut" d="${path(pts.slice(fi + 2))}"/>` : `<path class="croute" d="${path(pts)}"/>`}${fi >= 0 ? `<path class="croute hot" d="${path([fi > 0 ? AO.nodes[S.ms[fi - 1].id] : AO.lz, AO.nodes[focus]])}"/>` : ''}
-    <g transform="translate(${AO.lz[0]} ${AO.lz[1]})"><rect x="-11" y="-11" width="22" height="22" class="wp"/><text x="22" y="8" class="wl big">BLACK SAND</text></g>
+    ${shipSvg('cship')}<g transform="translate(${AO.lz[0]} ${AO.lz[1]})"><rect x="-11" y="-11" width="22" height="22" class="wp"/><text x="22" y="8" class="wl big">BLACK SAND</text></g>
     ${nodes}</svg>`;
 }
 let CINE_OUTER = null;
@@ -1135,6 +1152,11 @@ function cineObjective(S, id){
   return `<div class="cobj3d" id="cineObj3d" style="left:${AO.nodes[id][0] + 70}px;top:${AO.nodes[id][1] - 52}px"><div class="oh">${m.kind === 'test' ? 'FINAL OBJECTIVE' : 'OBJECTIVE ' + NATO[i]}</div>
     ${rows.map(([k, v], j) => `<div class="or" style="animation-delay:${0.3 + j * 0.18}s">// <b>${k}</b>: ${esc(v)}</div>`).join('')}</div>`;
 }
+function cineShipObj(){
+  const [x, y] = AO.sea, rows = [['PENNANT', 'R08'], ['CLASS', 'QUEEN ELIZABETH'], ['ROLE', 'FLAGSHIP / CARRIER'], ['DISPLACEMENT', '65,000 T'], ['LENGTH', '284 M'], ['SPEED', '25+ KTS'], ['HOME PORT', 'PORTSMOUTH'], ['STATUS', 'ON STATION']];
+  return `<div class="cobj3d ship" id="cineObj3d" style="left:${x - 250}px;top:${y + 80}px"><div class="oh">HMS QUEEN ELIZABETH</div>
+    ${rows.map(([k, v], j) => `<div class="or" style="animation-delay:${0.3 + j * 0.16}s">// <b>${k}</b>: ${esc(v)}</div>`).join('')}</div>`;
+}
 function sfxCine(kind){
   try {
     const a = audio(), t = a.currentTime, g = a.createGain(); g.connect(out());
@@ -1149,7 +1171,7 @@ function sfxCine(kind){
   } catch (e) {}
 }
 // Hologram plates (MOD, LPhot Hutchins): rucking = long, static = easy, action = intervals/strides, beach landing = insertion
-const HOLO_CREDIT = 'IMG: LPhot Hutchins / MOD © Crown copyright';
+const HOLO_CREDIT = 'IMG: LPhot Hutchins / MOD © Crown copyright', QE_CREDIT = 'IMG: AS1 Amber Mayall RAF / MOD © Crown copyright';
 const HOLO = { insert: 1, test: 11, long: [2, 4, 5, 12, 15], easy: [3, 6, 13, 14], action: [7, 8, 9, 10, 11] };
 function holoFor(S, m){
   const f = n => 'holo/h' + String(n).padStart(2, '0') + '.webp', grp = x => x.kind === 'long' ? 'long' : x.kind === 'easy' ? 'easy' : 'action';
@@ -1173,8 +1195,9 @@ function holoPrep(src){
     res(c); }; im.onerror = () => res(null); im.src = src; });
 }
 // one frame: pixel block size, number of torn bands
-function holoDraw(blk, tear){
-  const cv = $('#cineHoloC'), src = CINE && CINE.holo; if (!cv || !src) return;
+function holoDraw(blk, tear){ if (!CINE || !CINE.holos) return; document.querySelectorAll('#cine .cholo3 canvas').forEach((cv, i) => holoDraw1(cv, CINE.holos[i], blk, tear)); }
+function holoDraw1(cv, src, blk, tear){
+  if (!cv || !src) return;
   const g = cv.getContext('2d'), W = cv.width, H = cv.height; g.clearRect(0, 0, W, H); g.imageSmoothingEnabled = false;
   if (blk > 1) { const sw = Math.max(1, Math.round(W / blk)), sh = Math.max(1, Math.round(H / blk)), t = holoDraw.t || (holoDraw.t = document.createElement('canvas'));
     t.width = sw; t.height = sh; const tg = t.getContext('2d'); tg.drawImage(src, 0, 0, sw, sh); g.drawImage(t, 0, 0, sw, sh, 0, 0, W, H); }
@@ -1182,12 +1205,24 @@ function holoDraw(blk, tear){
   for (let k = 0; k < (tear || 0); k++) { const y = Math.random() * H | 0, h = 3 + Math.random() * 26 | 0, dx = (Math.random() - 0.5) * 70 | 0; g.drawImage(src, 0, y, W, h, dx, y, W, h); }
 }
 function holoSeq(steps, done){
-  const P = $('#cineHoloP'), G = $('#cineGlow'); if (!P) return;
-  steps.forEach(([ms, blk, tear, op]) => cineLater(() => { if (op) holoDraw(blk, tear); P.style.opacity = op; if (G) G.classList.toggle('on', op > 0); }, ms));
+  const P = document.querySelectorAll('#cine .cholo3 .hp'), G = document.querySelectorAll('#cine .cglow'); if (!P.length) return;
+  steps.forEach(([ms, blk, tear, op]) => cineLater(() => { if (op) holoDraw(blk, tear); P.forEach(x => { x.style.opacity = op; }); G.forEach(x => x.classList.toggle('on', op > 0)); }, ms));
   if (done) cineLater(done, steps[steps.length - 1][0] + 10);
 }
 // glitches in, then pixelation passes resolve to a clean image
-function holoIn(){ if (!CINE || !CINE.holo || CINE.holoState) return; CINE.holoState = 1; $('#cine').classList.add('holo-on');
+function mapIn(){
+  const fx = $('#cineMapFx'), img = $('#cine .cmap'), root = $('#cine'); if (!fx || !img) return;
+  const W = AO.w, H = AO.h, g = fx.getContext('2d');
+  const frame = (blk, tear) => { const w = Math.max(2, Math.round(W / blk)), h = Math.max(2, Math.round(H / blk)); fx.width = w; fx.height = h;
+    try { g.drawImage(img, 0, 0, w, h); for (let k = 0; k < (tear || 0); k++) { const y = Math.random() * h | 0, bh = 1 + Math.random() * h / 12 | 0, dx = (Math.random() - 0.5) * w / 8 | 0; g.drawImage(fx, 0, y, w, bh, dx, y, w, bh); } } catch (e) {}
+    g.fillStyle = 'rgba(60,200,240,.18)'; g.fillRect(0, 0, w, h); };
+  const steps = [[0, 90, 2, 0.9], [70, 90, 0, 0], [140, 60, 3, 0.9], [240, 60, 0, 0], [300, 40, 2, 0.95], [430, 26, 1, 0.95], [560, 16, 2, 0.95], [690, 10, 0, 1], [820, 6, 1, 1], [940, 3, 0, 1]];
+  sfxB('glitch2', 0.10); cineLater(() => sfxB('glitch1', 0.08), 300);
+  steps.forEach(([ms, blk, tear, op]) => cineLater(() => { frame(blk, tear); fx.style.opacity = op; }, ms));
+  cineLater(() => { root.classList.remove('map-off'); }, 1060);
+  cineLater(() => { fx.style.opacity = 0; }, 1160); cineLater(() => { fx.width = fx.height = 1; }, 1300);
+}
+function holoIn(){ if (!CINE || !CINE.holos || !CINE.holos[0] || CINE.holoState) return; CINE.holoState = 1; $('#cine').classList.add('holo-on');
   sfxB('glitch2', 0.12); cineLater(() => sfxB('glitch1', 0.09), 290); cineLater(() => sfxB('t2', 0.08), 1080);
   holoSeq([[0, 28, 3, 0.8], [60, 28, 0, 0], [130, 20, 2, 0.85], [230, 20, 4, 0], [290, 14, 2, 0.85], [420, 10, 1, 0.85], [560, 7, 2, 0.85], [700, 5, 0, 0.85], [840, 3, 1, 0.85], [960, 2, 0, 0.85], [1080, 1, 0, 0.85], [1500, 1, 1, 0.85], [1560, 1, 0, 0.85]]); }
 function holoOut(){ if (!CINE || CINE.holoState !== 1) return; CINE.holoState = 2; $('#cine').classList.remove('holo-on'); sfxB('glitch1', 0.08, 1.1);
@@ -1196,16 +1231,16 @@ async function cinePlay(id){
   closeModal(); stopOps(); cineStop();
   const S = campaignState(); cineCam.S = S;
   const i = S.ms.findIndex(x => x.id === id), m = S.ms[i], c = CAMPAIGN, intro = id === 'intro';
-  const p = intro ? AO.lz : AO.nodes[id];
+  const p = intro ? AO.sea : AO.nodes[id];
   const head = intro ? 'OPERATION ORDERS' : `SECTOR ${m.week + 1} // ${m.kind === 'test' ? 'FINAL OBJECTIVE' : 'MISSION ' + (m.n + 1)}`;
-  const holoImg = intro ? null : holoFor(S, m);
+  const holoImgs = intro ? ['holo/qe1.webp', 'holo/qe2.webp'] : [holoFor(S, m)];
   document.body.classList.add('cine-on');
-  const el = document.createElement('div'); el.id = 'cine';
+  const el = document.createElement('div'); el.id = 'cine'; el.className = 'map-off';
   el.innerHTML = `<div class="c3d" id="cineFrame"><div class="cplane" id="cinePlane" style="width:${AO.w}px;height:${AO.h}px">
-      ${cineOuter()}<img class="cmap" src="${AO.img}" alt="">${cineSvg(S, intro ? null : id)}
-      ${intro ? '' : `<div class="crings" style="left:${p[0]}px;top:${p[1]}px"><i class="far">${CRING}</i><i class="base">${CRING_DRAW}</i><i class="l1">${CRING}</i><i class="l2">${CRING}</i></div>`}
-      ${intro ? '' : cineObjective(S, id)}
-      ${!intro && holoImg ? `<div class="cglow" id="cineGlow" style="left:${p[0] - 40}px;top:${p[1] - 220}px"></div><div class="cholo3" style="left:${p[0] + 50}px;top:${p[1] - 110}px"><div class="hp" id="cineHoloP"><canvas id="cineHoloC" width="448" height="252"></canvas></div></div>` : ''}
+      ${cineOuter()}<img class="cmap" src="${AO.img}" alt=""><canvas class="cmapfx" id="cineMapFx" width="2" height="2"></canvas>${cineSvg(S, intro ? null : id)}
+      <div class="crings" style="left:${p[0]}px;top:${p[1]}px"><i class="far">${CRING}</i><i class="base">${CRING_DRAW}</i><i class="l1">${CRING}</i><i class="l2">${CRING}</i></div>
+      ${intro ? cineShipObj() : cineObjective(S, id)}
+      ${(intro ? [p[0] - 463, p[0] + 15] : [p[0] + 50]).map(x => `<div class="cglow" style="left:${x - 90}px;top:${p[1] - 220}px"></div><div class="cholo3" style="left:${x}px;top:${p[1] - 110}px"><div class="hp"><canvas width="448" height="252"></canvas></div></div>`).join('')}
     </div></div>
 
     <div class="cscan"></div><div class="cvig"></div>
@@ -1218,35 +1253,43 @@ async function cinePlay(id){
     <div class="ctitle2" id="cineTitle"><span>OP ${esc(c.short)} // ${esc(head)}</span><b>${esc(intro ? 'FROSTLINE' : m.name)}</b></div>
     <div class="csub2"><div id="cineTxt"></div></div>
     <div class="cclock"><span id="cineClkL">${intro ? 'INSERTION IN' : 'TIME REMAINING'}</span><b id="cineClock"></b></div>
-    <div class="cprog"><i id="cineProg"></i></div><div class="chcred" id="cineCred">${esc(HOLO_CREDIT)}</div>
+    <div class="cprog"><i id="cineProg"></i></div><div class="chcred" id="cineCred">${esc(intro ? QE_CREDIT : HOLO_CREDIT)}</div>
     <div class="cend" id="cineEnd"><button data-a="cine-replay">↺ REPLAY</button><button data-a="cine-close">CLOSE</button></div>`;
   document.body.appendChild(el);
   $('#cineTxt').textContent = 'DECRYPTING TRANSMISSION…';
   const pl = $('#cinePlane'); pl.classList.add('snap'); cineSetCam(cineCam(id, 'start')); void pl.offsetWidth; pl.classList.remove('snap');
-  const holoSrc = !intro && holoImg ? holoPrep('photos/' + encodeURI(holoImg)) : Promise.resolve(null);
-  const bedP = loadBed(bedFor(id, m || {})); await Promise.all([loadOps(), loadSfxB()]); const holo = await holoSrc, bedBuf = await bedP;
+  const holoSrc = Promise.all(holoImgs.map(f => holoPrep('photos/' + encodeURI(f))));
+  const bedP = loadBed(bedFor(id, m || {})); await Promise.all([loadOps(), loadSfxB()]); const holos = await holoSrc, bedBuf = await bedP;
   if (!document.getElementById('cine')) return;
   $('#cineTxt').textContent = '';
   const beats = cineBeats(id), dur = beats.length ? beats[beats.length - 1].b + 1.4 : 10;
   const deadline = intro ? c.start + 'T00:00:00' : addDaysStr(m.sun, 1) + 'T00:00:00';
-  CINE = { id, beats, dur, cur: -1, beat: null, raf: 0, timers: [], holo, holoState: 0 };
+  CINE = { id, beats, dur, cur: -1, beat: null, raf: 0, timers: [], holos, holoState: 0, ev: {} };
+  mapIn();
   if (!intro) { cineLater(() => { el.classList.add('r-in'); sfxB('data', 0.07); }, 3300); cineLater(() => { if (!el.classList.contains('s-obj')) { el.classList.add('r-up'); sfxB('chirp', 0.07, 0.8); } }, 4500); }
   const a = audio();
   sfxB('hit', 0.35); sfxB('chatter', 0.10);
+  const tStart = a.currentTime + 0.5;
   if (bedBuf) { const bs = a.createBufferSource(), bg = a.createGain(); bs.buffer = bedBuf; bg.gain.value = 0.0001; bs.connect(bg).connect(out());
-    const tb = a.currentTime + 0.2; bs.start(tb); bg.gain.setTargetAtTime(0.3, tb, 0.6); ops.srcs.push(bs); CINE.bed = bg; }
-  if (ops.buf && ops.map[id]) { const [off, d] = ops.map[id], s = a.createBufferSource(); s.buffer = ops.buf; s.connect(out()); const t0 = a.currentTime + 0.5; s.start(t0, off, d); ops.srcs.push(s); CINE.clock = () => a.currentTime - t0; }
+    bs.start(tStart); bg.gain.setTargetAtTime(0.3, tStart, 0.4); ops.srcs.push(bs); CINE.bed = bg; }
+  if (ops.buf && ops.map[id]) { const [off, d] = ops.map[id], s = a.createBufferSource(); s.buffer = ops.buf; s.connect(out()); const t0 = tStart; s.start(t0, off, d); ops.srcs.push(s); CINE.clock = () => a.currentTime - t0; }
   else { const st = performance.now() + 500; CINE.clock = () => (performance.now() - st) / 1000; setTimeout(() => sayOps([id]), 500); }
   const step = () => {
     if (!CINE || !document.getElementById('cine')) return;
     const t = CINE.clock(), root = $('#cine');
     const clk = $('#cineClock'); if (clk) { const over = new Date(deadline) <= new Date(); clk.textContent = over ? (intro ? 'LIVE' : m.done ? 'COMPLETE' : 'CLOSED') : aoClockText(deadline); $('#cineClkL').textContent = over ? 'STATUS' : intro ? 'INSERTION IN' : 'TIME REMAINING'; }
+    if (intro) { const E = CINE.ev, at = (key, tt, fn) => { if (!E[key] && t >= tt) { E[key] = 1; fn(); } }, shipEnd = beats[5] ? beats[5].a - 0.5 : 15;
+      at('rin', 2.6, () => { root.classList.add('r-in'); sfxB('data', 0.07); });
+      at('rup', 3.8, () => { root.classList.add('r-up'); sfxB('chirp', 0.07, 0.8); });
+      at('rout', 5.6, () => { root.classList.add('s-obj', 'r-out'); sfxB('hit2', 0.22); cineLater(() => { const r = $('#cine .crings'); if (r) r.remove(); }, 1300); });
+      at('reveal', 7.0, () => { root.classList.add('obj-in'); sfxB('data', 0.08, 1.05); holoIn(); });
+      at('shipout', shipEnd, () => { holoOut(); cineLater(() => root.classList.remove('obj-in', 's-obj'), 350); }); }
     let k = -1; beats.forEach((b, j) => { if (t >= b.a - 0.05) k = j; });
     const speaking = k >= 0 && t <= beats[k].b; root.classList.toggle('talk', speaking);
     if (CINE.bed && speaking !== CINE.duck && t <= dur) { CINE.duck = speaking; CINE.bed.gain.setTargetAtTime(speaking ? 0.18 : 0.3, audio().currentTime, 0.25); }
     if (k !== CINE.cur && k >= 0) {
       CINE.cur = k; const b = beats[k];
-      if (b.beat !== CINE.beat) { CINE.beat = b.beat; cineSetCam(cineCam(id, b.beat)); sfxCine('whoosh'); sfxB('chirp', 0.05, 0.9);
+      if (b.beat !== CINE.beat) { CINE.beat = b.beat; cineSetCam(cineCam(id, b.beat)); if (!CINE.whooshed) { CINE.whooshed = 1; sfxCine('whoosh'); }
         const bn = b.beat.replace(/\d+$/, ''); root.dataset.beat = bn;
         $('#cineTitle').classList.toggle('on', b.beat === 'title' || b.beat === 'tour0');
         if (['situation', 'mission', 'execution'].includes(bn)) root.classList.add('s-sit');
@@ -1255,8 +1298,8 @@ async function cinePlay(id){
           cineLater(() => { root.classList.add('obj-in'); sfxB('data', 0.08, 1.05); holoIn(); }, 2700); } }
     }
     if (k >= 0) { const b = beats[k], frac = Math.min(1, (t - b.a) / Math.max(0.4, (b.b - b.a) * 0.8)), n = Math.round(b.txt.length * frac), tx = $('#cineTxt');
-      if (tx && tx.dataset.n !== n + '|' + k) { tx.dataset.n = n + '|' + k; tx.textContent = b.txt.slice(0, n); if (n % 6 === 0 && frac < 1) sfxB('t' + (1 + (n / 6 | 0) % 5), 0.06, 0.95 + Math.random() * 0.1); } }
-    if (t > dur - 0.6) holoOut();
+      if (tx && tx.dataset.n !== n + '|' + k) { tx.dataset.n = n + '|' + k; tx.textContent = b.txt.slice(0, n); } }
+    if (!intro && t > dur - 0.6) holoOut();
     const pg = $('#cineProg'); if (pg) pg.style.width = Math.min(100, t / dur * 100) + '%';
     if (t > dur) { if (CINE.beat !== 'end') { CINE.beat = 'end'; if (CINE.bed) CINE.bed.gain.setTargetAtTime(0.0001, audio().currentTime, 0.9); cineSetCam(cineCam(id, 'end')); root.classList.add('ended'); root.classList.remove('talk'); } return; }
     CINE.raf = requestAnimationFrame(step);
@@ -1895,7 +1938,7 @@ function vSettings(){
   ${vNudges()}
   <section><div class="label">App</div><div class="card small"><span class="muted">Version ${esc(APP_VERSION)}</span>
     <div class="big-btns"><button class="btn" data-a="app-update">Check for update</button><button class="btn" data-a="app-backup">Back up my sheet</button></div>
-    <div class="hint" style="margin-top:10px">Photos via Wikimedia Commons, photographers credited on each picture. UK Ministry of Defence photos © Crown copyright, licensed under the Open Government Licence v3.0; briefing hologram photos by LPhot Hutchins / MOD © Crown copyright; U.S. military photos are in the public domain. This app is a personal project and is not affiliated with or endorsed by the Royal Marines or the MOD.</div>
+    <div class="hint" style="margin-top:10px">Photos via Wikimedia Commons, photographers credited on each picture. UK Ministry of Defence photos © Crown copyright, licensed under the Open Government Licence v3.0; briefing hologram photos by LPhot Hutchins and AS1 Amber Mayall RAF / MOD © Crown copyright; U.S. military photos are in the public domain. This app is a personal project and is not affiliated with or endorsed by the Royal Marines or the MOD.</div>
     <div class="hint">Back up saves a dated copy of your whole training log to your Google Drive.</div></div></section>
   <section><div class="label">Sheet link</div><div class="card small"><div class="muted" style="word-break:break-all">${esc(cfg.url)}</div>
     <div class="row" style="margin-top:10px"><button class="btn sm" data-a="go" data-v="connect">Change link or passphrase</button></div></div></section>`;
