@@ -510,7 +510,7 @@ body.typing #rest{display:none!important}
 <div id="toast"></div>
 
 <script>
-const APP_VERSION = 'cf-v29';
+const APP_VERSION = 'cf-v30';
 /* ================= utilities ================= */
 const $ = s => document.querySelector(s);
 const esc = v => String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -878,6 +878,18 @@ function loadOps(){
     .catch(() => { ops.none = true; }).finally(() => { ops.loading = null; });
   return ops.loading;
 }
+// Briefing sound: subtle UI sprite + a quiet music bed per mission type, ducked under the voice
+const SFXB = { buf: null, map: null, ctx: null }, BEDS = {};
+function loadBuf(url, a){ return fetch(url).then(r => { if (!r.ok) throw new Error('none'); return r.arrayBuffer(); }).then(ab => new Promise((res, rej) => a.decodeAudioData(ab, res, rej))); }
+function loadSfxB(){ const a = audio(); if (SFXB.buf && SFXB.ctx === a) return Promise.resolve();
+  return fetch('audio/sfx_brief.json').then(r => r.json()).then(m => loadBuf('audio/sfx_brief.mp3', a).then(b => { SFXB.buf = b; SFXB.map = m; SFXB.ctx = a; })).catch(() => {}); }
+function loadBed(k){ const a = audio(); if (BEDS[k] && BEDS[k].ctx === a) return Promise.resolve(BEDS[k].buf);
+  return loadBuf('audio/bed_' + k + '.mp3', a).then(b => { BEDS[k] = { buf: b, ctx: a }; return b; }).catch(() => null); }
+function sfxB(name, gain, rate){
+  try { const a = audio(); if (!SFXB.buf || SFXB.ctx !== a || !SFXB.map[name]) return; const [o, d] = SFXB.map[name];
+    const s = a.createBufferSource(), g = a.createGain(); s.buffer = SFXB.buf; s.playbackRate.value = rate || 1; g.gain.value = gain; s.connect(g).connect(out()); s.start(a.currentTime, o, d); } catch (e) {}
+}
+const bedFor = (id, m) => id === 'intro' ? 'intro' : m.kind === 'test' ? 'final' : m.kind === 'easy' || m.kind === 'long' ? 'chill' : 'drive';
 function stopOps(){ (ops.srcs || []).forEach(s => { try { s.stop(); } catch (e) {} }); ops.srcs = []; try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {} }
 async function sayOps(ids){
   stopOps(); await loadOps();
@@ -1129,7 +1141,7 @@ function sfxCine(kind){
     if (kind === 'whoosh') {
       const n = a.createBuffer(1, a.sampleRate * 0.9, a.sampleRate), d = n.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * i / d.length);
       const s = a.createBufferSource(), f = a.createBiquadFilter(); s.buffer = n; f.type = 'bandpass'; f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(2400, t + 0.8); f.Q.value = 0.8;
-      g.gain.value = 0.10; s.connect(f).connect(g); s.start(t);
+      g.gain.value = 0.05; s.connect(f).connect(g); s.start(t);
     } else {
       const o = a.createOscillator(); o.type = 'square'; o.frequency.value = kind === 'boot' ? 220 : 1400; g.gain.setValueAtTime(kind === 'boot' ? 0.06 : 0.010, t); g.gain.exponentialRampToValueAtTime(0.0001, t + (kind === 'boot' ? 0.5 : 0.03));
       if (kind === 'boot') o.frequency.exponentialRampToValueAtTime(880, t + 0.4); o.connect(g); o.start(t); o.stop(t + (kind === 'boot' ? 0.5 : 0.04));
@@ -1171,13 +1183,14 @@ function holoDraw(blk, tear){
 }
 function holoSeq(steps, done){
   const P = $('#cineHoloP'), G = $('#cineGlow'); if (!P) return;
-  steps.forEach(([ms, blk, tear, op]) => cineLater(() => { if (op) holoDraw(blk, tear); P.style.opacity = op; if (G) G.classList.toggle('on', op > 0); if (op) sfxCine('blip'); }, ms));
+  steps.forEach(([ms, blk, tear, op]) => cineLater(() => { if (op) holoDraw(blk, tear); P.style.opacity = op; if (G) G.classList.toggle('on', op > 0); }, ms));
   if (done) cineLater(done, steps[steps.length - 1][0] + 10);
 }
 // glitches in, then pixelation passes resolve to a clean image
 function holoIn(){ if (!CINE || !CINE.holo || CINE.holoState) return; CINE.holoState = 1; $('#cine').classList.add('holo-on');
+  sfxB('glitch2', 0.12); cineLater(() => sfxB('glitch1', 0.09), 290); cineLater(() => sfxB('t2', 0.08), 1080);
   holoSeq([[0, 28, 3, 0.8], [60, 28, 0, 0], [130, 20, 2, 0.85], [230, 20, 4, 0], [290, 14, 2, 0.85], [420, 10, 1, 0.85], [560, 7, 2, 0.85], [700, 5, 0, 0.85], [840, 3, 1, 0.85], [960, 2, 0, 0.85], [1080, 1, 0, 0.85], [1500, 1, 1, 0.85], [1560, 1, 0, 0.85]]); }
-function holoOut(){ if (!CINE || CINE.holoState !== 1) return; CINE.holoState = 2; $('#cine').classList.remove('holo-on');
+function holoOut(){ if (!CINE || CINE.holoState !== 1) return; CINE.holoState = 2; $('#cine').classList.remove('holo-on'); sfxB('glitch1', 0.08, 1.1);
   holoSeq([[0, 3, 2, 0.85], [80, 8, 3, 0.85], [160, 16, 0, 0], [220, 22, 3, 0.6], [300, 1, 0, 0]]); }
 async function cinePlay(id){
   closeModal(); stopOps(); cineStop();
@@ -1211,15 +1224,17 @@ async function cinePlay(id){
   $('#cineTxt').textContent = 'DECRYPTING TRANSMISSION…';
   const pl = $('#cinePlane'); pl.classList.add('snap'); cineSetCam(cineCam(id, 'start')); void pl.offsetWidth; pl.classList.remove('snap');
   const holoSrc = !intro && holoImg ? holoPrep('photos/' + encodeURI(holoImg)) : Promise.resolve(null);
-  await loadOps(); const holo = await holoSrc;
+  const bedP = loadBed(bedFor(id, m || {})); await Promise.all([loadOps(), loadSfxB()]); const holo = await holoSrc, bedBuf = await bedP;
   if (!document.getElementById('cine')) return;
   $('#cineTxt').textContent = '';
   const beats = cineBeats(id), dur = beats.length ? beats[beats.length - 1].b + 1.4 : 10;
   const deadline = intro ? c.start + 'T00:00:00' : addDaysStr(m.sun, 1) + 'T00:00:00';
   CINE = { id, beats, dur, cur: -1, beat: null, raf: 0, timers: [], holo, holoState: 0 };
-  if (!intro) { cineLater(() => el.classList.add('r-in'), 3300); cineLater(() => { if (!el.classList.contains('s-obj')) el.classList.add('r-up'); }, 4500); }
-  sfxCine('boot');
+  if (!intro) { cineLater(() => { el.classList.add('r-in'); sfxB('data', 0.07); }, 3300); cineLater(() => { if (!el.classList.contains('s-obj')) { el.classList.add('r-up'); sfxB('chirp', 0.07, 0.8); } }, 4500); }
   const a = audio();
+  sfxB('hit', 0.35); sfxB('chatter', 0.10);
+  if (bedBuf) { const bs = a.createBufferSource(), bg = a.createGain(); bs.buffer = bedBuf; bg.gain.value = 0.0001; bs.connect(bg).connect(out());
+    const tb = a.currentTime + 0.2; bs.start(tb); bg.gain.setTargetAtTime(0.3, tb, 0.6); ops.srcs.push(bs); CINE.bed = bg; }
   if (ops.buf && ops.map[id]) { const [off, d] = ops.map[id], s = a.createBufferSource(); s.buffer = ops.buf; s.connect(out()); const t0 = a.currentTime + 0.5; s.start(t0, off, d); ops.srcs.push(s); CINE.clock = () => a.currentTime - t0; }
   else { const st = performance.now() + 500; CINE.clock = () => (performance.now() - st) / 1000; setTimeout(() => sayOps([id]), 500); }
   const step = () => {
@@ -1228,21 +1243,22 @@ async function cinePlay(id){
     const clk = $('#cineClock'); if (clk) { const over = new Date(deadline) <= new Date(); clk.textContent = over ? (intro ? 'LIVE' : m.done ? 'COMPLETE' : 'CLOSED') : aoClockText(deadline); $('#cineClkL').textContent = over ? 'STATUS' : intro ? 'INSERTION IN' : 'TIME REMAINING'; }
     let k = -1; beats.forEach((b, j) => { if (t >= b.a - 0.05) k = j; });
     const speaking = k >= 0 && t <= beats[k].b; root.classList.toggle('talk', speaking);
+    if (CINE.bed && speaking !== CINE.duck && t <= dur) { CINE.duck = speaking; CINE.bed.gain.setTargetAtTime(speaking ? 0.18 : 0.3, audio().currentTime, 0.25); }
     if (k !== CINE.cur && k >= 0) {
       CINE.cur = k; const b = beats[k];
-      if (b.beat !== CINE.beat) { CINE.beat = b.beat; cineSetCam(cineCam(id, b.beat)); sfxCine('whoosh');
+      if (b.beat !== CINE.beat) { CINE.beat = b.beat; cineSetCam(cineCam(id, b.beat)); sfxCine('whoosh'); sfxB('chirp', 0.05, 0.9);
         const bn = b.beat.replace(/\d+$/, ''); root.dataset.beat = bn;
         $('#cineTitle').classList.toggle('on', b.beat === 'title' || b.beat === 'tour0');
         if (['situation', 'mission', 'execution'].includes(bn)) root.classList.add('s-sit');
         if (['mission', 'execution'].includes(bn) && !root.classList.contains('s-obj')) { root.classList.add('s-obj');
-          root.classList.add('r-out'); cineLater(() => { const r = $('#cine .crings'); if (r) r.remove(); }, 1300);
-          cineLater(() => { root.classList.add('obj-in'); holoIn(); }, 2700); } }
+          root.classList.add('r-out'); sfxB('hit2', 0.22); cineLater(() => { const r = $('#cine .crings'); if (r) r.remove(); }, 1300);
+          cineLater(() => { root.classList.add('obj-in'); sfxB('data', 0.08, 1.05); holoIn(); }, 2700); } }
     }
     if (k >= 0) { const b = beats[k], frac = Math.min(1, (t - b.a) / Math.max(0.4, (b.b - b.a) * 0.8)), n = Math.round(b.txt.length * frac), tx = $('#cineTxt');
-      if (tx && tx.dataset.n !== n + '|' + k) { tx.dataset.n = n + '|' + k; tx.textContent = b.txt.slice(0, n); if (n % 5 === 0 && frac < 1) sfxCine('blip'); } }
+      if (tx && tx.dataset.n !== n + '|' + k) { tx.dataset.n = n + '|' + k; tx.textContent = b.txt.slice(0, n); if (n % 6 === 0 && frac < 1) sfxB('t' + (1 + (n / 6 | 0) % 5), 0.06, 0.95 + Math.random() * 0.1); } }
     if (t > dur - 0.6) holoOut();
     const pg = $('#cineProg'); if (pg) pg.style.width = Math.min(100, t / dur * 100) + '%';
-    if (t > dur) { if (CINE.beat !== 'end') { CINE.beat = 'end'; cineSetCam(cineCam(id, 'end')); root.classList.add('ended'); root.classList.remove('talk'); } return; }
+    if (t > dur) { if (CINE.beat !== 'end') { CINE.beat = 'end'; if (CINE.bed) CINE.bed.gain.setTargetAtTime(0.0001, audio().currentTime, 0.9); cineSetCam(cineCam(id, 'end')); root.classList.add('ended'); root.classList.remove('talk'); } return; }
     CINE.raf = requestAnimationFrame(step);
   };
   CINE.raf = requestAnimationFrame(step);
