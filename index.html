@@ -209,8 +209,8 @@ details.mlog summary{cursor:pointer;list-style:none}
 #cine .cplane.snap{transition:none}
 #cine .cmap{position:absolute;inset:0;width:100%;height:100%}
 #cine .cmapfx{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;transform:translateZ(1px);pointer-events:none;opacity:0}
-#cine.map-off .cmap,#cine.map-off .csvg,#cine.map-off .couter,#cine.map-off .cedge{opacity:0}
-#cine .csvg,#cine .couter,#cine .cedge{transition:opacity .5s}
+#cine.map-off .cmap{opacity:0}
+#cine .cmap{transition:none}
 #cine .cship .hull,.aosvg .aoship .hull{fill:#dfe9ee;stroke:#05090c;stroke-width:2}
 #cine .cship .deck,.aosvg .aoship .deck{stroke:rgba(5,9,12,.45);stroke-width:2;fill:none;stroke-dasharray:6 6}
 #cine .cship .isl,.aosvg .aoship .isl{fill:#8fa3ab}
@@ -283,6 +283,7 @@ details.mlog summary{cursor:pointer;list-style:none}
 #cine .ctitle2 span{display:block;font:600 12px Rajdhani;letter-spacing:.24em;color:#e6f3f6;margin-bottom:6px}
 #cine .ctitle2 b{display:block;font:800 clamp(56px,19vw,140px)/.86 'Saira Extra Condensed',Rajdhani,sans-serif;color:#ff1f36;letter-spacing:-.005em;text-shadow:-3px 0 rgba(0,220,255,.25),3px 0 rgba(255,0,80,.4),0 0 30px rgba(255,30,50,.45)}
 #cine .csub2{position:absolute;left:6%;right:6%;bottom:calc(env(safe-area-inset-bottom) + 96px);text-align:center}
+#cine .csub2{transition:opacity .6s}#cine.ended .csub2{opacity:0}
 #cine .csub2 div{font:600 19px/1.35 Rajdhani,sans-serif;color:#fff;letter-spacing:.02em;text-shadow:0 2px 6px #000,0 0 2px #000}
 #cine .cclock{position:absolute;right:14px;bottom:calc(env(safe-area-inset-bottom) + 30px);text-align:right;text-shadow:-1px 0 rgba(255,0,60,.4),1px 0 rgba(0,220,255,.4)}
 #cine .cclock span{display:block;font:700 11px Rajdhani;letter-spacing:.18em;color:#f3f1e3}
@@ -520,7 +521,7 @@ body.typing #rest{display:none!important}
 <div id="toast"></div>
 
 <script>
-const APP_VERSION = 'cf-v31';
+const APP_VERSION = 'cf-v32';
 /* ================= utilities ================= */
 const $ = s => document.querySelector(s);
 const esc = v => String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1075,30 +1076,33 @@ function cineCam(id, beat){
     if (beat === 'start') return { tilt: 74, rot: -34, z: 0.16, c: [1650, 700] };
     if (beat !== 'end' && k <= 4) return { tilt: 50, rot: 0, z: 0.38, c: [AO.sea[0], AO.sea[1] + 50] };
     if (k >= 10 || beat === 'end') return { tilt: 60, rot: -8, z: 0.22, c: [1650, 700] };
-    const w = Math.min(5, Math.floor((k - 5) * 6 / 4));
-    return { tilt: 56, rot: k % 2 ? -16 : 14, z: 0.5, c: sectorC(w) };
+    if (k === 5) return { tilt: 56, rot: -14, z: 0.5, c: sectorC(0) };
+    const B = CINE && CINE.beats, glide = B && B[10] && B[6] ? B[10].a - B[6].a + 0.4 : 11;
+    return { tilt: 54, rot: 12, z: 0.46, c: sectorC(5), tr: `transform ${glide.toFixed(2)}s cubic-bezier(.4,0,.6,1)` };
   }
   const i = S.ms.findIndex(x => x.id === id), m = S.ms[i], p = AO.nodes[id], prev = i > 0 ? AO.nodes[S.ms[i - 1].id] : AO.lz, sc = sectorC(m.week);
   if (beat === 'start') return { tilt: 74, rot: -34, z: 0.18, c: p };
   if (beat === 'title') return { tilt: 66, rot: -20, z: 0.3, c: sc };
   if (beat === 'situation') return { tilt: 58, rot: -8, z: 0.62, c: [p[0] - 60, p[1]] };
   const ob = document.getElementById('cineObj3d'), bw = ob ? ob.offsetWidth : 560, bh = ob ? ob.offsetHeight : 330, fitW = innerWidth * 0.9;
-  if (beat === 'mission') { const l = p[0] + 50, r = Math.max(p[0] + 498, p[0] + 70 + bw); return { tilt: 50, rot: 4, z: Math.min(0.5, fitW / (r - l)), c: [(l + r) / 2, p[1] + 90] }; }
+  if (beat === 'mission') { const l = p[0] - 60, r = Math.max(p[0] + 498, p[0] + 70 + bw); return { tilt: 50, rot: 4, z: Math.min(0.5, fitW / (r - l)), c: [(l + r) / 2, p[1] + 90] }; }
   if (beat === 'execution') return cineCam(id, 'mission');
-  return { tilt: 46, rot: 0, z: Math.min(0.6, fitW / bw), c: [p[0] + 70 + bw / 2, p[1] - 52 + bh / 2 + 30] };
+  const l = p[0] - 64, r = p[0] + 70 + bw;
+  return { tilt: 46, rot: 0, z: Math.min(0.6, fitW / (r - l)), c: [(l + r) / 2, p[1] - 52 + bh / 2 + 30] };
 }
 function cineSetCam(cam){
   const pl = $('#cinePlane'); if (!pl) return;
+  pl.style.transition = cam.tr || '';
   pl.style.transform = `translate(${innerWidth / 2}px, ${innerHeight * 0.5}px) rotateX(${cam.tilt}deg) rotateZ(${cam.rot}deg) scale3d(${cam.z}, ${cam.z}, ${cam.z}) translate(${-cam.c[0]}px, ${-cam.c[1]}px)`;
 }
 function cineGrid(p){ return String(4400 + Math.round(p[0] / 4)).padStart(4, '0') + ', ' + String(3000 + Math.round((AO.h - p[1]) / 4)).padStart(4, '0'); }
 function cineGps(p){ return (57.1 + (AO.h - p[1]) / 9000).toFixed(4) + '° N, ' + (21.8 + p[0] / 6000).toFixed(4) + '° E'; }
 // HMS Queen Elizabeth: start of the route, bow pointed at the LZ
 function shipSvg(cls){ const [x, y] = AO.sea, ang = Math.atan2(AO.lz[1] - y, AO.lz[0] - x) * 180 / Math.PI;
-  return `<g class="${cls}" transform="translate(${x} ${y})"><g transform="rotate(${ang.toFixed(1)})">
+  return `<g class="${cls}" transform="translate(${x} ${y})"><g transform="rotate(${ang.toFixed(1)}) scale(.75)">
     <path class="hull" d="M-78 -13 L52 -18 L80 -7 L80 7 L52 17 L-78 14 Z"/><path class="deck" d="M-70 -6 L60 -12 M-70 6 L64 0"/>
     <rect class="isl" x="-30" y="8" width="16" height="9"/><rect class="isl" x="4" y="9" width="16" height="9"/></g>
-    <text class="sl" x="0" y="${cls === 'aoship' ? 58 : 62}" text-anchor="middle">HMS QUEEN ELIZABETH</text><text class="sl2" x="0" y="${cls === 'aoship' ? 82 : 88}" text-anchor="middle">// R08 // TASK GROUP</text></g>`; }
+    <text class="sl" x="0" y="48" text-anchor="middle">HMS QUEEN ELIZABETH</text><text class="sl2" x="0" y="70" text-anchor="middle">// R08 // TASK GROUP</text></g>`; }
 function cineSvg(S, focus){
   const pts = [AO.sea, AO.lz].concat(S.ms.map(m => AO.nodes[m.id])).concat([AO.exfil]), path = l => l.map((p, i) => (i ? 'L' : 'M') + p[0] + ' ' + p[1]).join(' ');
   const fi = S.ms.findIndex(m => m.id === focus);
@@ -1215,12 +1219,12 @@ function mapIn(){
   const W = AO.w, H = AO.h, g = fx.getContext('2d');
   const frame = (blk, tear) => { const w = Math.max(2, Math.round(W / blk)), h = Math.max(2, Math.round(H / blk)); fx.width = w; fx.height = h;
     try { g.drawImage(img, 0, 0, w, h); for (let k = 0; k < (tear || 0); k++) { const y = Math.random() * h | 0, bh = 1 + Math.random() * h / 12 | 0, dx = (Math.random() - 0.5) * w / 8 | 0; g.drawImage(fx, 0, y, w, bh, dx, y, w, bh); } } catch (e) {}
-    g.fillStyle = 'rgba(60,200,240,.18)'; g.fillRect(0, 0, w, h); };
-  const steps = [[0, 90, 2, 0.9], [70, 90, 0, 0], [140, 60, 3, 0.9], [240, 60, 0, 0], [300, 40, 2, 0.95], [430, 26, 1, 0.95], [560, 16, 2, 0.95], [690, 10, 0, 1], [820, 6, 1, 1], [940, 3, 0, 1]];
+  };
+  const steps = [[0, 90, 0, 0.35], [120, 60, 0, 0.6], [240, 40, 0, 0.85], [360, 26, 0, 1], [480, 16, 0, 1], [600, 10, 0, 1], [720, 6, 0, 1], [840, 3, 0, 1]];
   sfxB('glitch2', 0.10); cineLater(() => sfxB('glitch1', 0.08), 300);
   steps.forEach(([ms, blk, tear, op]) => cineLater(() => { frame(blk, tear); fx.style.opacity = op; }, ms));
-  cineLater(() => { root.classList.remove('map-off'); }, 1060);
-  cineLater(() => { fx.style.opacity = 0; }, 1160); cineLater(() => { fx.width = fx.height = 1; }, 1300);
+  cineLater(() => { root.classList.remove('map-off'); }, 960);
+  cineLater(() => { fx.style.opacity = 0; fx.width = fx.height = 1; }, 1000);
 }
 function holoIn(){ if (!CINE || !CINE.holos || !CINE.holos[0] || CINE.holoState) return; CINE.holoState = 1; $('#cine').classList.add('holo-on');
   sfxB('glitch2', 0.12); cineLater(() => sfxB('glitch1', 0.09), 290); cineLater(() => sfxB('t2', 0.08), 1080);
