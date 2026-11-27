@@ -522,7 +522,7 @@ body.typing #rest{display:none!important}
 <div id="toast"></div>
 
 <script>
-const APP_VERSION = 'cf-v33';
+const APP_VERSION = 'cf-v34';
 /* ================= utilities ================= */
 const $ = s => document.querySelector(s);
 const esc = v => String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1117,8 +1117,8 @@ function cineSvg(S, focus){
     <rect width="${AO.w}" height="${AO.h}" fill="url(#cdots)"/>
     ${[...Array(Math.ceil(AO.w / 320))].map((_, i) => `<path class="cg" d="M${i * 320} 0V${AO.h}"/>`).join('')}${[...Array(Math.ceil(AO.h / 320))].map((_, i) => `<path class="cg" d="M0 ${i * 320}H${AO.w}"/>`).join('')}
     <g class="pts">${fi >= 0 ? `<path class="croute" d=""${path(pts.slice(0, fi + 3))}"/><path class="croute fut" d="${path(pts.slice(fi + 2))}"/>` : `<path class="croute" d="${path(pts)}"/>`}${fi >= 0 ? `<path class="croute hot" d="${path([fi > 0 ? AO.nodes[S.ms[fi - 1].id] : AO.lz, AO.nodes[focus]])}"/>` : ''}
-    ${focus ? shipSvg('cship') : ''}<g transform="translate(${AO.lz[0]} ${AO.lz[1]})"><rect x="-11" y="-11" width="22" height="22" class="wp"/><text x="22" y="8" class="wl big">BLACK SAND</text></g>
-    ${nodes}</g>${focus ? '' : shipSvg('cship')}${focusG}</svg>`;
+    ${shipSvg('cship')}<g transform="translate(${AO.lz[0]} ${AO.lz[1]})"><rect x="-11" y="-11" width="22" height="22" class="wp"/><text x="22" y="8" class="wl big">BLACK SAND</text></g>
+    ${nodes}${focusG}</g></svg>`;
 }
 let CINE_OUTER = null;
 const CRING_IN = '<circle r="244" fill="none" stroke="rgba(245,184,46,.22)" stroke-width="18"/><circle r="244" fill="none" stroke="#f5b82e" stroke-width="6" stroke-dasharray="18 12"/>';
