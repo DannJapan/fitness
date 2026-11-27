@@ -248,6 +248,7 @@ details.mlog summary{cursor:pointer;list-style:none}
 #cine .cobj3d{position:absolute;transform:translateZ(6px);opacity:0;transition:opacity .4s;white-space:nowrap;text-shadow:-2px 0 rgba(255,0,60,.35),2px 0 rgba(0,220,255,.35)}
 #cine.obj-in .cobj3d{opacity:1}
 #cine .csvg .wl{transition:opacity .8s}#cine.s-obj .csvg .wl{opacity:0}
+#cine .csvg .pts{transition:opacity .9s}#cine:not(.r-in) .csvg .pts{opacity:0}
 #cine .csvg .fut{transition:opacity .8s}#cine.obj-in .csvg .fut{opacity:0}
 #cine .cobj3d.ship .oh{font-size:40px}
 #cine .cobj3d .oh{display:inline-block;background:#f4f7f8;color:#05090c;font:700 46px/1 Rajdhani,sans-serif;letter-spacing:.06em;padding:6px 14px 4px;border:3px solid #05090c;box-shadow:0 0 0 3px #f4f7f8;margin:0 0 12px -4px;text-shadow:none}
@@ -521,7 +522,7 @@ body.typing #rest{display:none!important}
 <div id="toast"></div>
 
 <script>
-const APP_VERSION = 'cf-v32';
+const APP_VERSION = 'cf-v33';
 /* ================= utilities ================= */
 const $ = s => document.querySelector(s);
 const esc = v => String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1105,9 +1106,9 @@ function shipSvg(cls){ const [x, y] = AO.sea, ang = Math.atan2(AO.lz[1] - y, AO.
     <text class="sl" x="0" y="48" text-anchor="middle">HMS QUEEN ELIZABETH</text><text class="sl2" x="0" y="70" text-anchor="middle">// R08 // TASK GROUP</text></g>`; }
 function cineSvg(S, focus){
   const pts = [AO.sea, AO.lz].concat(S.ms.map(m => AO.nodes[m.id])).concat([AO.exfil]), path = l => l.map((p, i) => (i ? 'L' : 'M') + p[0] + ' ' + p[1]).join(' ');
-  const fi = S.ms.findIndex(m => m.id === focus);
+  const fi = S.ms.findIndex(m => m.id === focus); let focusG = '';
   const nodes = S.ms.map((m, i) => { const [x, y] = AO.nodes[m.id], open = aoSectorUnlocked(S, m.week), fut = fi >= 0 && i > fi ? ' fut' : '';
-    if (m.id === focus) return `<g transform="translate(${x} ${y})"><rect x="-44" y="-44" width="88" height="88" class="tbox"/><path d="M0 -24 L22 16 L-22 16 Z" class="tri"/></g>`;
+    if (m.id === focus) { focusG = `<g transform="translate(${x} ${y})"><rect x="-44" y="-44" width="88" height="88" class="tbox"/><path d="M0 -24 L22 16 L-22 16 Z" class="tri"/></g>`; return ''; }
     const c2 = !open || m.status === 'blocked' ? 'lk' : m.done ? 'dn' : m.status === 'missed' ? 'ms' : 'op';
     return `<g transform="translate(${x} ${y})" class="${c2}${fut}"><rect x="-11" y="-11" width="22" height="22" class="wp"/>
       <text x="22" y="8" class="wl">${String(i + 1).padStart(2, '0')}. ${open ? esc(m.name) : '██████'}</text></g>`; }).join('');
@@ -1115,9 +1116,9 @@ function cineSvg(S, focus){
     <defs><pattern id="cdots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.4" fill="rgba(150,225,240,.22)"/></pattern></defs>
     <rect width="${AO.w}" height="${AO.h}" fill="url(#cdots)"/>
     ${[...Array(Math.ceil(AO.w / 320))].map((_, i) => `<path class="cg" d="M${i * 320} 0V${AO.h}"/>`).join('')}${[...Array(Math.ceil(AO.h / 320))].map((_, i) => `<path class="cg" d="M0 ${i * 320}H${AO.w}"/>`).join('')}
-    ${fi >= 0 ? `<path class="croute" d="${path(pts.slice(0, fi + 3))}"/><path class="croute fut" d="${path(pts.slice(fi + 2))}"/>` : `<path class="croute" d="${path(pts)}"/>`}${fi >= 0 ? `<path class="croute hot" d="${path([fi > 0 ? AO.nodes[S.ms[fi - 1].id] : AO.lz, AO.nodes[focus]])}"/>` : ''}
-    ${shipSvg('cship')}<g transform="translate(${AO.lz[0]} ${AO.lz[1]})"><rect x="-11" y="-11" width="22" height="22" class="wp"/><text x="22" y="8" class="wl big">BLACK SAND</text></g>
-    ${nodes}</svg>`;
+    <g class="pts">${fi >= 0 ? `<path class="croute" d=""${path(pts.slice(0, fi + 3))}"/><path class="croute fut" d="${path(pts.slice(fi + 2))}"/>` : `<path class="croute" d="${path(pts)}"/>`}${fi >= 0 ? `<path class="croute hot" d="${path([fi > 0 ? AO.nodes[S.ms[fi - 1].id] : AO.lz, AO.nodes[focus]])}"/>` : ''}
+    ${focus ? shipSvg('cship') : ''}<g transform="translate(${AO.lz[0]} ${AO.lz[1]})"><rect x="-11" y="-11" width="22" height="22" class="wp"/><text x="22" y="8" class="wl big">BLACK SAND</text></g>
+    ${nodes}</g>${focus ? '' : shipSvg('cship')}${focusG}</svg>`;
 }
 let CINE_OUTER = null;
 const CRING_IN = '<circle r="244" fill="none" stroke="rgba(245,184,46,.22)" stroke-width="18"/><circle r="244" fill="none" stroke="#f5b82e" stroke-width="6" stroke-dasharray="18 12"/>';
@@ -1270,7 +1271,7 @@ async function cinePlay(id){
   const deadline = intro ? c.start + 'T00:00:00' : addDaysStr(m.sun, 1) + 'T00:00:00';
   CINE = { id, beats, dur, cur: -1, beat: null, raf: 0, timers: [], holos, holoState: 0, ev: {} };
   mapIn();
-  if (!intro) { cineLater(() => { el.classList.add('r-in'); sfxB('data', 0.07); }, 3300); cineLater(() => { if (!el.classList.contains('s-obj')) { el.classList.add('r-up'); sfxB('chirp', 0.07, 0.8); } }, 4500); }
+  const fb = n => beats.findIndex(b => b.beat === n); CINE.mA = (beats[fb('mission')] || beats[fb('execution')] || beats[Math.min(2, beats.length - 1)] || { a: 6 }).a; CINE.sA = fb('situation') >= 0 ? beats[fb('situation')].a : null;
   const a = audio();
   sfxB('hit', 0.35); sfxB('chatter', 0.10);
   const tStart = a.currentTime + 0.5;
@@ -1282,9 +1283,13 @@ async function cinePlay(id){
     if (!CINE || !document.getElementById('cine')) return;
     const t = CINE.clock(), root = $('#cine');
     const clk = $('#cineClock'); if (clk) { const over = new Date(deadline) <= new Date(); clk.textContent = over ? (intro ? 'LIVE' : m.done ? 'COMPLETE' : 'CLOSED') : aoClockText(deadline); $('#cineClkL').textContent = over ? 'STATUS' : intro ? 'INSERTION IN' : 'TIME REMAINING'; }
-    if (intro) { const E = CINE.ev, at = (key, tt, fn) => { if (!E[key] && t >= tt) { E[key] = 1; fn(); } }, shipEnd = beats[5] ? beats[5].a - 0.5 : 15;
-      at('rin', 2.6, () => { root.classList.add('r-in'); sfxB('data', 0.07); });
-      at('rup', 3.8, () => { root.classList.add('r-up'); sfxB('chirp', 0.07, 0.8); });
+    const E = CINE.ev, at = (key, tt, fn) => { if (!E[key] && t >= tt) { E[key] = 1; fn(); } };
+    at('rin', 2.6, () => { root.classList.add('r-in'); sfxB('data', 0.07); });
+    at('rup', 3.8, () => { if (!root.classList.contains('s-obj')) { root.classList.add('r-up'); sfxB('chirp', 0.07, 0.8); } });
+    if (!intro) { const tOut = Math.max(CINE.sA != null ? CINE.sA + 1.2 : 4.4, CINE.mA - 2.8);
+      at('rout', tOut, () => { CINE.camLock = 1; cineSetCam(cineCam(id, 'mission')); root.classList.add('s-sit', 's-obj', 'r-out'); sfxB('hit2', 0.22); cineLater(() => { const r = $('#cine .crings'); if (r) r.remove(); }, 1300); });
+      at('reveal', tOut + 2.7, () => { root.classList.add('obj-in'); sfxB('data', 0.08, 1.05); holoIn(); }); }
+    if (intro) { const shipEnd = beats[5] ? beats[5].a - 0.5 : 15;
       at('rout', 5.6, () => { root.classList.add('s-obj', 'r-out'); sfxB('hit2', 0.22); cineLater(() => { const r = $('#cine .crings'); if (r) r.remove(); }, 1300); });
       at('reveal', 7.0, () => { root.classList.add('obj-in'); sfxB('data', 0.08, 1.05); holoIn(); });
       at('shipout', shipEnd, () => { holoOut(); cineLater(() => root.classList.remove('obj-in', 's-obj'), 350); }); }
@@ -1293,15 +1298,13 @@ async function cinePlay(id){
     if (CINE.bed && speaking !== CINE.duck && t <= dur) { CINE.duck = speaking; CINE.bed.gain.setTargetAtTime(speaking ? 0.18 : 0.3, audio().currentTime, 0.25); }
     if (k !== CINE.cur && k >= 0) {
       CINE.cur = k; const b = beats[k];
-      if (b.beat !== CINE.beat) { CINE.beat = b.beat; cineSetCam(cineCam(id, b.beat)); if (!CINE.whooshed) { CINE.whooshed = 1; sfxCine('whoosh'); }
+      if (b.beat !== CINE.beat) { CINE.beat = b.beat; if (!(CINE.camLock && ['mission', 'execution', 'situation'].includes(b.beat))) cineSetCam(cineCam(id, b.beat)); if (!CINE.whooshed) { CINE.whooshed = 1; sfxCine('whoosh'); }
         const bn = b.beat.replace(/\d+$/, ''); root.dataset.beat = bn;
         $('#cineTitle').classList.toggle('on', b.beat === 'title' || b.beat === 'tour0');
         if (['situation', 'mission', 'execution'].includes(bn)) root.classList.add('s-sit');
-        if (['mission', 'execution'].includes(bn) && !root.classList.contains('s-obj')) { root.classList.add('s-obj');
-          root.classList.add('r-out'); sfxB('hit2', 0.22); cineLater(() => { const r = $('#cine .crings'); if (r) r.remove(); }, 1300);
-          cineLater(() => { root.classList.add('obj-in'); sfxB('data', 0.08, 1.05); holoIn(); }, 2700); } }
+        }
     }
-    if (k >= 0) { const b = beats[k], frac = Math.min(1, (t - b.a) / Math.max(0.4, (b.b - b.a) * 0.8)), n = Math.round(b.txt.length * frac), tx = $('#cineTxt');
+    if (k >= 0) { const b = beats[k], frac = Math.max(0, Math.min(1, (t - b.a) / Math.max(0.4, (b.b - b.a) * 0.8))), n = Math.round(b.txt.length * frac), tx = $('#cineTxt');
       if (tx && tx.dataset.n !== n + '|' + k) { tx.dataset.n = n + '|' + k; tx.textContent = b.txt.slice(0, n); } }
     if (!intro && t > dur - 0.6) holoOut();
     const pg = $('#cineProg'); if (pg) pg.style.width = Math.min(100, t / dur * 100) + '%';
